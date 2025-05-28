@@ -447,6 +447,13 @@
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="plasterWallsArea">مساحة لبخ الجدران (م²)</label>
+                                <input type="number" id="plasterWallsArea" class="form-control" step="0.01">
+                                <span class="tooltip">أدخل مساحة لبخ الجدران</span>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
                             <input type="number" id="claddingWallsArea" class="form-control" step="0.01">
@@ -639,15 +646,6 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
-
-                    if (inputs.concreteColumnsInfo) {
-                        inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
-                    }
-
-                    if (inputs.internalWallsInfo) {
-                        inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
-                        inputs.technicalDetails.internalWallsPrice = getValue('internalWallsPrice', true);
-                    }
                 }
 
                 const response = await fetch('/api/process', {
