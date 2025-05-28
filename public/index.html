@@ -257,7 +257,7 @@
                             <label for="wallPaintingPrice">سعر م² صبغ الجدران</label>
                             <input type="number" id="wallPaintingPrice" class="form-control" required step="0.01">
                             <div class="error-message" id="wallPaintingPriceError">الرجاء إدخال سعر</div>
-                            <span class="tooltip">أدخل سعر صlicense الجدران</span>
+                            <span class="tooltip">أدخل سعر صبغ الجدران</span>
                         </div>
                         <div class="form-group">
                             <label for="windowsDoorsPrice">سعر م² شبابيك وأبواب</label>
@@ -443,7 +443,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="decorativeWallsArea">مساحة الجدران الديكورية (م²)</label>
-                                <input type="number" id="decorativeWallsArea"athed class="form-control" step="0.01">
+                                <input type="number" id="decorativeWallsArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
@@ -573,38 +573,83 @@
                         floors: getValue('floors', false, true), rooms: getValue('rooms', false, true),
                         bathrooms: getValue('bathrooms', false, true), groundFloorHeight: getValue('groundFloorHeight', true),
                         otherFloorsHeight: getValue('otherFloorsHeight', true), brickType: getValue('brickType'),
-                        brickWidth: getValue('brickWidth', true), brickLength: getValue('brickLength', true),
-                        brickHeight: getValue('brickHeight', true), brickDensity: getValue('brickDensity', true),
                         woodType: getValue('woodType'), facadeType: getValue('facadeType'),
-                        facadeArea: getValue('facadeArea', true), facadePrice: getValue('facadePrice', true),
-                        apartmentsCount: getValue('apartmentsCount', false, true), basementFloors: getValue('basementFloors', false, true),
-                        basementCeilingArea: getValue('basementCeilingArea', true), basementPrice: getValue('basementPrice', true),
                         hasGarden: document.getElementById('hasGarden').checked, hasPool: document.getElementById('hasPool').checked,
                         hasHVAC: document.getElementById('hasHVAC').checked, hasElevator: document.getElementById('hasElevator').checked,
                         hasFence: document.getElementById('hasFence').checked
                     },
                     prices: {
                         flooring: getValue('flooringPrice', true), wallInstallation: getValue('wallInstallationPrice', true),
-                        wallPainting: getValue('wallPaintingPrice', true), windowsDoors: getValue('windowsDoorsPrice', true),
-                        stairsRailing: getValue('stairsRailingPrice', true)
+                        wallPainting: getValue('wallPaintingPrice', true), windowsDoors: getValue('windowsDoorsPrice', true)
                     },
-                    stairsRailingLength: getValue('stairsRailingLength', true),
-                    hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden')
+                    otherBrickInfo: !document.getElementById('otherBrickInfo').classList.contains('hidden'),
+                    customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
+                    apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
+                    basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
+                    stairsRailingInfo: !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
+                    concreteColumnsInfo: !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
+                    internalWallsInfo: !document.getElementById('internalWallsInfo').classList.contains('hidden'),
+                    mapDetailsInfo: !document.getElementById('mapDetailsInfo').classList.contains('hidden')
                 };
 
-                if (inputs.hasMap) {
-                    inputs.technicalDetails = {
-                        totalRoofArea: getValue('totalRoofArea', true), gardenArea: getValue('gardenArea', true),
-                        garagePathArea: getValue('garagePathArea', true), externalPlasterWalls: getValue('externalPlasterWalls', true),
-                        skylightsArea: getValue('skylightsArea', true), tiesLength: getValue('tiesLength', true),
-                        invertedBeams: getValue('invertedBeams', true), externalWalls24cm: getValue('externalWalls24cm', true),
-                        internalWalls24cm: getValue('internalWalls24cm', true), roofFenceLength: getValue('roofFenceLength', true),
-                        externalDoors: getValue('externalDoors', false, true), internalDoors: getValue('internalDoors', false, true),
-                        facadeWindowsDoorsArea: getValue('facadeWindowsDoorsArea', true), skylightWindowsDoorsArea: getValue('skylightWindowsDoorsArea', true),
-                        secondaryCeilingsArea: getValue('secondaryCeilingsArea', true), decorativeWallsArea: getValue('decorativeWallsArea', true),
-                        claddingWallsArea: getValue('claddingWallsArea', true), concreteVolume: getValue('concreteVolume', true),
-                        internalWallsArea: getValue('internalWallsArea', true), internalWallsPrice: getValue('internalWallsPrice', true)
-                    };
+                // إضافة الحقول فقط إذا كان القسم ظاهرًا
+                if (inputs.otherBrickInfo) {
+                    inputs.building.brickWidth = getValue('brickWidth', true);
+                    inputs.building.brickLength = getValue('brickLength', true);
+                    inputs.building.brickHeight = getValue('brickHeight', true);
+                    inputs.building.brickDensity = getValue('brickDensity', true);
+                }
+
+                if (inputs.customFacadeInfo) {
+                    inputs.building.facadeArea = getValue('facadeArea', true);
+                    inputs.building.facadePrice = getValue('facadePrice', true);
+                }
+
+                if (inputs.apartmentsInfo) {
+                    inputs.building.apartmentsCount = getValue('apartmentsCount', false, true);
+                }
+
+                if (inputs.basementInfo) {
+                    inputs.building.basementFloors = getValue('basementFloors', false, true);
+                    inputs.building.basementCeilingArea = getValue('basementCeilingArea', true);
+                    inputs.building.basementPrice = getValue('basementPrice', true);
+                }
+
+                if (inputs.stairsRailingInfo) {
+                    inputs.stairsRailingLength = getValue('stairsRailingLength', true);
+                    inputs.prices.stairsRailing = getValue('stairsRailingPrice', true);
+                }
+
+                if (inputs.concreteColumnsInfo) {
+                    inputs.technicalDetails = inputs.technicalDetails || {};
+                    inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
+                }
+
+                if (inputs.internalWallsInfo) {
+                    inputs.technicalDetails = inputs.technicalDetails || {};
+                    inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
+                    inputs.technicalDetails.internalWallsPrice = getValue('internalWallsPrice', true);
+                }
+
+                if (inputs.mapDetailsInfo) {
+                    inputs.technicalDetails = inputs.technicalDetails || {};
+                    inputs.technicalDetails.totalRoofArea = getValue('totalRoofArea', true);
+                    inputs.technicalDetails.gardenArea = getValue('gardenArea', true);
+                    inputs.technicalDetails.garagePathArea = getValue('garagePathArea', true);
+                    inputs.technicalDetails.externalPlasterWalls = getValue('externalPlasterWalls', true);
+                    inputs.technicalDetails.skylightsArea = getValue('skylightsArea', true);
+                    inputs.technicalDetails.tiesLength = getValue('tiesLength', true);
+                    inputs.technicalDetails.invertedBeams = getValue('invertedBeams', true);
+                    inputs.technicalDetails.externalWalls24cm = getValue('externalWalls24cm', true);
+                    inputs.technicalDetails.internalWalls24cm = getValue('internalWalls24cm', true);
+                    inputs.technicalDetails.roofFenceLength = getValue('roofFenceLength', true);
+                    inputs.technicalDetails.externalDoors = getValue('externalDoors', false, true);
+                    inputs.technicalDetails.internalDoors = getValue('internalDoors', false, true);
+                    inputs.technicalDetails.facadeWindowsDoorsArea = getValue('facadeWindowsDoorsArea', true);
+                    inputs.technicalDetails.skylightWindowsDoorsArea = getValue('skylightWindowsDoorsArea', true);
+                    inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
+                    inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
+                    inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
                 }
 
                 const response = await fetch('/api/process', {
