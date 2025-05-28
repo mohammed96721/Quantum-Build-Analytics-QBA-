@@ -587,9 +587,9 @@
                     customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
                     apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
                     basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
-                    stairsRailingInfo: !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
-                    concreteColumnsInfo: !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
-                    internalWallsInfo: !document.getElementById('internalWallsInfo').classList.contains('hidden')
+                    stairsRailingInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
+                    concreteColumnsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
+                    internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
                 };
 
                 // إضافة الحقول فقط إذا كان القسم ظاهرًا
@@ -615,20 +615,9 @@
                     inputs.building.basementPrice = getValue('basementPrice', true);
                 }
 
-                if (inputs.stairsRailingInfo) {
+                if (inputs.stairsRailingInfo && inputs.hasMap) {
                     inputs.stairsRailingLength = getValue('stairsRailingLength', true);
                     inputs.prices.stairsRailing = getValue('stairsRailingPrice', true);
-                }
-
-                if (inputs.concreteColumnsInfo) {
-                    inputs.technicalDetails = inputs.technicalDetails || {};
-                    inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
-                }
-
-                if (inputs.internalWallsInfo) {
-                    inputs.technicalDetails = inputs.technicalDetails || {};
-                    inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
-                    inputs.technicalDetails.internalWallsPrice = getValue('internalWallsPrice', true);
                 }
 
                 if (inputs.hasMap) {
@@ -650,6 +639,15 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
+
+                    if (inputs.concreteColumnsInfo) {
+                        inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
+                    }
+
+                    if (inputs.internalWallsInfo) {
+                        inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
+                        inputs.technicalDetails.internalWallsPrice = getValue('internalWallsPrice', true);
+                    }
                 }
 
                 const response = await fetch('/api/process', {
