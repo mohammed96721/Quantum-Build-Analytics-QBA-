@@ -582,14 +582,14 @@
                         flooring: getValue('flooringPrice', true), wallInstallation: getValue('wallInstallationPrice', true),
                         wallPainting: getValue('wallPaintingPrice', true), windowsDoors: getValue('windowsDoorsPrice', true)
                     },
+                    hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
                     otherBrickInfo: !document.getElementById('otherBrickInfo').classList.contains('hidden'),
                     customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
                     apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
                     basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
                     stairsRailingInfo: !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
                     concreteColumnsInfo: !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
-                    internalWallsInfo: !document.getElementById('internalWallsInfo').classList.contains('hidden'),
-                    mapDetailsInfo: !document.getElementById('mapDetailsInfo').classList.contains('hidden')
+                    internalWallsInfo: !document.getElementById('internalWallsInfo').classList.contains('hidden')
                 };
 
                 // إضافة الحقول فقط إذا كان القسم ظاهرًا
@@ -631,7 +631,7 @@
                     inputs.technicalDetails.internalWallsPrice = getValue('internalWallsPrice', true);
                 }
 
-                if (inputs.mapDetailsInfo) {
+                if (inputs.hasMap) {
                     inputs.technicalDetails = inputs.technicalDetails || {};
                     inputs.technicalDetails.totalRoofArea = getValue('totalRoofArea', true);
                     inputs.technicalDetails.gardenArea = getValue('gardenArea', true);
