@@ -178,6 +178,7 @@
                             <input type="number" id="rooms" class="form-control" required>
                             <div class="error-message" id="roomsError">الرجاء إدخال عدد</div>
                             <span class="tooltip">حدد عدد الغرف</span>
+                        virtude { display: none; } /* إخفاء الأقسام الغير مطلوبة */
                         </div>
                     </div>
                     <div class="form-row">
@@ -188,7 +189,7 @@
                             <span class="tooltip">أدخل ارتفاع الطابق الأرضي</span>
                         </div>
                         <div class="form-group">
-                            <label for="otherFloorsHeight">ارتفاع باقي الطوابيق (م)</label>
+                            <label for="otherFloorsHeight">ارتفاع باقي الطوابق (م)</label>
                             <input type="number" id="otherFloorsHeight" class="form-control" required step="0.01">
                             <div class="error-message" id="otherFloorsHeightError">الرجاء إدخال ارتفاع</div>
                             <span class="tooltip">أدخل ارتفاع باقي الطوابق</span>
@@ -229,7 +230,7 @@
                                 <span class="tooltip">أدخل ارتفاع البلوكة</span>
                             </div>
                             <div class="form-group">
-                                <label for="brickDensity">وزن البلوكة (كغم/م³)</label>
+                                <label for="brickDensity">وزن البلوكة (كجم/م³)</label>
                                 <input type="number" id="brickDensity" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل وزن البلوكة</span>
                             </div>
@@ -240,7 +241,7 @@
                     <h3><span class="material-icons-outlined">attach_money</span> أسعار التشطيبات</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="flooringPrice">سعر م² تشطيبات الأرضيات</label>
+                            <label for="flooringPrice">سعر م² تشطيب الأرضيات</label>
                             <input type="number" id="flooringPrice" class="form-control" required step="0.01">
                             <div class="error-message" id="flooringPriceError">الرجاء إدخال سعر</div>
                             <span class="tooltip">أدخل سعر الأرضيات</span>
@@ -273,15 +274,19 @@
                         <div class="form-group">
                             <label for="woodType">نوع الخشب</label>
                             <select id="woodType" class="form-control" required>
-                                <option value="plywood">بلي وود</option><option value="regular">عادي</option><option value="waffle">Waffle Slab</option>
+                                <option value="plywood">بلي وود</option>
+                            <option value="regular">عادي</option>
+                            <option value="waffle">Waffle Slab</option>
                             </select>
                             <span class="tooltip">اختر نوع الخشب</span>
                         </div>
                         <div class="form-group">
                             <label for="facadeType">نوع الواجهة</label>
                             <select id="facadeType" class="form-control" required>
-                                <option value="economy">اقتصادية</option><option value="simple">تفاصيل بسيطة</option>
-                                <option value="luxury">فخمة</option><option value="custom">مخصصة</option>
+                                <option value="economy">اقتصادية</option>
+                                <option value="simple">تفاصيل بسيطة</option>
+                                <option value="luxury">فخمة</option>
+                                <option value="custom">مخصصة</option>
                             </select>
                             <span class="tooltip">اختر نوع الواجهة</span>
                         </div>
@@ -302,7 +307,7 @@
                     </div>
                     <div class="toggle-section" id="toggleApartments">
                         <span><span class="material-icons-outlined">apartment</span> شقق سكنية</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                        <span class="toggle-icon"><span class="material-icons-outlined">add</span>
                     </div>
                     <div id="apartmentsInfo" class="toggle-content hidden">
                         <div class="form-group">
@@ -313,7 +318,7 @@
                     </div>
                     <div class="toggle-section" id="toggleBasement">
                         <span><span class="material-icons-outlined">garage</span> طوابق سفلية</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                        <span class="toggle-icon"><span class="material-icons-outlined">add</span>
                     </div>
                     <div id="basementInfo" class="toggle-content hidden">
                         <div class="form-row">
@@ -348,7 +353,7 @@
                 <div class="form-section">
                     <div class="toggle-section map-toggle" id="toggleMapDetails">
                         <span><span class="material-icons-outlined">map</span> تفاصيل الخريطة</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                        <span class="toggle-icon"><span class="material-icons-outlined">add</span>
                     </div>
                     <div id="mapDetailsInfo" class="toggle-content hidden">
                         <div class="form-row">
@@ -366,7 +371,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="garagePathArea">مساحة الكراج والممرات (م²)</label>
-                                <input type="number" id="garagePathArea" class="form-control" step="0.01">
+                                <input type="number" id="garagePathArea class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الكراج</span>
                             </div>
                             <div class="form-group">
@@ -395,7 +400,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="externalWalls24cm">أطوال الجدران الخارجية 24سم (م)</label>
-                                <input type="number" id="externalWalls24cm" class="form-control" step="0.01">
+                                <input type="number" id="externalWalls24cm class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الجدران</span>
                             </div>
                         </div>
@@ -453,15 +458,15 @@
                                 <input type="number" id="plasterWallsArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة لبخ الجدران</span>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
-                            <input type="number" id="claddingWallsArea" class="form-control" step="0.01">
-                            <span class="tooltip">أدخل مساحة الجدران</span>
+                            <div class="form-group">
+                                <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
+                                <input type="number" id="claddingWallsArea" class="form-control" step="0.01">
+                                <span class="tooltip">أدخل مساحة الجدران</span>
+                            </div>
                         </div>
                         <div class="toggle-section" id="toggleStairsRailing">
                             <span><span class="material-icons-outlined">stairs</span> محجر الدرج</span>
-                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span>
                         </div>
                         <div id="stairsRailingInfo" class="toggle-content hidden">
                             <div class="form-row">
@@ -479,8 +484,8 @@
                         </div>
                         <div class="toggle-section" id="toggleConcreteColumns">
                             <span><span class="material-icons-outlined">foundation</span> أعمدة كونكريت</span>
-                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
-                        </div>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span>
+                            </div>
                         <div id="concreteColumnsInfo" class="toggle-content hidden">
                             <div class="form-group">
                                 <label for="concreteVolume">حجم الكونكريت (م³)</label>
@@ -490,7 +495,7 @@
                         </div>
                         <div class="toggle-section" id="toggleInternalWalls">
                             <span><span class="material-icons-outlined">walls</span> جدران داخلية</span>
-                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span>
                         </div>
                         <div id="internalWallsInfo" class="toggle-content hidden">
                             <div class="form-row">
@@ -643,17 +648,21 @@
                     inputs.technicalDetails.internalDoors = getValue('internalDoors', false, true);
                     inputs.technicalDetails.facadeWindowsDoorsArea = getValue('facadeWindowsDoorsArea', true);
                     inputs.technicalDetails.skylightWindowsDoorsArea = getValue('skylightWindowsDoorsArea', true);
-                    inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
+                    inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
-                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
                 }
 
+                if (inputs.internalWallsInfo && inputs.hasMap) {
+                    inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
+                    inputs.prices.internalWalls = getValue('internalWallsPrice', true);
+                }
+
                 const response = await fetch('/api/process', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(inputs)
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(inputs))
                 });
 
-                if (!response.ok) throw new Error(`خطأ في الاتصال: ${response.status}`);
+                if (!response.ok) { throw new Error(`خطأ في الاتصال: ${response.status}`);
                 const result = await response.json();
                 const resultContainer = document.getElementById('resultContainer');
                 const resultContent = document.getElementById('resultContent');
@@ -670,18 +679,18 @@
                 resultContainer.style.display = 'block';
 
                 document.getElementById('downloadPdf').onclick = () => {
-                    const pdfContent = document.getElementById('pdfContent').innerHTML;
+                    const pdfContent = document.getElementById('pdfContent').innerHTML);
                     const pdfWindow = window.open('');
                     pdfWindow.document.write(`
                         <html dir="rtl">
                         <head><title>تقرير تكاليف البناء</title>
                             <style>
-                                body { font-family: 'Tajawal', sans-serif; padding: 10px; background: #F5F1E9; color: #2A2A2A; }
-                                h3 { color: #5C4033; font-size: 1rem; }
+                                body { font-family: 'Tajawal', sans-serif; padding: 10px; background: #FFF6E6; color: #2A2A2A; }
+                                h3 { color: #5C4033; font-size: 1rem; font-weight: 600; }
                                 table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
                                 th, td { padding: 6px; text-align: right; border-bottom: 1px solid #E4E2DB; }
                                 th { background: rgba(92, 64, 51, 0.1); color: #5C4033; }
-                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 6px; border-radius: 5px; }
+                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 5px; border-radius: 5px; }
                             </style>
                         </head>
                         <body>${pdfContent}</body>
