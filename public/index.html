@@ -6,7 +6,6 @@
     <title>نظام حساب تكاليف البناء - العراق</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #5C4033; --accent: #E8B923; --background: #F5F1E9; --secondary-bg: #EDE7E0;
@@ -41,71 +40,15 @@
         .form-group { margin-bottom: 6px; position: relative; }
         .form-group label { display: block; margin-bottom: 2px; font-weight: 500; font-size: 0.7rem; }
         .form-control {
-            width: 100%; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px;
+            width: 100%; max-width: 200px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
             font-size: 0.75rem; background: var(--transparent-bg); transition: all 0.2s; height: 26px;
         }
         .form-control:focus { border-color: var(--accent); box-shadow: 0 0 6px rgba(232, 185, 35, 0.3); transform: scale(1.01); outline: none; }
         .form-control:invalid:focus { border-color: var(--danger); box-shadow: 0 0 6px rgba(199, 86, 86, 0.3); }
-        .form-control.number-input, #customerName { text-align: left; direction: ltr; }
-        .form-control.small-input { max-width: 120px; }
-        .form-control.large-input { max-width: 200px; }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-            appearance: textfield;
-            position: relative;
-            padding-right: 24px;
-        }
-        .number-input-wrapper {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            max-width: 200px;
-        }
-        .number-input-wrapper.small-input { max-width: 120px; }
-        .number-input-buttons {
-            position: absolute;
-            top: 0;
-            right: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 20px;
-        }
-        .number-input-buttons button {
-            flex: 1;
-            background: var(--primary);
-            color: #FFFFFF;
-            border: none;
-            cursor: pointer;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        .number-input-buttons button:hover { background: var(--accent); }
-        .number-input-buttons button:first-child { border-radius: 0 4px 0 0; }
-        .number-input-buttons button:last-child { border-radius: 0 0 4px 0; }
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-        @media (max-width: 480px) {
-            .form-row { grid-template-columns: 1fr; }
-        }
-        @media (min-width: 481px) and (max-width: 768px) {
-            .form-row { grid-template-columns: repeat(2, 1fr); }
-        }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 6px; }
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-weight: 500;
-            padding: 6px 12px; font-size: 0.75rem; border-radius: 4px; border: none; cursor: pointer; transition: all 0.2s;
+            padding: 6px 12px; font-size: 0.75rem; border-radius: 5px; border: none; cursor: pointer; transition: all 0.2s;
         }
         .btn-primary { background: linear-gradient(135deg, var(--accent), #D4A017); color: var(--text); }
         .btn-primary:hover { background: linear-gradient(135deg, #D4A017, var(--accent)); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(232, 185, 35, 0.4); }
@@ -114,13 +57,13 @@
         .btn-block { width: 100%; max-width: 200px; }
         .hidden { display: none; }
         .toggle-section {
-            background: var(--transparent-bg); padding: 6px; border-radius: 4px; margin-bottom: 5px; cursor: pointer;
+            background: var(--transparent-bg); padding: 6px; border-radius: 5px; margin-bottom: 5px; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); transition: all 0.2s;
         }
         .toggle-section:hover { background: rgba(255, 245, 235, 0.98); transform: translateY(-1px); }
         .map-toggle { background: linear-gradient(135deg, var(--highlight), #8BAF7F); padding: 10px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; box-shadow: 0 3px 10px rgba(168, 196, 162, 0.3); color: #FFFFFF; }
         .map-toggle:hover { background: linear-gradient(135deg, #8BAF7F, var(--highlight)); transform: translateY(-2px); }
-        .toggle-content { padding: 6px; background: var(--transparent-bg); border-radius: 4px; margin-top: 4px; border: 1px solid var(--border); animation: fadeIn 0.3s; }
+        .toggle-content { padding: 6px; background: var(--transparent-bg); border-radius: 5px; margin-top: 4px; border: 1px solid var(--border); animation: fadeIn 0.3s; }
         .checkbox-group { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; }
         .checkbox-group input { width: 12px; height: 12px; accent-color: var(--primary); }
         .result-container { margin-top: 10px; padding: 10px; background: linear-gradient(135deg, var(--primary), #7A5A45); border-radius: 6px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); color: #FFFFFF; display: none; animation: slideIn 0.3s; }
@@ -135,6 +78,8 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: translateX(0); } }
         @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .form-control, .btn-block { max-width: 100%; }
             .container { padding: 5px; }
             .form-card { padding: 8px; }
             .form-section { padding: 6px; }
@@ -161,14 +106,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="customerName">الاسم الكامل</label>
-                            <input type="text" id="customerName" class="form-control large-input" required pattern="[A-Za-z\u0600-\u06FF\s\-]{2,100}">
-                            <div class="error-message" id="customerNameError">الاسم يجب أن يحتوي على أحرف ومسافات فقط (2-100 حرف)</div>
+                            <input type="text" id="customerName" class="form-control" required>
+                            <div class="error-message" id="customerNameError">الرجاء إدخال الاسم</div>
                             <span class="tooltip">أدخل الاسم الكامل</span>
                         </div>
                         <div class="form-group">
                             <label for="phoneNumber">رقم الهاتف</label>
-                            <input type="tel" id="phoneNumber" class="form-control large-input" required pattern="\+?[0-9\s\-]{7,15}">
-                            <div class="error-message" id="phoneNumberError">أدخل رقم هاتف صالح (7-15 رقمًا)</div>
+                            <input type="tel" id="phoneNumber" class="form-control" required>
+                            <div class="error-message" id="phoneNumberError">الرجاء إدخال رقم هاتف</div>
                             <span class="tooltip">أدخل رقم هاتف صالح</span>
                         </div>
                     </div>
@@ -178,7 +123,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="governorate">المحافظة</label>
-                            <select id="governorate" class="form-control large-input" required>
+                            <select id="governorate" class="form-control" required>
                                 <option value="">اختر المحافظة</option>
                                 <option value="baghdad">بغداد</option><option value="basra">البصرة</option>
                                 <option value="najaf">النجف</option><option value="karbala">كربلاء</option>
@@ -195,8 +140,8 @@
                         </div>
                         <div class="form-group">
                             <label for="area">المنطقة/الحي</label>
-                            <input type="text" id="area" class="form-control large-input" required pattern="[A-Za-z0-9\u0600-\u06FF\s\-\.]{3,100}">
-                            <div class="error-message" id="areaError">المنطقة يجب أن تحتوي على أحرف وأرقام فقط (3-100 حرف)</div>
+                            <input type="text" id="area" class="form-control" required>
+                            <div class="error-message" id="areaError">الرجاء إدخال المنطقة</div>
                             <span class="tooltip">حدد الحي أو المنطقة</span>
                         </div>
                     </div>
@@ -206,26 +151,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="landArea">مساحة الأرض (م²)</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="landArea" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('landArea', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('landArea', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="landAreaError">أدخل مساحة بين 1 و999999999 (مرتبتين عشريتين)</div>
+                            <input type="number" id="landArea" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="landAreaError">الرجاء إدخال مساحة (1-9999999)</div>
                             <span class="tooltip">أدخل مساحة الأرض</span>
                         </div>
                         <div class="form-group">
                             <label for="facadeWidth">عرض الواجهة (م)</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="facadeWidth" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('facadeWidth', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('facadeWidth', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="facadeWidthError">أدخل عرض بين 1 و999999999 (مرتبتين عشريتين)</div>
+                            <input type="number" id="facadeWidth" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="facadeWidthError">الرجاء إدخال عرض (1-9999999)</div>
                             <span class="tooltip">أدخل عرض الواجهة</span>
                         </div>
                     </div>
@@ -235,71 +168,41 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="floors">عدد الطوابق</label>
-                            <div class="number-input-wrapper small-input">
-                                <input type="number" id="floors" class="form-control number-input small-input" required min="1" max="99999" step="1">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('floors', 1)">+</button>
-                                    <button type="button" onclick="stepNumber('floors', -1)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="floorsError">أدخل عدد صحيح بين 1 و99999</div>
+                            <input type="number" id="floors" class="form-control" required min="1" max="9999999">
+                            <div class="error-message" id="floorsError">الرجاء إدخال عدد (1-9999999)</div>
                             <span class="tooltip">حدد عدد الطوابق</span>
                         </div>
                         <div class="form-group">
                             <label for="rooms">عدد الغرف</label>
-                            <div class="number-input-wrapper small-input">
-                                <input type="number" id="rooms" class="form-control number-input small-input" required min="1" max="99999" step="1">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('rooms', 1)">+</button>
-                                    <button type="button" onclick="stepNumber('rooms', -1)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="roomsError">أدخل عدد صحيح بين 1 و99999</div>
+                            <input type="number" id="rooms" class="form-control" required min="1" max="9999999">
+                            <div class="error-message" id="roomsError">الرجاء إدخال عدد (1-9999999)</div>
                             <span class="tooltip">حدد عدد الغرف</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="groundFloorHeight">ارتفاع الطابق الأرضي (م)</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="groundFloorHeight" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('groundFloorHeight', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('groundFloorHeight', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="groundFloorHeightError">أدخل ارتفاع بين 1 و999999999 (مرتبتين عشريتين)</div>
+                            <input type="number" id="groundFloorHeight" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="groundFloorHeightError">الرجاء إدخال ارتفاع (1-9999999)</div>
                             <span class="tooltip">أدخل ارتفاع الطابق الأرضي</span>
                         </div>
                         <div class="form-group">
                             <label for="otherFloorsHeight">ارتفاع باقي الطوابق (م)</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="otherFloorsHeight" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('otherFloorsHeight', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('otherFloorsHeight', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="otherFloorsHeightError">أدخل ارتفاع بين 1 و999999999 (مرتبتين عشريتين)</div>
+                            <input type="number" id="otherFloorsHeight" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="otherFloorsHeightError">الرجاء إدخال ارتفاع (1-9999999)</div>
                             <span class="tooltip">أدخل ارتفاع باقي الطوابق</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="bathrooms">عدد الحمامات</label>
-                            <div class="number-input-wrapper small-input">
-                                <input type="number" id="bathrooms" class="form-control number-input small-input" required min="1" max="99999" step="1">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('bathrooms', 1)">+</button>
-                                    <button type="button" onclick="stepNumber('bathrooms', -1)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="bathroomsError">أدخل عدد صحيح بين 1 و99999</div>
+                            <input type="number" id="bathrooms" class="form-control" required min="1" max="9999999">
+                            <div class="error-message" id="bathroomsError">الرجاء إدخال عدد (1-9999999)</div>
                             <span class="tooltip">حدد عدد الحمامات</span>
                         </div>
                         <div class="form-group">
                             <label for="brickType">نوع الطابوق</label>
-                            <select id="brickType" class="form-control large-input" required>
+                            <select id="brickType" class="form-control" required>
                                 <option value="yellow">أصفر</option><option value="red">أحمر</option><option value="other">أخرى</option>
                             </select>
                             <span class="tooltip">اختر نوع الطابوق</span>
@@ -309,52 +212,24 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="brickWidth">عرض البلوكة (سم)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="brickWidth" class="form-control number-input large-input" min="1" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('brickWidth', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('brickWidth', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="brickWidthError">أدخل عرض بين 1 و999999999</div>
+                                <input type="number" id="brickWidth" class="form-control" min="1" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل عرض البلوكة</span>
                             </div>
                             <div class="form-group">
                                 <label for="brickLength">طول البلوكة (سم)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="brickLength" class="form-control number-input large-input" min="1" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('brickLength', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('brickLength', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="brickLengthError">أدخل طول بين 1 و999999999</div>
+                                <input type="number" id="brickLength" class="form-control" min="1" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل طول البلوكة</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="brickHeight">ارتفاع البلوكة (سم)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="brickHeight" class="form-control number-input large-input" min="1" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('brickHeight', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('brickHeight', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="brickHeightError">أدخل ارتفاع بين 1 و999999999</div>
+                                <input type="number" id="brickHeight" class="form-control" min="1" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل ارتفاع البلوكة</span>
                             </div>
                             <div class="form-group">
                                 <label for="brickDensity">كثافة البلوكة (كغم/م³)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="brickDensity" class="form-control number-input large-input" min="1" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('brickDensity', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('brickDensity', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="brickDensityError">أدخل كثافة بين 1 و999999999</div>
+                                <input type="number" id="brickDensity" class="form-control" min="1" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل كثافة البلوكة</span>
                             </div>
                         </div>
@@ -365,52 +240,28 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="flooringPrice">سعر م² تشطيبات الأرضيات</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="flooringPrice" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('flooringPrice', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('flooringPrice', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="flooringPriceError">أدخل سعر بين 1 و999999999</div>
+                            <input type="number" id="flooringPrice" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="flooringPriceError">الرجاء إدخال سعر (1-9999999)</div>
                             <span class="tooltip">أدخل سعر الأرضيات</span>
                         </div>
                         <div class="form-group">
                             <label for="wallInstallationPrice">سعر م² تركيب الجدران</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="wallInstallationPrice" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('wallInstallationPrice', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('wallInstallationPrice', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="wallInstallationPriceError">أدخل سعر بين 1 و999999999</div>
+                            <input type="number" id="wallInstallationPrice" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="wallInstallationPriceError">الرجاء إدخال سعر (1-9999999)</div>
                             <span class="tooltip">أدخل سعر الجدران</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="wallPaintingPrice">سعر م² صبغ الجدران</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="wallPaintingPrice" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('wallPaintingPrice', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('wallPaintingPrice', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="wallPaintingPriceError">أدخل سعر بين 1 و999999999</div>
+                            <input type="number" id="wallPaintingPrice" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="wallPaintingPriceError">الرجاء إدخال سعر (1-9999999)</div>
                             <span class="tooltip">أدخل سعر صبغ الجدران</span>
                         </div>
                         <div class="form-group">
                             <label for="windowsDoorsPrice">سعر م² شبابيك وأبواب</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="windowsDoorsPrice" class="form-control number-input large-input" required min="1" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('windowsDoorsPrice', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('windowsDoorsPrice', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="windowsDoorsPriceError">أدخل سعر بين 1 و999999999</div>
+                            <input type="number" id="windowsDoorsPrice" class="form-control" required min="1" max="9999999" step="0.01">
+                            <div class="error-message" id="windowsDoorsPriceError">الرجاء إدخال سعر (1-9999999)</div>
                             <span class="tooltip">أدخل سعر الشبابيك</span>
                         </div>
                     </div>
@@ -420,14 +271,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="woodType">نوع الخشب</label>
-                            <select id="woodType" class="form-control large-input" required>
-                                <option value="plywood">بليوود</option><option value="regular">عادي</option><option value="waffle">Waffle Slab</option>
+                            <select id="woodType" class="form-control" required>
+                                <option value="plywood">بلي وود</option><option value="regular">عادي</option><option value="waffle">Waffle Slab</option>
                             </select>
                             <span class="tooltip">اختر نوع الخشب</span>
                         </div>
                         <div class="form-group">
                             <label for="facadeType">نوع الواجهة</label>
-                            <select id="facadeType" class="form-control large-input" required>
+                            <select id="facadeType" class="form-control" required>
                                 <option value="economy">اقتصادية</option><option value="simple">تفاصيل بسيطة</option>
                                 <option value="luxury">فخمة</option><option value="custom">مخصصة</option>
                             </select>
@@ -438,26 +289,12 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facadeArea">مساحة الواجهة المخصصة (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="facadeArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('facadeArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('facadeArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="facadeAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="facadeArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة الواجهة</span>
                             </div>
                             <div class="form-group">
                                 <label for="facadePrice">سعر م² الواجهة</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="facadePrice" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('facadePrice', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('facadePrice', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="facadePriceError">أدخل سعر بين 0 و999999999</div>
+                                <input type="number" id="facadePrice" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل سعر الواجهة</span>
                             </div>
                         </div>
@@ -469,14 +306,7 @@
                     <div id="apartmentsInfo" class="toggle-content hidden">
                         <div class="form-group">
                             <label for="apartmentsCount">عدد الشقق</label>
-                            <div class="number-input-wrapper small-input">
-                                <input type="number" id="apartmentsCount" class="form-control number-input small-input" min="0" max="99999" step="1">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('apartmentsCount', 1)">+</button>
-                                    <button type="button" onclick="stepNumber('apartmentsCount', -1)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="apartmentsCountError">أدخل عدد صحيح بين 0 و99999</div>
+                            <input type="number" id="apartmentsCount" class="form-control" min="0" max="9999999">
                             <span class="tooltip">حدد عدد الشقق</span>
                         </div>
                     </div>
@@ -488,40 +318,19 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="basementFloors">عدد الطوابق السفلية</label>
-                                <div class="number-input-wrapper small-input">
-                                    <input type="number" id="basementFloors" class="form-control number-input small-input" min="0" max="99999" step="1">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('basementFloors', 1)">+</button>
-                                        <button type="button" onclick="stepNumber('basementFloors', -1)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="basementFloorsError">أدخل عدد صحيح بين 0 و99999</div>
+                                <input type="number" id="basementFloors" class="form-control" min="0" max="9999999">
                                 <span class="tooltip">حدد عدد الطوابق السفلية</span>
                             </div>
                             <div class="form-group">
                                 <label for="basementCeilingArea">مساحة السقوف (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="basementCeilingArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('basementCeilingArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('basementCeilingArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="basementCeilingAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="basementCeilingArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة السقوف</span>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="basementPrice">سعر م² الطوابق السفلية</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="basementPrice" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('basementPrice', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('basementPrice', -0.01)">-</button>
-                                </div>
+                            <div class="form-group">
+                                <label for="basementPrice">سعر م² الطوابق السفلية</label>
+                                <input type="number" id="basementPrice" class="form-control" min="0" max="9999999" step="0.01">
+                                <span class="tooltip">أدخل سعر الطوابق السفلية</span>
                             </div>
-                            <div class="error-message" id="basementPriceError">أدخل سعر بين 0 و999999999</div>
-                            <span class="tooltip">أدخل سعر الطوابق السفلية</span>
                         </div>
                     </div>
                 </div>
@@ -543,225 +352,104 @@
                     <div id="mapDetailsInfo" class="toggle-content hidden">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="totalRoofArea">مساحة السقوف الكلية (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="totalRoofArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('totalRoofArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('totalRoofArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="totalRoofAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <label for="totalRoofArea">مساحة السقوف (م²)</label>
+                                <input type="number" id="totalRoofArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة السقوف</span>
                             </div>
                             <div class="form-group">
                                 <label for="gardenArea">مساحة الحديقة (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="gardenArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('gardenArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('gardenArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="gardenAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="gardenArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة الحديقة</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="garagePathArea">مساحة الكراج والممرات (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="garagePathArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('garagePathArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('garagePathArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="garagePathAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="garagePathArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة الكراج</span>
                             </div>
                             <div class="form-group">
                                 <label for="externalPlasterWalls">مساحة الجدران الخارجية (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="externalPlasterWalls" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('externalPlasterWalls', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('externalPlasterWalls', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="externalPlasterWallsError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="externalPlasterWalls" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="skylightsArea">مساحة المناور (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="skylightsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('skylightsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('skylightsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="skylightsAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="skylightsArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة المناور</span>
                             </div>
                             <div class="form-group">
                                 <label for="tiesLength">طول الرباطات (م)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="tiesLength" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('tiesLength', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('tiesLength', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="tiesLengthError">أدخل طول بين 0 و999999999</div>
+                                <input type="number" id="tiesLength" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل طول الرباطات</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="invertedBeams">طول الجسور المقلوبة (م)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="invertedBeams" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('invertedBeams', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('invertedBeams', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="invertedBeamsError">أدخل طول بين 0 و999999999</div>
+                                <input type="number" id="invertedBeams" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل طول الجسور</span>
                             </div>
                             <div class="form-group">
                                 <label for="externalWalls24cm">أطوال الجدران الخارجية 24سم (م)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="externalWalls24cm" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('externalWalls24cm', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('externalWalls24cm', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="externalWalls24cmError">أدخل طول بين 0 و999999999</div>
+                                <input type="number" id="externalWalls24cm" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل طول الجدران</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="internalWalls24cm">أطوال الجدران الداخلية 24سم (م)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="internalWalls24cm" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('internalWalls24cm', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('internalWalls24cm', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="internalWalls24cmError">أدخل طول بين 0 و999999999</div>
+                                <input type="number" id="internalWalls24cm" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل طول الجدران</span>
                             </div>
                             <div class="form-group">
                                 <label for="roofFenceLength">طول ستارة السطح (م)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="roofFenceLength" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('roofFenceLength', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('roofFenceLength', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="roofFenceLengthError">أدخل طول بين 0 و999999999</div>
+                                <input type="number" id="roofFenceLength" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل طول السياج</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="externalDoors">عدد الأبواب الخارجية</label>
-                                <div class="number-input-wrapper small-input">
-                                    <input type="number" id="externalDoors" class="form-control number-input small-input" min="0" max="99999" step="1">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('externalDoors', 1)">+</button>
-                                        <button type="button" onclick="stepNumber('externalDoors', -1)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="externalDoorsError">أدخل عدد صحيح بين 0 و99999</div>
+                                <input type="number" id="externalDoors" class="form-control" min="0" max="9999999">
                                 <span class="tooltip">حدد عدد الأبواب</span>
                             </div>
                             <div class="form-group">
                                 <label for="internalDoors">عدد الأبواب الداخلية</label>
-                                <div class="number-input-wrapper small-input">
-                                    <input type="number" id="internalDoors" class="form-control number-input small-input" min="0" max="99999" step="1">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('internalDoors', 1)">+</button>
-                                        <button type="button" onclick="stepNumber('internalDoors', -1)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="internalDoorsError">أدخل عدد صحيح بين 0 و99999</div>
+                                <input type="number" id="internalDoors" class="form-control" min="0" max="9999999">
                                 <span class="tooltip">حدد عدد الأبواب</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facadeWindowsDoorsArea">مساحة شبابيك وأبواب الواجهة (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="facadeWindowsDoorsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('facadeWindowsDoorsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('facadeWindowsDoorsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="facadeWindowsDoorsAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="facadeWindowsDoorsArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة الشبابيك</span>
                             </div>
                             <div class="form-group">
                                 <label for="skylightWindowsDoorsArea">مساحة شبابيك المناور (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="skylightWindowsDoorsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('skylightWindowsDoorsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('skylightWindowsDoorsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="skylightWindowsDoorsAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="skylightWindowsDoorsArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة المناور</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="secondaryCeilingsArea">مساحة السقوف الثانوية (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="secondaryCeilingsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('secondaryCeilingsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('secondaryCeilingsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="secondaryCeilingsAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="secondaryCeilingsArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة السقوف</span>
                             </div>
                             <div class="form-group">
                                 <label for="decorativeWallsArea">مساحة الجدران الديكورية (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="decorativeWallsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('decorativeWallsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('decorativeWallsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="decorativeWallsAreaError">أدخل مساحة بين 0 و999999999</div>
+                                <input type="number" id="decorativeWallsArea" class="form-control" min="0" max="9999999" step="0.01">
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="claddingWallsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('claddingWallsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('claddingWallsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="claddingWallsAreaError">أدخل مساحة بين 0 و999999999</div>
-                                <span class="tooltip">أدخل مساحة الجدران</span>
-                            </div>
+                        <div class="form-group">
+                            <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
+                            <input type="number" id="claddingWallsArea" class="form-control" min="0" max="9999999" step="0.01">
+                            <span class="tooltip">أدخل مساحة الجدران</span>
                         </div>
                         <div class="toggle-section" id="toggleStairsRailing">
                             <span><span class="material-icons-outlined">stairs</span> محجر الدرج</span>
@@ -771,139 +459,66 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="stairsRailingLength">طول محجر الدرج (م)</label>
-                                    <div class="number-input-wrapper large-input">
-                                        <input type="number" id="stairsRailingLength" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                        <div class="number-input-buttons">
-                                            <button type="button" onclick="stepNumber('stairsRailingLength', 0.01)">+</button>
-                                            <button type="button" onclick="stepNumber('stairsRailingLength', -0.01)">-</button>
-                                        </div>
-                                    </div>
-                                    <div class="error-message" id="stairsRailingLengthError">أدخل طول بين 0 و999999999</div>
+                                    <input type="number" id="stairsRailingLength" class="form-control" min="0" max="9999999" step="0.01">
                                     <span class="tooltip">أدخل طول محجر الدرج</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="stairsRailingPrice">سعر المتر الطولي</label>
-                                    <div class="number-input-wrapper large-input">
-                                        <input type="number" id="stairsRailingPrice" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                        <div class="number-input-buttons">
-                                            <button type="button" onclick="stepNumber('stairsRailingPrice', 0.01)">+</button>
-                                            <button type="button" onclick="stepNumber('stairsRailingPrice', -0.01)">-</button>
-                                        </div>
-                                    </div>
-                                    <div class="error-message" id="stairsRailingPriceError">أدخل سعر بين 0 و999999999</div>
+                                    <input type="number" id="stairsRailingPrice" class="form-control" min="0" max="9999999" step="0.01">
                                     <span class="tooltip">أدخل سعر محجر الدرج</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="toggle-section" id="toggleConcreteColumns">
-                        <span><span class="material-icons-outlined">foundation</span> أعمدة كونكريت</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
-                    </div>
-                    <div id="concreteColumnsInfo" class="toggle-content hidden">
-                        <div class="form-group">
-                            <label for="concreteVolume">حجم الكونكريت (م³)</label>
-                            <div class="number-input-wrapper large-input">
-                                <input type="number" id="concreteVolume" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                <div class="number-input-buttons">
-                                    <button type="button" onclick="stepNumber('concreteVolume', 0.01)">+</button>
-                                    <button type="button" onclick="stepNumber('concreteVolume', -0.01)">-</button>
-                                </div>
-                            </div>
-                            <div class="error-message" id="concreteVolumeError">أدخل حجم بين 0 و999999999</div>
-                            <span class="tooltip">أدخل حجم الكونكريت</span>
+                        <div class="toggle-section" id="toggleConcreteColumns">
+                            <span><span class="material-icons-outlined">foundation</span> أعمدة كونكريت</span>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
                         </div>
-                    </div>
-                    <div class="toggle-section" id="toggleInternalWalls">
-                        <span><span class="material-icons-outlined">wallpaper</span> جدران داخلية</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
-                    </div>
-                    <div id="internalWallsInfo" class="toggle-content hidden">
-                        <div class="form-row">
+                        <div id="concreteColumnsInfo" class="toggle-content hidden">
                             <div class="form-group">
-                                <label for="internalWallsArea">مساحة الجدران (م²)</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="internalWallsArea" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('internalWallsArea', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('internalWallsArea', -0.01)">-</button>
-                                    </div>
-                                </div>
-                                <div class="error-message" id="internalWallsAreaError">أدخل مساحة بين 0 و999999999</div>
-                                <span class="tooltip">أدخل مساحة الجدران</span>
+                                <label for="concreteVolume">حجم الكونكريت (م³)</label>
+                                <input type="number" id="concreteVolume" class="form-control" min="0" max="9999999" step="0.01">
+                                <span class="tooltip">أدخل حجم الكونكريت</span>
                             </div>
-                            <div class="form-group">
-                                <label for="internalWallsPrice">سعر م² الجدران</label>
-                                <div class="number-input-wrapper large-input">
-                                    <input type="number" id="internalWallsPrice" class="form-control number-input large-input" min="0" max="999999999" step="0.01">
-                                    <div class="number-input-buttons">
-                                        <button type="button" onclick="stepNumber('internalWallsPrice', 0.01)">+</button>
-                                        <button type="button" onclick="stepNumber('internalWallsPrice', -0.01)">-</button>
-                                    </div>
+                        </div>
+                        <div class="toggle-section" id="toggleInternalWalls">
+                            <span><span class="material-icons-outlined">walls</span> جدران داخلية</span>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                        </div>
+                        <div id="internalWallsInfo" class="toggle-content hidden">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="internalWallsArea">مساحة الجدران (م²)</label>
+                                    <input type="number" id="internalWallsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                    <span class="tooltip">أدخل مساحة الجدران</span>
                                 </div>
-                                <div class="error-message" id="internalWallsPriceError">أدخل سعر بين 0 و999999999</div>
-                                <span class="tooltip">أدخل سعر الجدران</span>
+                                <div class="form-group">
+                                    <label for="internalWallsPrice">سعر م² الجدران</label>
+                                    <input type="number" id="internalWallsPrice" class="form-control" min="0" max="9999999" step="0.01">
+                                    <span class="tooltip">أدخل سعر الجدران</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary btn-block" id="submitBtn"><span class="material-icons-outlined">calculate</span> حساب التكلفة</button>
+                        <button type="submit" class="btn btn-primary btn-block"><span class="material-icons-outlined">calculate</span> حساب التكلفة</button>
                     </div>
                     <div class="form-group">
-                        <button type="reset" class="btn btn-reset btn-block"><span class="material-icons-outlined">refresh</span> إعادة تعيين</button>
+                        <button type="reset" class="btn btn-reset btn-block"><span class="material-icons-outlined">delete</span> إعادة تعيين</button>
                     </div>
                 </div>
             </form>
         </div>
-        <div id="resultContainer" class="result-container" style="display: none;">
+        <div id="resultContainer" class="result-container">
             <div class="result-header">
                 <h3><span class="material-icons-outlined">assessment</span> نتيجة الحساب</h3>
             </div>
             <div id="resultContent" class="result-content"></div>
-            <button id="downloadPdf" class="btn btn-primary btn-block"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
+            <button id="downloadPdf" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
         </div>
     </div>
     <script>
-        // دالة تنظيف المدخل
-        const sanitizeInput = (value) => {
-            if (typeof value !== 'string') return value;
-            return value.replace(/[<>"]/g, '').trim();
-        };
-
-        // دالة التحقق من الأعداد الكسرية
-        const validateDecimal = (value, min, max) => {
-            const num = parseFloat(value);
-            const regex = /^\d*(\.\d{1,2})?$/;
-            return !isNaN(num) && num >= min && num <= max && regex.test(value.toString());
-        };
-
-        // دالة التحقق من الأعداد الصحيحة
-        const validateInteger = (value, min, max) => {
-            const num = parseInt(value);
-            return !isNaN(num) && Number.isInteger(num) && num >= min && num <= max;
-        };
-
-        // دالة التحقق من النصوص
-        const validateText = (value, regex, minLength, maxLength) => {
-            return regex.test(value) && value.length >= minLength && value.length <= maxLength;
-        };
-
-        // دالة لزيادة/تقليل القيمة
-        function stepNumber(id, step) {
-            const input = document.getElementById(id);
-            const current = parseFloat(input.value) || 0;
-            const min = parseFloat(input.min) || 0;
-            const max = parseFloat(input.max) || Infinity;
-            let newValue = current + step;
-            if (newValue >= min && newValue <= max) {
-                input.value = step === 1 ? Math.round(newValue) : newValue.toFixed(2);
-                validateInput(input);
-            }
-        }
-
-        // إعداد الأقسام القابلة للطي
         const toggles = [
             { toggle: 'toggleApartments', content: 'apartmentsInfo' },
             { toggle: 'toggleBasement', content: 'basementInfo' },
@@ -913,145 +528,96 @@
             { toggle: 'toggleInternalWalls', content: 'internalWallsInfo' }
         ];
         toggles.forEach(({ toggle, content }) => {
-            const t = document.getElementById(toggle);
-            const c = document.getElementById(content);
-            if (t && c) {
-                t.addEventListener('click', () => {
-                    c.classList.toggle('hidden');
-                    t.querySelector('.toggle-icon span').textContent = c.classList.contains('hidden') ? 'add' : 'remove';
-                });
-            }
+            const t = document.getElementById(toggle), c = document.getElementById(content);
+            if (t && c) t.addEventListener('click', () => {
+                c.classList.toggle('hidden');
+                t.querySelector('.toggle-icon span').textContent = c.classList.contains('hidden') ? 'add' : 'remove';
+            });
         });
 
-        // دالة للتحكم بالقوائم المنسدلة
         const toggleSelect = (selectId, contentId, triggerValue) => {
-            const select = document.getElementById(selectId);
-            const content = document.getElementById(contentId);
-            if (select && content) {
-                select.addEventListener('change', () => {
-                    content.classList.toggle('hidden', select.value !== triggerValue);
-                    content.querySelectorAll('input').forEach(input => {
-                        input.required = select.value === triggerValue;
-                    });
-                });
-            }
+            const select = document.getElementById(selectId), content = document.getElementById(contentId);
+            if (select && content) select.addEventListener('change', () => content.classList.toggle('hidden', select.value !== triggerValue));
         };
-
         toggleSelect('brickType', 'otherBrickInfo', 'other');
         toggleSelect('facadeType', 'customFacadeInfo', 'custom');
 
-        // دالة التحقق من المدخلات
-        function validateInput(input) {
-            const errorElement = document.getElementById(`${input.id}Error`);
-            let isValid = true;
-            if (input.type === 'text' || input.type === 'tel') {
-                isValid = validateText(sanitizeInput(input.value), new RegExp(input.pattern), input.minLength || 0, input.maxLength || Infinity);
-            } else if (input.type === 'number') {
-                const min = parseFloat(input.min) || 0;
-                const max = parseFloat(input.max) || Infinity;
-                isValid = input.step === '1' ? validateInteger(input.value, min, max) : validateDecimal(input.value, min, max);
-            } else if (input.tagName === 'SELECT') {
-                isValid = input.value !== '';
-            }
-            if (errorElement) errorElement.style.display = isValid || !input.required ? 'none' : 'block';
-            return isValid;
-        }
-
-        document.querySelectorAll('.form-control').forEach(input => {
-            input.addEventListener('input', () => validateInput(input));
-            input.addEventListener('blur', () => validateInput(input));
+        document.querySelectorAll('.form-control[required]').forEach(input => {
+            input.addEventListener('input', () => {
+                const err = document.getElementById(`${input.id}Error`);
+                if (err) err.style.display = input.validity.valid ? 'none' : 'block';
+                input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
+            });
         });
 
-        // معالجة تقديم النموذج
-        document.getElementById('buildingForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'جارٍ الحساب...';
-
-            const inputs = document.querySelectorAll('.form-control');
-            let isValid = true;
-
-            inputs.forEach(input => {
-                if (input.required && !validateInput(input)) isValid = false;
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', () => {
+                let val = parseFloat(input.value.replace(/,/g, '')) || 0;
+                if (!isNaN(val)) input.value = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             });
+        });
 
-            if (!isValid) {
-                alert('يرجى تصحيح الأخطاء في النموذج');
-                submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
-                submitBtn.disabled = false;
-                return;
-            }
+        document.getElementById('buildingForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
+            submitBtn.disabled = true;
 
-            const data = {
-                customerName: sanitizeInput(document.getElementById('customerName').value),
-                phoneNumber: sanitizeInput(document.getElementById('phoneNumber').value),
-                governorate: document.getElementById('governorate').value,
-                area: sanitizeInput(document.getElementById('area').value),
-                landArea: parseFloat(document.getElementById('landArea').value) || 0,
-                facadeWidth: parseFloat(document.getElementById('facadeWidth').value) || 0,
-                floors: parseInt(document.getElementById('floors').value) || 1,
-                rooms: parseInt(document.getElementById('rooms').value) || 0,
-                groundFloorHeight: parseFloat(document.getElementById('groundFloorHeight').value) || 0,
-                otherFloorsHeight: parseFloat(document.getElementById('otherFloorsHeight').value) || 0,
-                bathrooms: parseInt(document.getElementById('bathrooms').value) || 0,
-                brickType: document.getElementById('brickType').value,
-                brickWidth: parseFloat(document.getElementById('brickWidth').value) || 0,
-                brickLength: parseFloat(document.getElementById('brickLength').value) || 0,
-                brickHeight: parseFloat(document.getElementById('brickHeight').value) || 0,
-                brickDensity: parseFloat(document.getElementById('brickDensity').value) || 0,
-                flooringPrice: parseFloat(document.getElementById('flooringPrice').value) || 0,
-                wallInstallationPrice: parseFloat(document.getElementById('wallInstallationPrice').value) || 0,
-                wallPaintingPrice: parseFloat(document.getElementById('wallPaintingPrice').value) || 0,
-                windowsDoorsPrice: parseFloat(document.getElementById('windowsDoorsPrice').value) || 0,
-                woodType: document.getElementById('woodType').value,
-                facadeType: document.getElementById('facadeType').value,
-                facadeArea: parseFloat(document.getElementById('facadeArea').value) || 0,
-                facadePrice: parseFloat(document.getElementById('facadePrice').value) || 0,
-                apartmentsCount: parseInt(document.getElementById('apartmentsCount').value) || 0,
-                basementFloors: parseInt(document.getElementById('basementFloors').value) || 0,
-                basementCeilingArea: parseFloat(document.getElementById('basementCeilingArea').value) || 0,
-                basementPrice: parseFloat(document.getElementById('basementPrice').value) || 0,
-                hasGarden: document.getElementById('hasGarden').checked,
-                hasPool: document.getElementById('hasPool').checked,
-                hasHVAC: document.getElementById('hasHVAC').checked,
-                hasElevator: document.getElementById('hasElevator').checked,
-                hasFence: document.getElementById('hasFence').checked,
-                totalRoofArea: parseFloat(document.getElementById('totalRoofArea').value) || 0,
-                gardenArea: parseFloat(document.getElementById('gardenArea').value) || 0,
-                garagePathArea: parseFloat(document.getElementById('garagePathArea').value) || 0,
-                externalPlasterWalls: parseFloat(document.getElementById('externalPlasterWalls').value) || 0,
-                skylightsArea: parseFloat(document.getElementById('skylightsArea').value) || 0,
-                tiesLength: parseFloat(document.getElementById('tiesLength').value) || 0,
-                invertedBeams: parseFloat(document.getElementById('invertedBeams').value) || 0,
-                externalWalls24cm: parseFloat(document.getElementById('externalWalls24cm').value) || 0,
-                internalWalls24cm: parseFloat(document.getElementById('internalWalls24cm').value) || 0,
-                roofFenceLength: parseFloat(document.getElementById('roofFenceLength').value) || 0,
-                externalDoors: parseInt(document.getElementById('externalDoors').value) || 0,
-                internalDoors: parseInt(document.getElementById('internalDoors').value) || 0,
-                facadeWindowsDoorsArea: parseFloat(document.getElementById('facadeWindowsDoorsArea').value) || 0,
-                skylightWindowsDoorsArea: parseFloat(document.getElementById('skylightWindowsDoorsArea').value) || 0,
-                secondaryCeilingsArea: parseFloat(document.getElementById('secondaryCeilingsArea').value) || 0,
-                decorativeWallsArea: parseFloat(document.getElementById('decorativeWallsArea').value) || 0,
-                claddingWallsArea: parseFloat(document.getElementById('claddingWallsArea').value) || 0,
-                stairsRailingLength: parseFloat(document.getElementById('stairsRailingLength').value) || 0,
-                stairsRailingPrice: parseFloat(document.getElementById('stairsRailingPrice').value) || 0,
-                concreteVolume: parseFloat(document.getElementById('concreteVolume').value) || 0,
-                internalWallsArea: parseFloat(document.getElementById('internalWallsArea').value) || 0,
-                internalWallsPrice: parseFloat(document.getElementById('internalWallsPrice').value) || 0
+            const getValue = (id, isFloat = false, isInt = false) => {
+                const el = document.getElementById(id);
+                if (!el) return isInt ? 0 : isFloat ? 0 : '';
+                let val = el.value.replace(/,/g, '');
+                return isFloat ? parseFloat(val) || 0 : isInt ? parseInt(val) || 0 : val;
             };
 
             try {
-                const response = await fetch('/api/process', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                const inputs = {
+                    customer: { name: getValue('customerName'), phone: getValue('phoneNumber') },
+                    location: { governorate: getValue('governorate'), area: getValue('area') },
+                    land: { area: getValue('landArea', true), facadeWidth: getValue('facadeWidth', true) },
+                    building: {
+                        floors: getValue('floors', false, true), rooms: getValue('rooms', false, true),
+                        bathrooms: getValue('bathrooms', false, true), groundFloorHeight: getValue('groundFloorHeight', true),
+                        otherFloorsHeight: getValue('otherFloorsHeight', true), brickType: getValue('brickType'),
+                        brickWidth: getValue('brickWidth', true), brickLength: getValue('brickLength', true),
+                        brickHeight: getValue('brickHeight', true), brickDensity: getValue('brickDensity', true),
+                        woodType: getValue('woodType'), facadeType: getValue('facadeType'),
+                        facadeArea: getValue('facadeArea', true), facadePrice: getValue('facadePrice', true),
+                        apartmentsCount: getValue('apartmentsCount', false, true), basementFloors: getValue('basementFloors', false, true),
+                        basementCeilingArea: getValue('basementCeilingArea', true), basementPrice: getValue('basementPrice', true),
+                        hasGarden: document.getElementById('hasGarden').checked, hasPool: document.getElementById('hasPool').checked,
+                        hasHVAC: document.getElementById('hasHVAC').checked, hasElevator: document.getElementById('hasElevator').checked,
+                        hasFence: document.getElementById('hasFence').checked
+                    },
+                    prices: {
+                        flooring: getValue('flooringPrice', true), wallInstallation: getValue('wallInstallationPrice', true),
+                        wallPainting: getValue('wallPaintingPrice', true), windowsDoors: getValue('windowsDoorsPrice', true),
+                        stairsRailing: getValue('stairsRailingPrice', true)
+                    },
+                    stairsRailingLength: getValue('stairsRailingLength', true),
+                    hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden')
+                };
 
-                if (!response.ok) {
-                    throw new Error(`خطأ في الاتصال: ${response.status}`);
+                if (inputs.hasMap) {
+                    inputs.technicalDetails = {
+                        totalRoofArea: getValue('totalRoofArea', true), gardenArea: getValue('gardenArea', true),
+                        garagePathArea: getValue('garagePathArea', true), externalPlasterWalls: getValue('externalPlasterWalls', true),
+                        skylightsArea: getValue('skylightsArea', true), tiesLength: getValue('tiesLength', true),
+                        invertedBeams: getValue('invertedBeams', true), externalWalls24cm: getValue('externalWalls24cm', true),
+                        internalWalls24cm: getValue('internalWalls24cm', true), roofFenceLength: getValue('roofFenceLength', true),
+                        externalDoors: getValue('externalDoors', false, true), internalDoors: getValue('internalDoors', false, true),
+                        facadeWindowsDoorsArea: getValue('facadeWindowsDoorsArea', true), skylightWindowsDoorsArea: getValue('skylightWindowsDoorsArea', true),
+                        secondaryCeilingsArea: getValue('secondaryCeilingsArea', true), decorativeWallsArea: getValue('decorativeWallsArea', true),
+                        claddingWallsArea: getValue('claddingWallsArea', true), concreteVolume: getValue('concreteVolume', true),
+                        internalWallsArea: getValue('internalWallsArea', true), internalWallsPrice: getValue('internalWallsPrice', true)
+                    };
                 }
 
+                const response = await fetch('/api/process', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(inputs)
+                });
+
+                if (!response.ok) throw new Error(`خطأ في الاتصال: ${response.status}`);
                 const result = await response.json();
                 const resultContainer = document.getElementById('resultContainer');
                 const resultContent = document.getElementById('resultContent');
@@ -1060,54 +626,41 @@
                         <h3>النتائج</h3>
                         <table>
                             <tr><th>البيان</th><th>القيمة</th></tr>
-                            <tr><td>الرسالة</td><td>${sanitizeInput(result.result.message)}</td></tr>
-                            <tr><td>البيانات المدخلة</td><td><pre>${sanitizeInput(JSON.stringify(result.result.inputData, null, 2))}</pre></td></tr>
+                            <tr><td>الرسالة</td><td>${result.result.message}</td></tr>
+                            <tr><td>البيانات المدخلة</td><td><pre>${JSON.stringify(result.result.inputData, null, 2)}</pre></td></tr>
                         </table>
                     </div>
                 `;
                 resultContainer.style.display = 'block';
 
-                // إزالة أي مستمع سابق لزر PDF
-                const downloadBtn = document.getElementById('downloadPdf');
-                downloadBtn.onclick = null;
-                downloadBtn.addEventListener('click', () => {
+                document.getElementById('downloadPdf').onclick = () => {
                     const pdfContent = document.getElementById('pdfContent').innerHTML;
-                    const pdfWindow = window.open('', '_blank');
+                    const pdfWindow = window.open('');
                     pdfWindow.document.write(`
-                        <html dir="ar">
-                        <head>
-                            <title>تقرير تكاليف البناء</title>
+                        <html dir="rtl">
+                        <head><title>تقرير تكاليف البناء</title>
                             <style>
-                                @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500&display=swap');
                                 body { font-family: 'Tajawal', sans-serif; padding: 10px; background: #F5F1E9; color: #2A2A2A; }
-                                h3 { color: #5C4033; font-size: 1.5rem; }
-                                table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-                                th, td { padding: 8px; text-align: right; border-bottom: 1px solid #E4E2DB; }
+                                h3 { color: #5C4033; font-size: 1rem; }
+                                table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+                                th, td { padding: 6px; text-align: right; border-bottom: 1px solid #E4E2DB; }
                                 th { background: rgba(92, 64, 51, 0.1); color: #5C4033; }
-                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 8px; border-radius: 4px; }
+                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 6px; border-radius: 5px; }
                             </style>
                         </head>
                         <body>${pdfContent}</body>
-                    </html>
+                        </html>
                     `);
                     pdfWindow.document.close();
-                    setTimeout(() => pdfWindow.print(), 500);
-                });
+                    pdfWindow.print();
+                };
             } catch (error) {
-                document.getElementById('resultContent').innerHTML = `<p style="error-message">خطأ: ${sanitizeInput(error.message)}</p>`;
+                document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
                 document.getElementById('resultContainer').style.display = 'block';
             } finally {
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
                 submitBtn.disabled = false;
             }
-        });
-
-        // إعادة تعيين النموذج
-        document.getElementById('buildingForm').addEventListener('reset', () => {
-            document.getElementById('resultContainer').style.display = 'none';
-            document.querySelectorAll('.error-message').forEach(error => error.style.display = 'none');
-            document.querySelectorAll('.toggle-content').forEach(content => content.classList.add('hidden'));
-            document.querySelectorAll('.toggle-icon span').forEach(icon => icon.textContent = 'add');
         });
     </script>
 </body>
