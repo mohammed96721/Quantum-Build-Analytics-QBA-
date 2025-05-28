@@ -42,6 +42,7 @@
         .form-control {
             width: 100%; max-width: 200px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
             font-size: 0.75rem; background: var(--transparent-bg); transition: all 0.2s; height: 26px;
+            text-align: left; /* محاذاة النصوص من اليسار */
         }
         .form-control:focus { border-color: var(--accent); box-shadow: 0 0 6px rgba(232, 185, 35, 0.3); transform: scale(1.01); outline: none; }
         .form-control:invalid:focus { border-color: var(--danger); box-shadow: 0 0 6px rgba(199, 86, 86, 0.3); }
@@ -151,14 +152,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="landArea">مساحة الأرض (م²)</label>
-                            <input type="number" id="landArea" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="landAreaError">الرجاء إدخال مساحة (1-9999999)</div>
+                            <input type="number" id="landArea" class="form-control" required step="0.01">
+                            <div class="error-message" id="landAreaError">الرجاء إدخال مساحة</div>
                             <span class="tooltip">أدخل مساحة الأرض</span>
                         </div>
                         <div class="form-group">
                             <label for="facadeWidth">عرض الواجهة (م)</label>
-                            <input type="number" id="facadeWidth" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="facadeWidthError">الرجاء إدخال عرض (1-9999999)</div>
+                            <input type="number" id="facadeWidth" class="form-control" required step="0.01">
+                            <div class="error-message" id="facadeWidthError">الرجاء إدخال عرض</div>
                             <span class="tooltip">أدخل عرض الواجهة</span>
                         </div>
                     </div>
@@ -168,36 +169,36 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="floors">عدد الطوابق</label>
-                            <input type="number" id="floors" class="form-control" required min="1" max="9999999">
-                            <div class="error-message" id="floorsError">الرجاء إدخال عدد (1-9999999)</div>
+                            <input type="number" id="floors" class="form-control" required>
+                            <div class="error-message" id="floorsError">الرجاء إدخال عدد</div>
                             <span class="tooltip">حدد عدد الطوابق</span>
                         </div>
                         <div class="form-group">
                             <label for="rooms">عدد الغرف</label>
-                            <input type="number" id="rooms" class="form-control" required min="1" max="9999999">
-                            <div class="error-message" id="roomsError">الرجاء إدخال عدد (1-9999999)</div>
+                            <input type="number" id="rooms" class="form-control" required>
+                            <div class="error-message" id="roomsError">الرجاء إدخال عدد</div>
                             <span class="tooltip">حدد عدد الغرف</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="groundFloorHeight">ارتفاع الطابق الأرضي (م)</label>
-                            <input type="number" id="groundFloorHeight" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="groundFloorHeightError">الرجاء إدخال ارتفاع (1-9999999)</div>
+                            <input type="number" id="groundFloorHeight" class="form-control" required step="0.01">
+                            <div class="error-message" id="groundFloorHeightError">الرجاء إدخال ارتفاع</div>
                             <span class="tooltip">أدخل ارتفاع الطابق الأرضي</span>
                         </div>
                         <div class="form-group">
-                            <label for="otherFloorsHeight">ارتفاع باقي الطوابق (م)</label>
-                            <input type="number" id="otherFloorsHeight" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="otherFloorsHeightError">الرجاء إدخال ارتفاع (1-9999999)</div>
+                            <label for="otherFloorsHeight">ارتفاع باقي الطوابيق (م)</label>
+                            <input type="number" id="otherFloorsHeight" class="form-control" required step="0.01">
+                            <div class="error-message" id="otherFloorsHeightError">الرجاء إدخال ارتفاع</div>
                             <span class="tooltip">أدخل ارتفاع باقي الطوابق</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="bathrooms">عدد الحمامات</label>
-                            <input type="number" id="bathrooms" class="form-control" required min="1" max="9999999">
-                            <div class="error-message" id="bathroomsError">الرجاء إدخال عدد (1-9999999)</div>
+                            <input type="number" id="bathrooms" class="form-control" required>
+                            <div class="error-message" id="bathroomsError">الرجاء إدخال عدد</div>
                             <span class="tooltip">حدد عدد الحمامات</span>
                         </div>
                         <div class="form-group">
@@ -212,24 +213,24 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="brickWidth">عرض البلوكة (سم)</label>
-                                <input type="number" id="brickWidth" class="form-control" min="1" max="9999999" step="0.01">
+                                <input type="number" id="brickWidth" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل عرض البلوكة</span>
                             </div>
                             <div class="form-group">
                                 <label for="brickLength">طول البلوكة (سم)</label>
-                                <input type="number" id="brickLength" class="form-control" min="1" max="9999999" step="0.01">
+                                <input type="number" id="brickLength" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول البلوكة</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="brickHeight">ارتفاع البلوكة (سم)</label>
-                                <input type="number" id="brickHeight" class="form-control" min="1" max="9999999" step="0.01">
+                                <input type="number" id="brickHeight" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل ارتفاع البلوكة</span>
                             </div>
                             <div class="form-group">
                                 <label for="brickDensity">كثافة البلوكة (كغم/م³)</label>
-                                <input type="number" id="brickDensity" class="form-control" min="1" max="9999999" step="0.01">
+                                <input type="number" id="brickDensity" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل كثافة البلوكة</span>
                             </div>
                         </div>
@@ -240,28 +241,28 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="flooringPrice">سعر م² تشطيبات الأرضيات</label>
-                            <input type="number" id="flooringPrice" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="flooringPriceError">الرجاء إدخال سعر (1-9999999)</div>
+                            <input type="number" id="flooringPrice" class="form-control" required step="0.01">
+                            <div class="error-message" id="flooringPriceError">الرجاء إدخال سعر</div>
                             <span class="tooltip">أدخل سعر الأرضيات</span>
                         </div>
                         <div class="form-group">
                             <label for="wallInstallationPrice">سعر م² تركيب الجدران</label>
-                            <input type="number" id="wallInstallationPrice" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="wallInstallationPriceError">الرجاء إدخال سعر (1-9999999)</div>
+                            <input type="number" id="wallInstallationPrice" class="form-control" required step="0.01">
+                            <div class="error-message" id="wallInstallationPriceError">الرجاء إدخال سعر</div>
                             <span class="tooltip">أدخل سعر الجدران</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="wallPaintingPrice">سعر م² صبغ الجدران</label>
-                            <input type="number" id="wallPaintingPrice" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="wallPaintingPriceError">الرجاء إدخال سعر (1-9999999)</div>
-                            <span class="tooltip">أدخل سعر صبغ الجدران</span>
+                            <input type="number" id="wallPaintingPrice" class="form-control" required step="0.01">
+                            <div class="error-message" id="wallPaintingPriceError">الرجاء إدخال سعر</div>
+                            <span class="tooltip">أدخل سعر صlicense الجدران</span>
                         </div>
                         <div class="form-group">
                             <label for="windowsDoorsPrice">سعر م² شبابيك وأبواب</label>
-                            <input type="number" id="windowsDoorsPrice" class="form-control" required min="1" max="9999999" step="0.01">
-                            <div class="error-message" id="windowsDoorsPriceError">الرجاء إدخال سعر (1-9999999)</div>
+                            <input type="number" id="windowsDoorsPrice" class="form-control" required step="0.01">
+                            <div class="error-message" id="windowsDoorsPriceError">الرجاء إدخال سعر</div>
                             <span class="tooltip">أدخل سعر الشبابيك</span>
                         </div>
                     </div>
@@ -289,12 +290,12 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facadeArea">مساحة الواجهة المخصصة (م²)</label>
-                                <input type="number" id="facadeArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="facadeArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الواجهة</span>
                             </div>
                             <div class="form-group">
                                 <label for="facadePrice">سعر م² الواجهة</label>
-                                <input type="number" id="facadePrice" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="facadePrice" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل سعر الواجهة</span>
                             </div>
                         </div>
@@ -306,7 +307,7 @@
                     <div id="apartmentsInfo" class="toggle-content hidden">
                         <div class="form-group">
                             <label for="apartmentsCount">عدد الشقق</label>
-                            <input type="number" id="apartmentsCount" class="form-control" min="0" max="9999999">
+                            <input type="number" id="apartmentsCount" class="form-control">
                             <span class="tooltip">حدد عدد الشقق</span>
                         </div>
                     </div>
@@ -318,17 +319,17 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="basementFloors">عدد الطوابق السفلية</label>
-                                <input type="number" id="basementFloors" class="form-control" min="0" max="9999999">
+                                <input type="number" id="basementFloors" class="form-control">
                                 <span class="tooltip">حدد عدد الطوابق السفلية</span>
                             </div>
                             <div class="form-group">
                                 <label for="basementCeilingArea">مساحة السقوف (م²)</label>
-                                <input type="number" id="basementCeilingArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="basementCeilingArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة السقوف</span>
                             </div>
                             <div class="form-group">
                                 <label for="basementPrice">سعر م² الطوابق السفلية</label>
-                                <input type="number" id="basementPrice" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="basementPrice" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل سعر الطوابق السفلية</span>
                             </div>
                         </div>
@@ -353,102 +354,102 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="totalRoofArea">مساحة السقوف (م²)</label>
-                                <input type="number" id="totalRoofArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="totalRoofArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة السقوف</span>
                             </div>
                             <div class="form-group">
                                 <label for="gardenArea">مساحة الحديقة (م²)</label>
-                                <input type="number" id="gardenArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="gardenArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الحديقة</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="garagePathArea">مساحة الكراج والممرات (م²)</label>
-                                <input type="number" id="garagePathArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="garagePathArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الكراج</span>
                             </div>
                             <div class="form-group">
                                 <label for="externalPlasterWalls">مساحة الجدران الخارجية (م²)</label>
-                                <input type="number" id="externalPlasterWalls" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="externalPlasterWalls" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="skylightsArea">مساحة المناور (م²)</label>
-                                <input type="number" id="skylightsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="skylightsArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة المناور</span>
                             </div>
                             <div class="form-group">
                                 <label for="tiesLength">طول الرباطات (م)</label>
-                                <input type="number" id="tiesLength" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="tiesLength" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الرباطات</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="invertedBeams">طول الجسور المقلوبة (م)</label>
-                                <input type="number" id="invertedBeams" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="invertedBeams" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الجسور</span>
                             </div>
                             <div class="form-group">
                                 <label for="externalWalls24cm">أطوال الجدران الخارجية 24سم (م)</label>
-                                <input type="number" id="externalWalls24cm" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="externalWalls24cm" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الجدران</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="internalWalls24cm">أطوال الجدران الداخلية 24سم (م)</label>
-                                <input type="number" id="internalWalls24cm" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="internalWalls24cm" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الجدران</span>
                             </div>
                             <div class="form-group">
                                 <label for="roofFenceLength">طول ستارة السطح (م)</label>
-                                <input type="number" id="roofFenceLength" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="roofFenceLength" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول السياج</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="externalDoors">عدد الأبواب الخارجية</label>
-                                <input type="number" id="externalDoors" class="form-control" min="0" max="9999999">
+                                <input type="number" id="externalDoors" class="form-control">
                                 <span class="tooltip">حدد عدد الأبواب</span>
                             </div>
                             <div class="form-group">
                                 <label for="internalDoors">عدد الأبواب الداخلية</label>
-                                <input type="number" id="internalDoors" class="form-control" min="0" max="9999999">
+                                <input type="number" id="internalDoors" class="form-control">
                                 <span class="tooltip">حدد عدد الأبواب</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facadeWindowsDoorsArea">مساحة شبابيك وأبواب الواجهة (م²)</label>
-                                <input type="number" id="facadeWindowsDoorsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="facadeWindowsDoorsArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الشبابيك</span>
                             </div>
                             <div class="form-group">
                                 <label for="skylightWindowsDoorsArea">مساحة شبابيك المناور (م²)</label>
-                                <input type="number" id="skylightWindowsDoorsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="skylightWindowsDoorsArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة المناور</span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="secondaryCeilingsArea">مساحة السقوف الثانوية (م²)</label>
-                                <input type="number" id="secondaryCeilingsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="secondaryCeilingsArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة السقوف</span>
                             </div>
                             <div class="form-group">
                                 <label for="decorativeWallsArea">مساحة الجدران الديكورية (م²)</label>
-                                <input type="number" id="decorativeWallsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="decorativeWallsArea"athed class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
-                            <input type="number" id="claddingWallsArea" class="form-control" min="0" max="9999999" step="0.01">
+                            <input type="number" id="claddingWallsArea" class="form-control" step="0.01">
                             <span class="tooltip">أدخل مساحة الجدران</span>
                         </div>
                         <div class="toggle-section" id="toggleStairsRailing">
@@ -459,12 +460,12 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="stairsRailingLength">طول محجر الدرج (م)</label>
-                                    <input type="number" id="stairsRailingLength" class="form-control" min="0" max="9999999" step="0.01">
+                                    <input type="number" id="stairsRailingLength" class="form-control" step="0.01">
                                     <span class="tooltip">أدخل طول محجر الدرج</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="stairsRailingPrice">سعر المتر الطولي</label>
-                                    <input type="number" id="stairsRailingPrice" class="form-control" min="0" max="9999999" step="0.01">
+                                    <input type="number" id="stairsRailingPrice" class="form-control" step="0.01">
                                     <span class="tooltip">أدخل سعر محجر الدرج</span>
                                 </div>
                             </div>
@@ -476,7 +477,7 @@
                         <div id="concreteColumnsInfo" class="toggle-content hidden">
                             <div class="form-group">
                                 <label for="concreteVolume">حجم الكونكريت (م³)</label>
-                                <input type="number" id="concreteVolume" class="form-control" min="0" max="9999999" step="0.01">
+                                <input type="number" id="concreteVolume" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل حجم الكونكريت</span>
                             </div>
                         </div>
@@ -488,12 +489,12 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="internalWallsArea">مساحة الجدران (م²)</label>
-                                    <input type="number" id="internalWallsArea" class="form-control" min="0" max="9999999" step="0.01">
+                                    <input type="number" id="internalWallsArea" class="form-control" step="0.01">
                                     <span class="tooltip">أدخل مساحة الجدران</span>
                                 </div>
                                 <div class="form-group">
                                     <label for="internalWallsPrice">سعر م² الجدران</label>
-                                    <input type="number" id="internalWallsPrice" class="form-control" min="0" max="9999999" step="0.01">
+                                    <input type="number" id="internalWallsPrice" class="form-control" step="0.01">
                                     <span class="tooltip">أدخل سعر الجدران</span>
                                 </div>
                             </div>
@@ -547,13 +548,6 @@
                 const err = document.getElementById(`${input.id}Error`);
                 if (err) err.style.display = input.validity.valid ? 'none' : 'block';
                 input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
-            });
-        });
-
-        document.querySelectorAll('input[type="number"]').forEach(input => {
-            input.addEventListener('input', () => {
-                let val = parseFloat(input.value.replace(/,/g, '')) || 0;
-                if (!isNaN(val)) input.value = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             });
         });
 
