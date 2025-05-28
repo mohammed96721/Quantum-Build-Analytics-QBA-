@@ -531,6 +531,7 @@
         </div>
     </div>
     <script>
+        // تعريف أزرار التبديل ومحتواها
         const toggles = [
             { toggle: 'toggleApartments', content: 'apartmentsInfo' },
             { toggle: 'toggleBasement', content: 'basementInfo' },
@@ -539,59 +540,93 @@
             { toggle: 'toggleConcreteColumns', content: 'concreteColumnsInfo' },
             { toggle: 'toggleInternalWalls', content: 'internalWallsInfo' }
         ];
+
+        // إضافة أحداث التبديل لإظهار/إخفاء الأقسام
         toggles.forEach(({ toggle, content }) => {
-            const t = document.getElementById(toggle), c = document.getElementById(content);
-            if (t && c) t.addEventListener('click', () => {
-                c.classList.toggle('hidden');
-                t.querySelector('.toggle-icon span').textContent = c.classList.contains('hidden') ? 'add' : 'remove';
-            });
+            const toggleBtn = document.getElementById(toggle);
+            const contentDiv = document.getElementById(content);
+            if (toggleBtn && contentDiv) {
+                toggleBtn.addEventListener('click', () => {
+                    contentDiv.classList.toggle('hidden');
+                    toggleBtn.querySelector('.toggle-icon span').textContent = contentDiv.classList.contains('hidden') ? 'add' : 'remove';
+                });
+            }
         });
 
+        // إظهار/إخفاء الأقسام بناءً على اختيارات القوائم
         const toggleSelect = (selectId, contentId, triggerValue) => {
-            const select = document.getElementById(selectId), content = document.getElementById(contentId);
-            if (select && content) select.addEventListener('change', () => content.classList.toggle('hidden', select.value !== triggerValue));
+            const select = document.getElementById(selectId);
+            const content = document.getElementById(contentId);
+            if (select && content) {
+                select.addEventListener('change', () => {
+                    content.classList.toggle('hidden', select.value !== triggerValue);
+                });
+            }
         };
         toggleSelect('brickType', 'otherBrickInfo', 'other');
         toggleSelect('facadeType', 'customFacadeInfo', 'custom');
 
+        // التحقق من صحة الحقول المطلوبة
         document.querySelectorAll('.form-control[required]').forEach(input => {
             input.addEventListener('input', () => {
-                const err = document.getElementById(`${input.id}Error`);
-                if (err) err.style.display = input.validity.valid ? 'none' : 'block';
+                const errorDiv = document.getElementById(`${input.id}Error`);
+                if (errorDiv) {
+                    errorDiv.style.display = input.validity.valid ? 'none' : 'block';
+                }
                 input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
             });
         });
 
-        document.getElementById('buildingForm').addEventListener('submit', async e => {
+        // معالجة إرسال النموذج
+        document.getElementById('buildingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
             submitBtn.disabled = true;
 
+            // دالة لجمع القيم من الحقول
             const getValue = (id, isFloat = false, isInt = false) => {
-                const el = document.getElementById(id);
-                if (!el) return isInt ? 0 : isFloat ? 0 : '';
-                let val = el.value.replace(/,/g, '');
-                return isFloat ? parseFloat(val) || 0 : isInt ? parseInt(val) || 0 : val;
+                const element = document.getElementById(id);
+                if (!element) return isInt ? 0 : isFloat ? 0 : '';
+                let value = element.value.replace(/,/g, '');
+                return isFloat ? parseFloat(value) || 0 : isInt ? parseInt(value) || 0 : value;
             };
 
             try {
+                // جمع البيانات من النموذج
                 const inputs = {
-                    customer: { name: getValue('customerName'), phone: getValue('phoneNumber') },
-                    location: { governorate: getValue('governorate'), area: getValue('area') },
-                    land: { area: getValue('landArea', true), facadeWidth: getValue('facadeWidth', true) },
+                    customer: {
+                        name: getValue('customerName'),
+                        phone: getValue('phoneNumber')
+                    },
+                    location: {
+                        governorate: getValue('governorate'),
+                        area: getValue('area')
+                    },
+                    land: {
+                        area: getValue('landArea', true),
+                        facadeWidth: getValue('facadeWidth', true)
+                    },
                     building: {
-                        floors: getValue('floors', false, true), rooms: getValue('rooms', false, true),
-                        bathrooms: getValue('bathrooms', false, true), groundFloorHeight: getValue('groundFloorHeight', true),
-                        otherFloorsHeight: getValue('otherFloorsHeight', true), brickType: getValue('brickType'),
-                        woodType: getValue('woodType'), facadeType: getValue('facadeType'),
-                        hasGarden: document.getElementById('hasGarden').checked, hasPool: document.getElementById('hasPool').checked,
-                        hasHVAC: document.getElementById('hasHVAC').checked, hasElevator: document.getElementById('hasElevator').checked,
+                        floors: getValue('floors', false, true),
+                        rooms: getValue('rooms', false, true),
+                        bathrooms: getValue('bathrooms', false, true),
+                        groundFloorHeight: getValue('groundFloorHeight', true),
+                        otherFloorsHeight: getValue('otherFloorsHeight', true),
+                        brickType: getValue('brickType'),
+                        woodType: getValue('woodType'),
+                        facadeType: getValue('facadeType'),
+                        hasGarden: document.getElementById('hasGarden').checked,
+                        hasPool: document.getElementById('hasPool').checked,
+                        hasHVAC: document.getElementById('hasHVAC').checked,
+                        hasElevator: document.getElementById('hasElevator').checked,
                         hasFence: document.getElementById('hasFence').checked
                     },
                     prices: {
-                        flooring: getValue('flooringPrice', true), wallInstallation: getValue('wallInstallationPrice', true),
-                        wallPainting: getValue('wallPaintingPrice', true), windowsDoors: getValue('windowsDoorsPrice', true)
+                        flooring: getValue('flooringPrice', true),
+                        wallInstallation: getValue('wallInstallationPrice', true),
+                        wallPainting: getValue('wallPaintingPrice', true),
+                        windowsDoors: getValue('windowsDoorsPrice', true)
                     },
                     hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
                     otherBrickInfo: !document.getElementById('otherBrickInfo').classList.contains('hidden'),
@@ -603,6 +638,7 @@
                     internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
                 };
 
+                // جمع بيانات نوع الطابوق الأخرى
                 if (inputs.otherBrickInfo) {
                     inputs.building.brickWidth = getValue('brickWidth', true);
                     inputs.building.brickLength = getValue('brickLength', true);
@@ -610,26 +646,31 @@
                     inputs.building.brickDensity = getValue('brickDensity', true);
                 }
 
+                // جمع بيانات الواجهة المخصصة
                 if (inputs.customFacadeInfo) {
                     inputs.building.facadeArea = getValue('facadeArea', true);
                     inputs.building.facadePrice = getValue('facadePrice', true);
                 }
 
+                // جمع بيانات الشقق
                 if (inputs.apartmentsInfo) {
                     inputs.building.apartmentsCount = getValue('apartmentsCount', false, true);
                 }
 
+                // جمع بيانات الطوابق السفلية
                 if (inputs.basementInfo) {
                     inputs.building.basementFloors = getValue('basementFloors', false, true);
                     inputs.building.basementCeilingArea = getValue('basementCeilingArea', true);
                     inputs.building.basementPrice = getValue('basementPrice', true);
                 }
 
+                // جمع بيانات محجر الدرج
                 if (inputs.stairsRailingInfo && inputs.hasMap) {
                     inputs.stairsRailingLength = getValue('stairsRailingLength', true);
                     inputs.prices.stairsRailing = getValue('stairsRailingPrice', true);
                 }
 
+                // جمع بيانات تفاصيل الخريطة
                 if (inputs.hasMap) {
                     inputs.technicalDetails = inputs.technicalDetails || {};
                     inputs.technicalDetails.totalRoofArea = getValue('totalRoofArea', true);
@@ -649,25 +690,38 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
+                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true); // إرسال مساحة لبخ الجدران
                 }
 
+                // جمع بيانات الجدران الداخلية
                 if (inputs.internalWallsInfo && inputs.hasMap) {
+                    inputs.technicalDetails = inputs.technicalDetails || {};
                     inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
                     inputs.prices.internalWalls = getValue('internalWallsPrice', true);
                 }
 
+                // جمع بيانات أعمدة الكونكريت
                 if (inputs.concreteColumnsInfo && inputs.hasMap) {
+                    inputs.technicalDetails = inputs.technicalDetails || {};
                     inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
                 }
 
+                // إرسال البيانات إلى الـ API
                 const response = await fetch('/api/process', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(inputs)
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(inputs)
                 });
 
-                if (!response.ok) throw new Error(`خطأ في الاتصال: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`خطأ في الاتصال: ${response.status}`);
+                }
+
                 const result = await response.json();
                 const resultContainer = document.getElementById('resultContainer');
                 const resultContent = document.getElementById('resultContent');
+
+                // عرض النتائج
                 resultContent.innerHTML = `
                     <div class="result-section" id="pdfContent">
                         <h3>النتائج</h3>
@@ -680,6 +734,7 @@
                 `;
                 resultContainer.style.display = 'block';
 
+                // إعداد زر تحميل PDF
                 document.getElementById('downloadPdf').onclick = () => {
                     const pdfContent = document.getElementById('pdfContent').innerHTML;
                     const pdfWindow = window.open('');
@@ -702,9 +757,11 @@
                     pdfWindow.print();
                 };
             } catch (error) {
+                // عرض الأخطاء إذا حدثت
                 document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
                 document.getElementById('resultContainer').style.display = 'block';
             } finally {
+                // إعادة تعيين زر الإرسال
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
                 submitBtn.disabled = false;
             }
