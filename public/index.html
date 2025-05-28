@@ -42,7 +42,7 @@
         .form-control {
             width: 100%; max-width: 200px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
             font-size: 0.75rem; background: var(--transparent-bg); transition: all 0.2s; height: 26px;
-            text-align: left; /* محاذاة النصوص من اليسار */
+            text-align: left;
         }
         .form-control:focus { border-color: var(--accent); box-shadow: 0 0 6px rgba(232, 185, 35, 0.3); transform: scale(1.01); outline: none; }
         .form-control:invalid:focus { border-color: var(--danger); box-shadow: 0 0 6px rgba(199, 86, 86, 0.3); }
@@ -546,9 +546,18 @@
         // إعداد تفعيل/إخفاء الحقول بناءً على الاختيارات
         const toggleSelect = (selectId, contentId, triggerValue) => {
             const select = document.getElementById(selectId), content = document.getElementById(contentId);
-            if (select && content) select.addEventListener('change', () => {
+            if (select && content) {
+                select.addEventListener('change', () => {
+                    const shouldShow = select.value === triggerValue;
+                    content.classList.toggle('hidden', !shouldShow);
+                    // إعادة تعيين الحقول عند الإخفاء لتجنب إرسال قيم قديمة
+                    if (!shouldShow) {
+                        content.querySelectorAll('input').forEach(input => input.value = '');
+                    }
+                });
+                // التحقق من الحالة الافتراضية عند التحميل
                 content.classList.toggle('hidden', select.value !== triggerValue);
-            });
+            }
         };
         toggleSelect('brickType', 'otherBrickInfo', 'other');
         toggleSelect('facadeType', 'customFacadeInfo', 'custom');
@@ -597,27 +606,29 @@
                 if (inputs.prices.wallInstallation < 0) errors.push('سعر تركيب الجدران يجب أن يكون 0 أو أكثر');
                 if (inputs.prices.wallPainting < 0) errors.push('سعر صبغ الجدران يجب أن يكون 0 أو أكثر');
                 if (inputs.prices.windowsDoors < 0) errors.push('سعر الشبابيك والأبواب يجب أن يكون 0 أو أكثر');
-                if (inputs.building.brickType === 'other' && !document.getElementById('otherBrickInfo').classList.contains('hidden')) {
+                if (inputs.building.brickType === 'other') {
                     if (inputs.building.brickWidth <= 0) errors.push('عرض البلوكة يجب أن يكون أكبر من 0');
                     if (inputs.building.brickLength <= 0) errors.push('طول البلوكة يجب أن يكون أكبر من 0');
                     if (inputs.building.brickHeight <= 0) errors.push('ارتفاع البلوكة يجب أن يكون أكبر من 0');
                     if (inputs.building.brickDensity <= 0) errors.push('كثافة البلوكة يجب أن تكون أكبر من 0');
                 }
-                if (inputs.building.facadeType === 'custom' && !document.getElementById('customFacadeInfo').classList.contains('hidden')) {
+                if (inputs.building.facadeType === 'custom') {
                     if (inputs.building.facadeArea <= 0) errors.push('مساحة الواجهة المخصصة يجب أن تكون أكبر من 0');
                     if (inputs.building.facadePrice < 0) errors.push('سعر الواجهة يجب أن يكون 0 أو أكثر');
                 }
-                if (!document.getElementById('apartmentsInfo').classList.contains('hidden') && inputs.building.apartmentsCount < 1) {
+                if ('apartmentsCount' in inputs.building && inputs.building.apartmentsCount < 1) {
                     errors.push('عدد الشقق يجب أن يكون 1 أو أكثر');
                 }
-                if (!document.getElementById('basementInfo').classList.contains('hidden')) {
+                if ('basementFloors' in inputs.building) {
                     if (inputs.building.basementFloors < 1) errors.push('عدد الطوابق السفلية يجب أن يكون 1 أو أكثر');
                     if (inputs.building.basementCeilingArea <= 0) errors.push('مساحة سقوف الطوابق السفلية يجب أن تكون أكبر من 0');
                     if (inputs.building.basementPrice < 0) errors.push('سعر الطوابق السفلية يجب أن يكون 0 أو أكثر');
                 }
-                if (!document.getElementById('stairsRailingInfo').classList.contains('hidden')) {
-                    if (inputs.stairsRailingLength <= 0) errors.push('طول محجر الدرج يجب أن يكون أكبر من 0');
-                    if (inputs.prices.stairsRailing < 0) errors.push('سعر محجر الدرج يجب أن يكون 0 أو أكثر');
+                if ('stairsRailingLength' in inputs && inputs.stairsRailingLength <= 0) {
+                    errors.push('طول محجر الدرج يجب أن يكون أكبر من 0');
+                }
+                if ('stairsRailing' in inputs.prices && inputs.prices.stairsRailing < 0) {
+                    errors.push('سعر محجر الدرج يجب أن يكون 0 أو أكثر');
                 }
                 return errors;
             };
@@ -660,44 +671,62 @@
                     }
                 };
 
-                // إضافة حقول الطابوق فقط إذا كان brickType = 'other' والقسم مفعل
-                const otherBrickInfo = document.getElementById('otherBrickInfo');
-                if (inputs.building.brickType === 'other' && !otherBrickInfo.classList.contains('hidden')) {
+                // إضافة حقول الطابوق إذا كان brickType = 'other'
+                if (inputs.building.brickType === 'other') {
                     inputs.building.brickWidth = getValue('brickWidth', true);
                     inputs.building.brickLength = getValue('brickLength', true);
                     inputs.building.brickHeight = getValue('brickHeight', true);
                     inputs.building.brickDensity = getValue('brickDensity', true);
+                    console.log('Brick fields added:', {
+                        brickWidth: inputs.building.brickWidth,
+                        brickLength: inputs.building.brickLength,
+                        brickHeight: inputs.building.brickHeight,
+                        brickDensity: inputs.building.brickDensity
+                    });
                 }
 
-                // إضافة حقول الواجهة المخصصة فقط إذا كان facadeType = 'custom' والقسم مفعل
-                const customFacadeInfo = document.getElementById('customFacadeInfo');
-                if (inputs.building.facadeType === 'custom' && !customFacadeInfo.classList.contains('hidden')) {
+                // إضافة حقول الواجهة المخصصة إذا كان facadeType = 'custom'
+                if (inputs.building.facadeType === 'custom') {
                     inputs.building.facadeArea = getValue('facadeArea', true);
                     inputs.building.facadePrice = getValue('facadePrice', true);
+                    console.log('Facade fields added:', {
+                        facadeArea: inputs.building.facadeArea,
+                        facadePrice: inputs.building.facadePrice
+                    });
                 }
 
-                // إضافة حقول الشقق فقط إذا كان قسم apartmentsInfo مفعل
+                // إضافة حقول الشقق إذا كان قسم apartmentsInfo مفعل
                 const apartmentsInfo = document.getElementById('apartmentsInfo');
                 if (!apartmentsInfo.classList.contains('hidden')) {
                     inputs.building.apartmentsCount = getValue('apartmentsCount', false, true);
+                    console.log('Apartments count added:', inputs.building.apartmentsCount);
                 }
 
-                // إضافة حقول الطوابق السفلية فقط إذا كان قسم basementInfo مفعل
+                // إضافة حقول الطوابق السفلية إذا كان قسم basementInfo مفعل
                 const basementInfo = document.getElementById('basementInfo');
                 if (!basementInfo.classList.contains('hidden')) {
                     inputs.building.basementFloors = getValue('basementFloors', false, true);
                     inputs.building.basementCeilingArea = getValue('basementCeilingArea', true);
                     inputs.building.basementPrice = getValue('basementPrice', true);
+                    console.log('Basement fields added:', {
+                        basementFloors: inputs.building.basementFloors,
+                        basementCeilingArea: inputs.building.basementCeilingArea,
+                        basementPrice: inputs.building.basementPrice
+                    });
                 }
 
-                // إضافة حقول محجر الدرج فقط إذا كان قسم stairsRailingInfo مفعل
+                // إضافة حقول محجر الدرج إذا كان قسم stairsRailingInfo مفعل
                 const stairsRailingInfo = document.getElementById('stairsRailingInfo');
                 if (!stairsRailingInfo.classList.contains('hidden')) {
                     inputs.stairsRailingLength = getValue('stairsRailingLength', true);
                     inputs.prices.stairsRailing = getValue('stairsRailingPrice', true);
+                    console.log('Stairs railing fields added:', {
+                        stairsRailingLength: inputs.stairsRailingLength,
+                        stairsRailingPrice: inputs.prices.stairsRailing
+                    });
                 }
 
-                // إضافة حقول تفاصيل الخريطة فقط إذا كان قسم mapDetailsInfo مفعل
+                // إضافة حقول تفاصيل الخريطة إذا كان قسم mapDetailsInfo مفعل
                 const mapDetailsInfo = document.getElementById('mapDetailsInfo');
                 inputs.hasMap = !mapDetailsInfo.classList.contains('hidden');
                 if (inputs.hasMap) {
@@ -721,18 +750,24 @@
                         claddingWallsArea: getValue('claddingWallsArea', true)
                     };
 
-                    // إضافة حقول الأعمدة الكونكريتية فقط إذا كان قسم concreteColumnsInfo مفعل
+                    // إضافة حقول الأعمدة الكونكريتية إذا كان قسم concreteColumnsInfo مفعل
                     const concreteColumnsInfo = document.getElementById('concreteColumnsInfo');
                     if (!concreteColumnsInfo.classList.contains('hidden')) {
                         inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
+                        console.log('Concrete volume added:', inputs.technicalDetails.concreteVolume);
                     }
 
-                    // إضافة حقول الجدران الداخلية فقط إذا كان قسم internalWallsInfo مفعل
+                    // إضافة حقول الجدران الداخلية إذا كان قسم internalWallsInfo مفعل
                     const internalWallsInfo = document.getElementById('internalWallsInfo');
                     if (!internalWallsInfo.classList.contains('hidden')) {
                         inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
                         inputs.technicalDetails.internalWallsPrice = getValue('internalWallsPrice', true);
+                        console.log('Internal walls fields added:', {
+                            internalWallsArea: inputs.technicalDetails.internalWallsArea,
+                            internalWallsPrice: inputs.technicalDetails.internalWallsPrice
+                        });
                     }
+                    console.log('Technical details added:', inputs.technicalDetails);
                 }
 
                 // التحقق من صحة المدخلات
@@ -744,6 +779,8 @@
                     submitBtn.disabled = false;
                     return;
                 }
+
+                console.log('Data to be sent to API:', inputs);
 
                 // إرسال البيانات إلى الـ API مع مهلة زمنية
                 const controller = new AbortController();
@@ -806,7 +843,7 @@
             } catch (error) {
                 console.error('خطأ في معالجة النموذج:', error);
                 document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
-                document.getElementById('resultContainer').style.display = 'block';
+                document.getElementById('resultContainer').style.display =#: 'block';
             } finally {
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
                 submitBtn.disabled = false;
