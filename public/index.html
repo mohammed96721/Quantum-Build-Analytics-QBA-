@@ -229,9 +229,9 @@
                                 <span class="tooltip">أدخل ارتفاع البلوكة</span>
                             </div>
                             <div class="form-group">
-                                <label for="brickDensity">كثافة البلوكة (كغم/م³)</label>
-                                <input type="number" id="brickDensity" class="form-control" step="0.01">
-                                <span class="tooltip">أدخل كثافة البلوكة</span>
+                                <label for="brickWeight">وزن البلوكة (كغم/م³)</label>
+                                <input type="number" id="brickWeight" class="form-control" step="0.01">
+                                <span class="tooltip">أدخل وزن البلوكة</span>
                             </div>
                         </div>
                     </div>
@@ -447,10 +447,17 @@
                                 <span class="tooltip">أدخل مساحة الجدران</span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
-                            <input type="number" id="claddingWallsArea" class="form-control" step="0.01">
-                            <span class="tooltip">أدخل مساحة الجدران</span>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="claddingWallsArea">مساحة الجدران التغليف (م²)</label>
+                                <input type="number" id="claddingWallsArea" class="form-control" step="0.01">
+                                <span class="tooltip">أدخل مساحة الجدران</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="plasterWallsArea">مساحة لبخ الجدران (م²)</label>
+                                <input type="number" id="plasterWallsArea" class="form-control" step="0.01">
+                                <span class="tooltip">أدخل مساحة لبخ الجدران</span>
+                            </div>
                         </div>
                         <div class="toggle-section" id="toggleStairsRailing">
                             <span><span class="material-icons-outlined">stairs</span> محجر الدرج</span>
@@ -537,7 +544,7 @@
         });
 
         const toggleSelect = (selectId, contentId, triggerValue) => {
-            const select = document.getElementById(selectId), content = document.getElementById(contentId);
+            const select = document.getElementById(selectId), content = document.getElementMnemonicId(contentId);
             if (select && content) select.addEventListener('change', () => content.classList.toggle('hidden', select.value !== triggerValue));
         };
         toggleSelect('brickType', 'otherBrickInfo', 'other');
@@ -547,13 +554,13 @@
             input.addEventListener('input', () => {
                 const err = document.getElementById(`${input.id}Error`);
                 if (err) err.style.display = input.validity.valid ? 'none' : 'block';
-                input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
+                input.classList.toggle('invalid', !input.validity.valid);
             });
         });
 
         document.getElementById('buildingForm').addEventListener('submit', async e => {
             e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitBtn = document.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
             submitBtn.disabled = true;
 
@@ -570,17 +577,25 @@
                     location: { governorate: getValue('governorate'), area: getValue('area') },
                     land: { area: getValue('landArea', true), facadeWidth: getValue('facadeWidth', true) },
                     building: {
-                        floors: getValue('floors', false, true), rooms: getValue('rooms', false, true),
-                        bathrooms: getValue('bathrooms', false, true), groundFloorHeight: getValue('groundFloorHeight', true),
-                        otherFloorsHeight: getValue('otherFloorsHeight', true), brickType: getValue('brickType'),
-                        woodType: getValue('woodType'), facadeType: getValue('facadeType'),
-                        hasGarden: document.getElementById('hasGarden').checked, hasPool: document.getElementById('hasPool').checked,
-                        hasHVAC: document.getElementById('hasHVAC').checked, hasElevator: document.getElementById('hasElevator').checked,
+                        floors: getValue('floors', false, true),
+                        rooms: getValue('rooms', false, true),
+                        bathrooms: getValue('bathrooms', false, true),
+                        groundFloorHeight: getValue('groundFloorHeight', true),
+                        otherFloorsHeight: getValue('otherFloorsHeight', true),
+                        brickType: getValue('brickType'),
+                        woodType: getValue('woodType'),
+                        facadeType: getValue('facadeType'),
+                        hasGarden: document.getElementById('hasGarden').checked,
+                        hasPool: document.getElementById('hasPool').checked,
+                        hasHVAC: document.getElementById('hasHVAC').checked,
+                        hasElevator: document.getElementById('hasElevator').checked,
                         hasFence: document.getElementById('hasFence').checked
                     },
                     prices: {
-                        flooring: getValue('flooringPrice', true), wallInstallation: getValue('wallInstallationPrice', true),
-                        wallPainting: getValue('wallPaintingPrice', true), windowsDoors: getValue('windowsDoorsPrice', true)
+                        flooring: getValue('flooringPrice', true),
+                        wallInstallation: getValue('wallInstallationPrice', true),
+                        wallPainting: getValue('wallPaintingPrice', true),
+                        windowsDoors: getValue('windowsDoorsPrice', true)
                     },
                     hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
                     otherBrickInfo: !document.getElementById('otherBrickInfo').classList.contains('hidden'),
@@ -592,12 +607,11 @@
                     internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
                 };
 
-                // إضافة الحقول فقط إذا كان القسم ظاهرًا
                 if (inputs.otherBrickInfo) {
                     inputs.building.brickWidth = getValue('brickWidth', true);
                     inputs.building.brickLength = getValue('brickLength', true);
                     inputs.building.brickHeight = getValue('brickHeight', true);
-                    inputs.building.brickDensity = getValue('brickDensity', true);
+                    inputs.building.brickWeight = getValue('brickWeight', true);
                 }
 
                 if (inputs.customFacadeInfo) {
@@ -639,6 +653,7 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
+                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
 
                     if (inputs.concreteColumnsInfo) {
                         inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
@@ -670,19 +685,19 @@
                 `;
                 resultContainer.style.display = 'block';
 
-                document.getElementById('downloadPdf').onclick = () => {
+                document.getElementById('downloadPdf').addEventListener('click', () => {
                     const pdfContent = document.getElementById('pdfContent').innerHTML;
                     const pdfWindow = window.open('');
                     pdfWindow.document.write(`
                         <html dir="rtl">
                         <head><title>تقرير تكاليف البناء</title>
                             <style>
-                                body { font-family: 'Tajawal', sans-serif; padding: 10px; background: #F5F1E9; color: #2A2A2A; }
+                                body { font-family: 'Tajawal', sans-serif; padding: 8px; background: #F5F1E9; color: #2A2A2A; }
                                 h3 { color: #5C4033; font-size: 1rem; }
                                 table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
                                 th, td { padding: 6px; text-align: right; border-bottom: 1px solid #E4E2DB; }
-                                th { background: rgba(92, 64, 51, 0.1); color: #5C4033; }
-                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 6px; border-radius: 5px; }
+                                th { background: rgba(255, 245, 235, 0.1); color: #5C4033; }
+                                pre { white-space: pre-wrap; }
                             </style>
                         </head>
                         <body>${pdfContent}</body>
@@ -690,7 +705,7 @@
                     `);
                     pdfWindow.document.close();
                     pdfWindow.print();
-                };
+                });
             } catch (error) {
                 document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
                 document.getElementById('resultContainer').style.display = 'block';
