@@ -42,7 +42,7 @@
         .form-control {
             width: 100%; max-width: 200px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
             font-size: 0.75rem; background: var(--transparent-bg); transition: all 0.2s; height: 26px;
-            text-align: left; /* محاذاة النصوص من اليسار */
+            text-align: left;
         }
         .form-control:focus { border-color: var(--accent); box-shadow: 0 0 6px rgba(232, 185, 35, 0.3); transform: scale(1.01); outline: none; }
         .form-control:invalid:focus { border-color: var(--danger); box-shadow: 0 0 6px rgba(199, 86, 86, 0.3); }
@@ -178,7 +178,6 @@
                             <input type="number" id="rooms" class="form-control" required>
                             <div class="error-message" id="roomsError">الرجاء إدخال عدد</div>
                             <span class="tooltip">حدد عدد الغرف</span>
-                        virtude { display: none; } /* إخفاء الأقسام الغير مطلوبة */
                         </div>
                     </div>
                     <div class="form-row">
@@ -275,8 +274,8 @@
                             <label for="woodType">نوع الخشب</label>
                             <select id="woodType" class="form-control" required>
                                 <option value="plywood">بلي وود</option>
-                            <option value="regular">عادي</option>
-                            <option value="waffle">Waffle Slab</option>
+                                <option value="regular">عادي</option>
+                                <option value="waffle">Waffle Slab</option>
                             </select>
                             <span class="tooltip">اختر نوع الخشب</span>
                         </div>
@@ -307,7 +306,7 @@
                     </div>
                     <div class="toggle-section" id="toggleApartments">
                         <span><span class="material-icons-outlined">apartment</span> شقق سكنية</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span>
+                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
                     </div>
                     <div id="apartmentsInfo" class="toggle-content hidden">
                         <div class="form-group">
@@ -318,7 +317,7 @@
                     </div>
                     <div class="toggle-section" id="toggleBasement">
                         <span><span class="material-icons-outlined">garage</span> طوابق سفلية</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span>
+                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
                     </div>
                     <div id="basementInfo" class="toggle-content hidden">
                         <div class="form-row">
@@ -353,7 +352,7 @@
                 <div class="form-section">
                     <div class="toggle-section map-toggle" id="toggleMapDetails">
                         <span><span class="material-icons-outlined">map</span> تفاصيل الخريطة</span>
-                        <span class="toggle-icon"><span class="material-icons-outlined">add</span>
+                        <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
                     </div>
                     <div id="mapDetailsInfo" class="toggle-content hidden">
                         <div class="form-row">
@@ -371,7 +370,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="garagePathArea">مساحة الكراج والممرات (م²)</label>
-                                <input type="number" id="garagePathArea class="form-control" step="0.01">
+                                <input type="number" id="garagePathArea" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل مساحة الكراج</span>
                             </div>
                             <div class="form-group">
@@ -400,7 +399,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="externalWalls24cm">أطوال الجدران الخارجية 24سم (م)</label>
-                                <input type="number" id="externalWalls24cm class="form-control" step="0.01">
+                                <input type="number" id="externalWalls24cm" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الجدران</span>
                             </div>
                         </div>
@@ -466,7 +465,7 @@
                         </div>
                         <div class="toggle-section" id="toggleStairsRailing">
                             <span><span class="material-icons-outlined">stairs</span> محجر الدرج</span>
-                            <span class="toggle-icon"><span class="material-icons-outlined">add</span>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
                         </div>
                         <div id="stairsRailingInfo" class="toggle-content hidden">
                             <div class="form-row">
@@ -484,8 +483,8 @@
                         </div>
                         <div class="toggle-section" id="toggleConcreteColumns">
                             <span><span class="material-icons-outlined">foundation</span> أعمدة كونكريت</span>
-                            <span class="toggle-icon"><span class="material-icons-outlined">add</span>
-                            </div>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
+                        </div>
                         <div id="concreteColumnsInfo" class="toggle-content hidden">
                             <div class="form-group">
                                 <label for="concreteVolume">حجم الكونكريت (م³)</label>
@@ -494,8 +493,8 @@
                             </div>
                         </div>
                         <div class="toggle-section" id="toggleInternalWalls">
-                            <span><span class="material-icons-outlined">walls</span> جدران داخلية</span>
-                            <span class="toggle-icon"><span class="material-icons-outlined">add</span>
+                            <span><span class="material-icons-outlined">wallpaper</span> جدران داخلية</span>
+                            <span class="toggle-icon"><span class="material-icons-outlined">add</span></span>
                         </div>
                         <div id="internalWallsInfo" class="toggle-content hidden">
                             <div class="form-row">
@@ -604,7 +603,6 @@
                     internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
                 };
 
-                // إضافة الحقول فقط إذا كان القسم ظاهرًا
                 if (inputs.otherBrickInfo) {
                     inputs.building.brickWidth = getValue('brickWidth', true);
                     inputs.building.brickLength = getValue('brickLength', true);
@@ -648,7 +646,7 @@
                     inputs.technicalDetails.internalDoors = getValue('internalDoors', false, true);
                     inputs.technicalDetails.facadeWindowsDoorsArea = getValue('facadeWindowsDoorsArea', true);
                     inputs.technicalDetails.skylightWindowsDoorsArea = getValue('skylightWindowsDoorsArea', true);
-                    inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingArea', true);
+                    inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
                 }
@@ -658,11 +656,15 @@
                     inputs.prices.internalWalls = getValue('internalWallsPrice', true);
                 }
 
+                if (inputs.concreteColumnsInfo && inputs.hasMap) {
+                    inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
+                }
+
                 const response = await fetch('/api/process', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(inputs))
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(inputs)
                 });
 
-                if (!response.ok) { throw new Error(`خطأ في الاتصال: ${response.status}`);
+                if (!response.ok) throw new Error(`خطأ في الاتصال: ${response.status}`);
                 const result = await response.json();
                 const resultContainer = document.getElementById('resultContainer');
                 const resultContent = document.getElementById('resultContent');
@@ -679,7 +681,7 @@
                 resultContainer.style.display = 'block';
 
                 document.getElementById('downloadPdf').onclick = () => {
-                    const pdfContent = document.getElementById('pdfContent').innerHTML);
+                    const pdfContent = document.getElementById('pdfContent').innerHTML;
                     const pdfWindow = window.open('');
                     pdfWindow.document.write(`
                         <html dir="rtl">
