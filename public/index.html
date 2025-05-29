@@ -6,9 +6,6 @@
     <title>نظام حساب تكاليف البناء - العراق</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    <!-- إضافة مكتبات jsPDF و jsPDF-autoTable -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root {
             --primary: #5C4033; --accent: #E8B923; --background: #F5F1E9; --secondary-bg: #EDE7E0;
@@ -396,7 +393,7 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="invertedBeams">طول الجسور المقلوب (م)</label>
+                                <label for="invertedBeams">طول الجسور المقلوبة (م)</label>
                                 <input type="number" id="invertedBeams" class="form-control" step="0.01">
                                 <span class="tooltip">أدخل طول الجسور</span>
                             </div>
@@ -580,9 +577,6 @@
             });
         });
 
-        // متغير عالمي لتخزين نتيجة الـ API
-        let apiResult = null;
-
         // معالجة إرسال النموذج
         document.getElementById('buildingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -696,7 +690,7 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
-                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
+                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true); // إرسال مساحة لبخ الجدران
                 }
 
                 // جمع بيانات الجدران الداخلية
@@ -724,246 +718,44 @@
                 }
 
                 const result = await response.json();
-                apiResult = result; // تخزين النتيجة لاستخدامها في generatePDF
                 const resultContainer = document.getElementById('resultContainer');
-                const contentDiv = document.getElementById('resultContent');
+                const resultContent = document.getElementById('resultContent');
 
                 // عرض النتائج
-                contentDiv.innerHTML = `
+                resultContent.innerHTML = `
                     <div class="result-section" id="pdfContent">
                         <h3>النتائج</h3>
                         <table>
                             <tr><th>البيان</th><th>القيمة</th></tr>
                             <tr><td>الرسالة</td><td>${result.result.message}</td></tr>
-                            <tr><td>البيانات المدخلة</td><td><pre>${JSON.stringify(result.result.inputData, inputData, null, 2)}</pre></tr></td></tr>
+                            <tr><td>البيانات المدخلة</td><td><pre>${JSON.stringify(result.result.inputData, null, 2)}</pre></td></tr>
                         </table>
                     </div>
                 `;
                 resultContainer.style.display = 'block';
 
-                // دالة إنشاء PDF
-                document.getElementById('downloadPdf').addEventListener('click', () => {
-                    if (!apiResult) {
-                        alert('يرجى حساب التكلفة أولاً');
-                        return;
-                    }
-
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: 'letter' });
-
-                    // إعداد خط Amiri
-                    doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
-                    doc.setFont('Amiri');
-
-                    // الصفحة الأولى: الغلاف
-                    doc.setFontSize(92, 64, 0.51);
-                    doc.text('تقرير تكاليف البناء', 4.15, 0.8, { align: 'center' });
-                    doc.setFontSize(16);
-                    doc.text('شركة البناء المثالية', 4.15, 1.6, { align: 'center' });
-                    doc.text(`العميل: ${apiResult.result.inputData.customer.name || 'غير محدد'}`, 4.15, 2.4, { align: 'center' });
-                    doc.text(`العنوان: ${apiResult.result.inputData.location.governorate || 'غير محدد'}`, 4.15, 3.2, { align: 'center' });
-                    doc.text(`تاريخ التقرير: ${new Date().toLocaleDateString('ar-IQ')}`, 4.15, 4.0, { align: 'center' });
-                    doc.setFontSize(12);
-                    doc.text('تقرير مفصل لمشروعك السكني يوضح التكاليف والتحليل الإنشائي', 4.15, 4.8, { align: 'center' });
-
-                    // الصفحة الثانية: مدخلات العميل
-                    doc.addPage();
-                    doc.setFontSize(18);
-                    doc.text('بيانات المشروع', 4.15, 0.8, { align: 'center' });
-                    doc.setFontSize(12);
-                    doc.text('هذه هي المعلومات التي قدمتها لنا لبناء التقرير:', 0.8, 1.6, { align: 'right' });
-
-                    const clientInputs = [
-                        ['اسم العميل', apiResult.result.inputData.customer.name || 'غير محدد'],
-                        ['رقم الهاتف', apiResult.result.inputData.customer.phone || 'غير محدد'],
-                        ['المحافظة', apiResult.result.inputData.location.governorate || 'غير محدد'],
-                        ['المنطقة/الحي', apiResult.result.inputData.location.area || 'غير محدد'],
-                        ['مساحة الأرض (م²)', apiResult.result.inputData.land.area || 'غير محدد'],
-                        ['عرض الواجهة (م)', apiResult.result.inputData.land.facadeWidth || 'غير محدد'],
-                        ['عدد الطوابق', apiResult.result.inputData.building.floors || 'غير محدد'],
-                        ['عدد الغرف', apiResult.result.inputData.building.rooms || 'غير محدد'],
-                        ['عدد الحمامات', apiResult.result.inputData.building.bathrooms || 'غير محدد'],
-                        ['ارتفاع الطابق الأرضي (م)', apiResult.result.inputData.building.groundFloorHeight || 'غير محدد'],
-                        ['ارتفاع باقي الطوابق (م)', apiResult.result.inputData.building.otherFloorsHeight || 'غير محدد'],
-                        ['نوع الطابوق', apiResult.result.inputData.building.brickType === 'yellow' ? 'أصفر' : apiResult.result.inputData.building.brickType === 'red' ? 'أحمر' : 'مخصص'],
-                        ['نوع الخشب', apiResult.result.inputData.building.woodType || 'غير محدد'],
-                        ['نوع الواجهة', apiResult.result.inputData.building.facadeType || 'غير محدد'],
-                        ['حديقة', apiResult.result.inputData.building.hasGarden ? 'نعم' : 'لا'],
-                        ['مسبح', apiResult.result.inputData.building.hasPool ? 'نعم' : 'لا'],
-                        ['تكييف مركزي', apiResult.result.inputData.building.hasHVAC ? 'نعم' : 'لا'],
-                        ['مصعد', apiResult.result.inputData.building.hasElevator ? 'نعم' : 'لا'],
-                        ['سياج', apiResult.result.inputData.building.hasFence ? 'نعم' : 'لا'],
-                    ];
-
-                    if (apiResult.result.inputData.building.brickType === 'other') {
-                        clientInputs.push(['عرض البلوكة (سم)', apiResult.result.inputData.building.brickWidth || 'غير محدد']);
-                        clientInputs.push(['طول البلوكة (سم)', apiResult.result.inputData.building.brickLength || 'غير محدد']);
-                        clientInputs.push(['ارتفاع البلوكة (سم)', apiResult.result.inputData.building.brickHeight || 'غير محدد']);
-                        clientInputs.push(['كثافة البلوكة (كجم/م³)', apiResult.result.inputData.building.brickDensity || 'غير محدد']);
-                    }
-
-                    if (apiResult.result.inputData.building.facadeType === 'custom') {
-                        clientInputs.push(['مساحة الواجهة المخصصة (م²)', apiResult.result.inputData.building.facadeArea || 'غير محدد']);
-                        clientInputs.push(['سعر م² الواجهة', apiResult.result.inputData.building.facadePrice || 'غير محدد']);
-                    }
-
-                    if (apiResult.result.inputData.building.apartmentsCount) {
-                        clientInputs.push(['عدد الشقق', apiResult.result.inputData.building.apartmentsCount || 'غير محدد']);
-                    }
-
-                    if (apiResult.result.inputData.building.basementFloors) {
-                        clientInputs.push(['عدد الطوابق السفلية', apiResult.result.inputData.building.basementFloors || 'غير محدد']);
-                        clientInputs.push(['مساحة السقوف السفلية (م²)', apiResult.result.inputData.building.basementCeilingArea || 'غير محدد']);
-                        clientInputs.push(['سعر م² الطوابق السفلية', apiResult.result.inputData.building.basementPrice || 'غير محدد']);
-                    }
-
-                    if (apiResult.result.inputData.technicalDetails) {
-                        clientInputs.push(['مساحة السقوف (م²)', apiResult.result.inputData.technicalDetails.totalRoofArea || 'غير محدد']);
-                        clientInputs.push(['مساحة الحديقة (م²)', apiResult.result.inputData.technicalDetails.gardenArea || 'غير محدد']);
-                        clientInputs.push(['مساحة الكراج والممرات (م²)', apiResult.result.inputData.technicalDetails.garagePathArea || 'غير محدد']);
-                        clientInputs.push(['مساحة الجدران الخارجية (م²)', apiResult.result.inputData.technicalDetails.externalPlasterWalls || 'غير محدد']);
-                        clientInputs.push(['مساحة المناور (م²)', apiResult.result.inputData.technicalDetails.skylightsArea || 'غير محدد']);
-                        clientInputs.push(['طول الرباطات (م)', apiResult.result.inputData.technicalDetails.tiesLength || 'غير محدد']);
-                        clientInputs.push(['طول الجسور المقلوبة (م)', apiResult.result.inputData.technicalDetails.invertedBeams || 'غير محدد']);
-                        clientInputs.push(['أطوال الجدران الخارجية 24سم (م)', apiResult.result.inputData.technicalDetails.externalWalls24cm || 'غير محدد']);
-                        clientInputs.push(['أطوال الجدران الداخلية 24سم (م)', apiResult.result.inputData.technicalDetails.internalWalls24cm || 'غير محدد']);
-                        clientInputs.push(['طول ستارة السطح (م)', apiResult.result.inputData.technicalDetails.roofFenceLength || 'غير محدد']);
-                        clientInputs.push(['عدد الأبواب الخارجية', apiResult.result.inputData.technicalDetails.externalDoors || 'غير محدد']);
-                        clientInputs.push(['عدد الأبواب الداخلية', apiResult.result.inputData.technicalDetails.internalDoors || 'غير محدد']);
-                        clientInputs.push(['مساحة شبابيك وأبواب الواجهة (م²)', apiResult.result.inputData.technicalDetails.facadeWindowsDoorsArea || 'غير محدد']);
-                        clientInputs.push(['مساحة شبابيك المناور (م²)', apiResult.result.inputData.technicalDetails.skylightWindowsDoorsArea || 'غير محدد']);
-                        clientInputs.push(['مساحة السقوف الثانوية (م²)', apiResult.result.inputData.technicalDetails.secondaryCeilingsArea || 'غير محدد']);
-                        clientInputs.push(['مساحة الجدران الديكورية (م²)', apiResult.result.inputData.technicalDetails.decorativeWallsArea || 'غير محدد']);
-                        clientInputs.push(['مساحة لبخ الجدران (م²)', apiResult.result.inputData.technicalDetails.plasterWallsArea || 'غير محدد']);
-                        clientInputs.push(['مساحة الجدران التغليف (م²)', apiResult.result.inputData.technicalDetails.claddingWallsArea || 'غير محدد']);
-                        if (apiResult.result.inputData.technicalDetails.concreteVolume) {
-                            clientInputs.push(['حجم الكونكريت (م³)', apiResult.result.inputData.technicalDetails.concreteVolume || 'غير محدد']);
-                        }
-                        if (apiResult.result.inputData.technicalDetails.internalWallsArea) {
-                            clientInputs.push(['مساحة الجدران الداخلية (م²)', apiResult.result.inputData.technicalDetails.internalWallsArea || 'غير محدد']);
-                        }
-                    }
-
-                    doc.autoTable({
-                        head: [['البند', 'القيمة']],
-                        body: clientInputs,
-                        startY: 2.0,
-                        styles: { font: 'Amiri', halign: 'right', fontSize: 10 },
-                        headStyles: { fillColor: [92, 64, 51] }, // لون يتماشى مع --primary
-                        columnStyles: { 0: { cellWidth: 2.5 }, 1: { cellWidth: 5.0 } },
-                    });
-
-                    // الصفحة الثالثة: تفاصيل التكاليف
-                    doc.addPage();
-                    doc.setFontSize(18);
-                    doc.text('تفاصيل التكاليف', 4.15, 0.8, { align: 'center' });
-                    doc.setFontSize(12);
-                    doc.text('هذا الجدول يوضح تكلفة كل جزء من مشروعك (بالدينار العراقي):', 0.8, 1.6, { align: 'right' });
-
-                    const costTranslations = {
-                        structural: 'التحليل الإنشائي',
-                        excavation: 'الحفر والفرش',
-                        facade: 'الواجهة',
-                        raft: 'الرفت',
-                        flooring: 'الأرضيات',
-                        concrete: 'الكونكريت',
-                        steel: 'الحديد',
-                        plastering: 'البياض',
-                        bricks: 'الطابوق',
-                        skylights: 'المناور',
-                        flooringMortar: 'مونة الأرضيات',
-                        wallsMortar: 'مونة الجدران',
-                        plasterMortar: 'مونة اللبخ',
-                        materialTransport: 'نقل المواد',
-                        electricalMaterials: 'المواد الكهربائية',
-                        electricalLabor: 'أجور الكهربائي',
-                        plumbingMaterials: 'مواد الصحيات',
-                        plumbingLabor: 'أجور الصحيات',
-                        brickLabor: 'أجور الطابوق',
-                        carpentryAndSteelLabor: 'أجور النجارة والحدادة',
-                        facadeLabor: 'أجور الواجهة',
-                        externalDoor: 'الباب الخارجي',
-                        skylightCost: 'تكلفة المناور',
-                        cladding: 'تطبيق الجدران',
-                        painting: 'الصبغ',
-                        plasteringCost: 'لبخ الجدران',
-                        bathroomFurnishing: 'تأثيث الحمامات',
-                        garageCover: 'مسقف الكراج',
-                        electricalBoard: 'بورد الكهرباء',
-                        hvac: 'دكتات الهواء',
-                    };
-
-                    const costTable = Object.entries(apiResult.result.costBreakdown || {}).map(([key, value]) => [
-                        costTranslations[key] || key,
-                        value.toLocaleString('ar-IQ'),
-                    ]);
-
-                    doc.autoTable({
-                        head: [['البند', 'التكلفة (د.ع)']],
-                        body: costTable,
-                        startY: 2.0,
-                        styles: { font: 'Amiri', halign: 'right', fontSize: 10 },
-                        headStyles: { fillColor: [92, 64, 51] },
-                        columnStyles: { 0: { cellWidth: 4.0 }, 1: { cellWidth: 3.5 } },
-                    });
-
-                    doc.setFontSize(14);
-                    doc.text(`الإجمالي: ${(apiResult.result.totalCost || 0).toLocaleString('ar-IQ')} د.ع`, 0.8, doc.lastAutoTable.finalY + 0.4, { align: 'right' });
-
-                    // الصفحة الرابعة: التحليل الإنشائي
-                    doc.addPage();
-                    doc.setFontSize(18);
-                    doc.text('التحليل الإنشائي', 4.15, 0.8, { align: 'center' });
-                    doc.setFontSize(12);
-                    doc.text('نقوم بحسابات دقيقة لضمان أن منزلك آمن وقوي. إليك شرحًا بسيطًا:', 0.8, 1.6, { align: 'right' });
-
-                    doc.text('1. حساب الوزن الكلي للمبنى:', 0.8, 2.4, { align: 'right' });
-                    doc.text('الوزن الكلي = (وزن الطابوق + وزن الكونكريت) × 9.81 + الأحمال الحية', 0.8, 2.8, { align: 'right' });
-                    doc.text(`الوزن الكلي: ${(apiResult.result.details.totalWeight || 0).toFixed(2)} كيلو نيوتن`, 0.8, 3.2, { align: 'right' });
-                    doc.text('هذا الوزن يخبرنا كم يضغط المبنى على الأرض.', 0.8, 3.6, { align: 'right' });
-
-                    doc.text('2. حساب الضغط على الأرض:', 0.8, 4.4, { align: 'right' });
-                    doc.text('الضغط = الوزن الكلي ÷ مساحة الأرض', 0.8, 4.8, { align: 'right' });
-                    doc.text(`نتيجة الضغط: ${(apiResult.result.details.pressure || 0).toFixed(2)} كيلو نيوتن/م²`, 0.8, 5.2, { align: 'right' });
-                    doc.text('الضغط يحدد نوع الأساس (الرفت) الذي نحتاجه.', 0.8, 5.6, { align: 'right' });
-
-                    doc.text('3. نوع الأساس (الرفت):', 0.8, 6.4, { align: 'right' });
-                    doc.text(`نوع الرفت: ${apiResult.result.details.raftType === 'regular' ? 'عادي' : apiResult.result.details.raftType === 'reinforced' ? 'مقوى' : 'خاص'}`, 0.8, 6.8, { align: 'right' });
-                    doc.text(`سمك الرفت: ${(apiResult.result.details.raftThickness || 0).toFixed(2)} متر`, 0.8, 7.2, { align: 'right' });
-                    doc.text('الرفت هو الأساس الذي يحمل منزلك ويوزع الوزن على الأرض.', 0.8, 7.6, { align: 'right' });
-
-                    doc.text('4. التحقق من الجدران:', 0.8, 8.4, { align: 'right' });
-                    doc.text(`حالة الجدران: ${apiResult.result.details.wallCheck || 'مستقرة'}`, 0.8, 8.8, { align: 'right' });
-                    doc.text('نتأكد أن جدران الطابق الأرضي قوية بما يكفي لتحمل الوزن.', 0.8, 9.2, { align: 'right' });
-
-                    // الصفحة الخامسة: الكميات
-                    doc.addPage();
-                    doc.setFontSize(18);
-                    doc.text('الكميات المطلوبة', 4.15, 0.8, { align: 'center' });
-                    doc.setFontSize(12);
-                    doc.text('هذا الجدول يوضح الكميات المطلوبة لمشروعك:', 0.8, 1.6, { align: 'right' });
-
-                    const quantitiesTable = [
-                        ['حجم الكونكريت (م³)', (apiResult.result.details.concreteVolume || 0).toFixed(2)],
-                        ['كمية الحديد (كجم)', (apiResult.result.details.steelQuantity || 0).toFixed(2)],
-                        ['عدد الطابوق (طابوقة)', Math.ceil(apiResult.result.details.brickCount || 0)],
-                        ['مساحة الواجهة (م²)', (apiResult.result.details.facadeArea || 0).toFixed(2)],
-                        ['مساحة الأرضيات (م²)', (apiResult.result.details.flooringArea || 0).toFixed(2)],
-                        ['مساحة البياض (م²)', (apiResult.result.details.plasteringArea || 0).toFixed(2)],
-                    ];
-
-                    doc.autoTable({
-                        head: [['البند', 'الكمية']],
-                        body: quantitiesTable,
-                        startY: 2.0,
-                        styles: { font: 'Amiri', halign: 'right', fontSize: 10 },
-                        headStyles: { fillColor: [92, 64, 51] },
-                        columnStyles: { 0: { cellWidth: 4.0 }, 1: { cellWidth: 3.5 } },
-                    });
-
-                    // حفظ ملف PDF
-                    doc.save(`تقرير_تكاليف_البناء_${apiResult.result.inputData.customer.name || 'مشروع'}.pdf`);
-                });
+                // إعداد زر تحميل PDF
+                document.getElementById('downloadPdf').onclick = () => {
+                    const pdfContent = document.getElementById('pdfContent').innerHTML;
+                    const pdfWindow = window.open('');
+                    pdfWindow.document.write(`
+                        <html dir="rtl">
+                        <head><title>تقرير تكاليف البناء</title>
+                            <style>
+                                body { font-family: 'Tajawal', sans-serif; padding: 10px; background: #FFF6E6; color: #2A2A2A; }
+                                h3 { color: #5C4033; font-size: 1rem; font-weight: 600; }
+                                table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+                                th, td { padding: 6px; text-align: right; border-bottom: 1px solid #E4E2DB; }
+                                th { background: rgba(92, 64, 51, 0.1); color: #5C4033; }
+                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 5px; border-radius: 5px; }
+                            </style>
+                        </head>
+                        <body>${pdfContent}</body>
+                        </html>
+                    `);
+                    pdfWindow.document.close();
+                    pdfWindow.print();
+                };
             } catch (error) {
                 // عرض الأخطاء إذا حدثت
                 document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
