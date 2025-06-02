@@ -196,6 +196,14 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="ceilingThickness">سمك السقف (م)</label>
+                            <input type="number" id="ceilingThickness" class="form-control" required step="0.01">
+                            <div class="error-message" id="ceilingThicknessError">الرجاء إدخال سمك السقف</div>
+                            <span class="tooltip">أدخل سمك السقف</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="bathrooms">عدد الحمامات</label>
                             <input type="number" id="bathrooms" class="form-control" required>
                             <div class="error-message" id="bathroomsError">الرجاء إدخال عدد</div>
@@ -271,13 +279,13 @@
                     <h3><span class="material-icons-outlined">build</span> خيارات إضافية</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="woodType">نوع الخشب</label>
-                            <select id="woodType" class="form-control" required>
+                            <label for="ceilingDetails">تفاصيل السقف</label>
+                            <select id="ceilingDetails" class="form-control" required>
                                 <option value="plywood">بلي وود</option>
                                 <option value="regular">عادي</option>
                                 <option value="waffle">Waffle Slab</option>
                             </select>
-                            <span class="tooltip">اختر نوع الخشب</span>
+                            <span class="tooltip">اختر تفاصيل السقف</span>
                         </div>
                         <div class="form-group">
                             <label for="facadeType">نوع الواجهة</label>
@@ -288,6 +296,20 @@
                                 <option value="custom">مخصصة</option>
                             </select>
                             <span class="tooltip">اختر نوع الواجهة</span>
+                        </div>
+                    </div>
+                    <div id="waffleSlabInfo" class="toggle-content hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="voidSize">حجم الفراغ (م³)</label>
+                                <input type="number" id="voidSize" class="form-control" step="0.01">
+                                <span class="tooltip">أدخل حجم الفراغ</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="voidCount">عددها</label>
+                                <input type="number" id="voidCount" class="form-control">
+                                <span class="tooltip">أدخل عدد الفراغات</span>
+                            </div>
                         </div>
                     </div>
                     <div id="customFacadeInfo" class="toggle-content hidden">
@@ -565,6 +587,7 @@
         };
         toggleSelect('brickType', 'otherBrickInfo', 'other');
         toggleSelect('facadeType', 'customFacadeInfo', 'custom');
+        toggleSelect('ceilingDetails', 'waffleSlabInfo', 'waffle');
 
         // التحقق من صحة الحقول المطلوبة
         document.querySelectorAll('.form-control[required]').forEach(input => {
@@ -613,8 +636,9 @@
                         bathrooms: getValue('bathrooms', false, true),
                         groundFloorHeight: getValue('groundFloorHeight', true),
                         otherFloorsHeight: getValue('otherFloorsHeight', true),
+                        ceilingThickness: getValue('ceilingThickness', true),
                         brickType: getValue('brickType'),
-                        woodType: getValue('woodType'),
+                        ceilingDetails: getValue('ceilingDetails'),
                         facadeType: getValue('facadeType'),
                         hasGarden: document.getElementById('hasGarden').checked,
                         hasPool: document.getElementById('hasPool').checked,
@@ -631,6 +655,7 @@
                     hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
                     otherBrickInfo: !document.getElementById('otherBrickInfo').classList.contains('hidden'),
                     customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
+                    waffleSlabInfo: !document.getElementById('waffleSlabInfo').classList.contains('hidden'),
                     apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
                     basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
                     stairsRailingInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
@@ -644,6 +669,12 @@
                     inputs.building.brickLength = getValue('brickLength', true);
                     inputs.building.brickHeight = getValue('brickHeight', true);
                     inputs.building.brickDensity = getValue('brickDensity', true);
+                }
+
+                // جمع بيانات تفاصيل السقف (Waffle Slab)
+                if (inputs.waffleSlabInfo) {
+                    inputs.building.voidSize = getValue('voidSize', true);
+                    inputs.building.voidCount = getValue('voidCount', false, true);
                 }
 
                 // جمع بيانات الواجهة المخصصة
@@ -690,7 +721,7 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
-                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true); // إرسال مساحة لبخ الجدران
+                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
                 }
 
                 // جمع بيانات الجدران الداخلية
