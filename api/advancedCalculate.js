@@ -85,80 +85,85 @@ function getMaterialPrices() {
  */
 async function processAdvanced(data) {
   try {
-    // تسجيل البيانات الواردة
+    // تسجيل البيانات الواردة للتحقق منها
     console.log('📥 **بيانات processAdvanced**:', JSON.stringify(data, null, 2));
 
-    // **استخلاص البيانات**
+    // التحقق من وجود البيانات
+    if (!data || typeof data !== 'object') {
+      throw new Error('البيانات المدخلة غير صالحة أو غير موجودة');
+    }
+
+    // **استخلاص البيانات مع قيم افتراضية آمنة**
     const customer = {
-      'الاسم': data.customer?.name || null, // نص
-      'الهاتف': data.customer?.phone || null // نص
+      'الاسم': data.customer?.name ?? 'غير متوفر', // استخدام ?? لضمان قيمة افتراضية
+      'الهاتف': data.customer?.phone ?? 'غير متوفر' // نص
     };
 
     const location = {
-      'المحافظة': data.location?.governorate || null, // نص
-      'المنطقة': data.location?.area || null // نص
+      'المحافظة': data.location?.governorate ?? 'غير محدد', // نص
+      'المنطقة': data.location?.area ?? 'غير محدد' // نص
     };
 
     const land = {
-      'مساحة الأرض (م²)': data.land?.area || 0, // عشري
-      'عرض الواجهة (م)': data.land?.facadeWidth || 0 // عشري
+      'مساحة الأرض (م²)': data.land?.area ?? 0, // عشري
+      'عرض الواجهة (م)': data.land?.facadeWidth ?? 0 // عشري
     };
 
     const building = {
-      'عدد الطوابق': data.building?.floors || 0, // صحيح
-      'عدد الغرف': data.building?.rooms || 0, // صحيح
-      'عدد الحمامات': data.building?.bathrooms || 0, // صحيح
-      'ارتفاع الأرضي (م)': data.building?.groundFloorHeight || 0, // عشري
-      'ارتفاع الطوابق (م)': data.building?.otherFloorsHeight || 0, // عشري
-      'سمك السقف (م)': data.building?.ceilingThickness || 0, // عشري
-      'نوع الطابوق': data.building?.brickType || null, // نص
-      'تفاصيل السقف': data.building?.ceilingDetails || null, // نص
-      'نوع الواجهة': data.building?.facadeType || null, // نص
-      ' حديقة داخلية': data.building?.hasGarden || false, // منطقي
-      'مسبح': data.building?.hasPool || false, // منطقي
-      'تكييف': data.building?.hasHVAC || false, // منطقي
-      'مصعد': data.building?.hasElevator || false, // منطقي
-      'سياج': data.building?.hasFence || false, // منطقي
-      'حجم الفراغ (م³)': data.waffleSlabInfo ? data.building?.voidSize || 0 : null, // عشري
-      'عدد الفراغات': data.waffleSlabInfo ? data.building?.voidCount || 0 : null, // صحيح
-      'مساحة الواجهة (م²)': data.customFacadeInfo ? data.building?.facadeArea || 0 : null, // عشري
-      'عدد الشقق': data.apartmentsInfo ? data.building?.apartmentsCount || 0 : null, // صحيح
-      'عدد الطوابق السفلية': data.basementInfo ? data.building?.basementFloors || 0 : null, // صحيح
-      'مساحة السقوف السفلية (م²)': data.basementInfo ? data.building?.basementCeilingArea || 0 : null, // عشري
-      'سعر م² الطوابق السفلية': data.basementInfo ? data.building?.basementPrice || 0 : null // عشري
+      'عدد الطوابق': data.building?.floors ?? 0, // صحيح
+      'عدد الغرف': data.building?.rooms ?? 0, // صحيح
+      'عدد الحمامات': data.building?.bathrooms ?? 0, // صحيح
+      'ارتفاع الأرضي (م)': data.building?.groundFloorHeight ?? 0, // عشري
+      'ارتفاع الطوابق (م)': data.building?.otherFloorsHeight ?? 0, // عشري
+      'سمك السقف (م)': data.building?.ceilingThickness ?? 0, // عشري
+      'نوع الطابوق': data.building?.brickType ?? 'yellow', // نص
+      'تفاصيل السقف': data.building?.ceilingDetails ?? 'regular', // نص
+      'نوع الواجهة': data.building?.facadeType ?? 'economy', // نص
+      'حديقة': data.building?.hasGarden ?? false, // منطقي
+      'مسبح': data.building?.hasPool ?? false, // منطقي
+      'تكييف': data.building?.hasHVAC ?? false, // منطقي
+      'مصعد': data.building?.hasElevator ?? false, // منطقي
+      'سياج': data.building?.hasFence ?? false, // منطقي
+      'حجم الفراغ (م³)': data.waffleSlabInfo ? data.building?.voidSize ?? 0 : 0, // عشري
+      'عدد الفراغات': data.waffleSlabInfo ? data.building?.voidCount ?? 0 : 0, // صحيح
+      'مساحة الواجهة (م²)': data.customFacadeInfo ? data.building?.facadeArea ?? 0 : 0, // عشري
+      'عدد الشقق': data.apartmentsInfo ? data.building?.apartmentsCount ?? 0 : 0, // صحيح
+      'عدد الطوابق السفلية': data.basementInfo ? data.building?.basementFloors ?? 0 : 0, // صحيح
+      'مساحة السقوف السفلية (م²)': data.basementInfo ? data.building?.basementCeilingArea ?? 0 : 0, // عشري
+      'سعر م² الطوابق السفلية': data.basementInfo ? data.building?.basementPrice ?? 0 : 0 // عشري
     };
 
     const pricesInput = {
-      'تشطيب الأرضيات (د.ع/م²)': data.prices?.flooring || 0, // عشري
-      'تركيب الجدران (د.ع/م²)': data.prices?.wallInstallation || 0, // عشري
-      'صبغ الجدران (د.ع/م²)': data.prices?.wallPainting || 0, // عشري
-      'شبابيك وأبواب (د.ع/م²)': data.prices?.windowsDoors || 0, // عشري
-      'الواجهة (د.ع/م²)': data.customFacadeInfo ? data.prices?.facadePrice || 0 : null, // عشري
-      'محجر الدرج (د.ع/م)': data.stairsRailingInfo && data.hasMap ? data.prices?.stairsRailing || 0 : null, // عشري
-      'الجدران الداخلية (د.ع/م²)': data.internalWallsInfo && data.hasMap ? data.prices?.internalWalls || 0 : null // عشري
+      'تشطيب الأرضيات (د.ع/م²)': data.prices?.flooring ?? 0, // عشري
+      'تركيب الجدران (د.ع/م²)': data.prices?.wallInstallation ?? 0, // عشري
+      'صبغ الجدران (د.ع/م²)': data.prices?.wallPainting ?? 0, // عشري
+      'شبابيك وأبواب (د.ع/م²)': data.prices?.windowsDoors ?? 0, // عشري
+      'الواجهة (د.ع/م²)': data.customFacadeInfo ? data.prices?.facadePrice ?? 0 : 0, // عشري
+      'محجر الدرج (د.ع/م)': data.stairsRailingInfo && data.hasMap ? data.prices?.stairsRailing ?? 0 : 0, // عشري
+      'الجدران الداخلية (د.ع/م²)': data.internalWallsInfo && data.hasMap ? data.prices?.internalWalls ?? 0 : 0 // عشري
     };
 
     const technicalDetails = data.hasMap ? {
-      'مساحة السقوف (م²)': data.technicalDetails?.totalRoofArea || 0, // عشري
-      'مساحة الحديقة (م²)': data.technicalDetails?.gardenArea || 0, // عشري
-      'مساحة الكراج (م²)': data.technicalDetails?.garagePathArea || 0, // عشري
-      'مساحة المناور (م²)': data.technicalDetails?.skylightsArea || 0, // عشري
-      'طول الرباطات (م)': data.technicalDetails?.tiesLength || 0, // عشري
-      'طول الجسور المقلوبة (م)': data.technicalDetails?.invertedBeams || 0, // عشري
-      'جدران خارجية 24سم (م)': data.technicalDetails?.externalWalls24cm || 0, // عشري
-      'جدران داخلية 24سم (م)': data.technicalDetails?.internalWalls24cm || 0, // عشري
-      'ستارة السطح (م)': data.technicalDetails?.roofFenceLength || 0, // عشري
-      'عدد الأبواب الخارجية': data.technicalDetails?.externalDoors || 0, // صحيح
-      'عدد الأبواب الداخلية': data.technicalDetails?.internalDoors || 0, // صحيح
-      'شبابيك الواجهة (م²)': data.technicalDetails?.facadeWindowsDoorsArea || 0, // عشري
-      'شبابيك المناور (م²)': data.technicalDetails?.skylightWindowsDoorsArea || 0, // عشري
-      'سقوف ثانوية (م²)': data.technicalDetails?.secondaryCeilingsArea || 0, // عشري
-      'جدران ديكورية (م²)': data.technicalDetails?.decorativeWallsArea || 0, // عشري
-      'جدران التغليف (م²)': data.technicalDetails?.claddingWallsArea || 0, // عشري
-      'جص خارجي (م²)': data.technicalDetails?.plasterWallsArea || 0, // عشري
-      'حجم الكونكريت (م³)': data.concreteColumnsInfo && data.hasMap ? data.technicalDetails?.concreteVolume || 0 : null, // عشري
-      'محجر الدرج (م)': data.stairsRailingInfo && data.hasMap ? data.technicalDetails?.stairsRailingLength || 0 : null, // عشري
-      'مساحة الجدران (م²)': data.internalWallsInfo && data.hasMap ? data.technicalDetails?.internalWallsArea || 0 : null // عشري
+      'مساحة السقوف (م²)': data.technicalDetails?.totalRoofArea ?? 0, // عشري
+      'مساحة الحديقة (م²)': data.technicalDetails?.gardenArea ?? 0, // عشري
+      'مساحة الكراج (م²)': data.technicalDetails?.garagePathArea ?? 0, // عشري
+      'مساحة المناور (م²)': data.technicalDetails?.skylightsArea ?? 0, // عشري
+      'طول الرباطات (م)': data.technicalDetails?.tiesLength ?? 0, // عشري
+      'طول الجسور المقلوبة (م)': data.technicalDetails?.invertedBeams ?? 0, // عشري
+      'جدران خارجية 24سم (م)': data.technicalDetails?.externalWalls24cm ?? 0, // عشري
+      'جدران داخلية 24سم (م)': data.technicalDetails?.internalWalls24cm ?? 0, // عشري
+      'ستارة السطح (م)': data.technicalDetails?.roofFenceLength ?? 0, // عشري
+      'عدد الأبواب الخارجية': data.technicalDetails?.externalDoors ?? 0, // صحيح
+      'عدد الأبواب الداخلية': data.technicalDetails?.internalDoors ?? 0, // صحيح
+      'شبابيك الواجهة (م²)': data.technicalDetails?.facadeWindowsDoorsArea ?? 0, // عشري
+      'شبابيك المناور (م²)': data.technicalDetails?.skylightWindowsDoorsArea ?? 0, // عشري
+      'سقوف ثانوية (م²)': data.technicalDetails?.secondaryCeilingsArea ?? 0, // عشري
+      'جدران ديكورية (م²)': data.technicalDetails?.decorativeWallsArea ?? 0, // عشري
+      'جدران التغليف (م²)': data.technicalDetails?.claddingWallsArea ?? 0, // عشري
+      'جص خارجي (م²)': data.technicalDetails?.plasterWallsArea ?? 0, // عشري
+      'حجم الكونكريت (م³)': data.concreteColumnsInfo && data.hasMap ? data.technicalDetails?.concreteVolume ?? 0 : 0, // عشري
+      'محجر الدرج (م)': data.stairsRailingInfo && data.hasMap ? data.technicalDetails?.stairsRailingLength ?? 0 : 0, // عشري
+      'مساحة الجدران (م²)': data.internalWallsInfo && data.hasMap ? data.technicalDetails?.internalWallsArea ?? 0 : 0 // عشري
     } : {};
 
     // **معالجة الأقسام المشروطة**
@@ -175,7 +180,7 @@ async function processAdvanced(data) {
     const constants = getEngineeringConstants();
 
     // **دالة لتقريب الأرقام إلى منزلتين عشريتين**
-    const roundToTwoDecimals = (num) => Math.round(num * 100) / 100;
+    const roundToTwoDecimals = (num) => isNaN(num) ? 0 : Math.round(num * 100) / 100;
 
     // **حساب الكميات الأولية**
     // --- خرسانة الأسقف ---
@@ -342,7 +347,7 @@ async function processAdvanced(data) {
     // **حساب الأساس**
     const raftArea = roundToTwoDecimals(land['مساحة الأرض (م²)'] - technicalDetails['مساحة الحديقة (م²)'] - 
       technicalDetails['مساحة الكراج (م²)']);
-    const pressure = roundToTwoDecimals(totalWeight / raftArea);
+    const pressure = roundToTwoDecimals(totalWeight / (raftArea || 1)); // تجنب القسمة على صفر
     const requiredRaftThickness = Math.max(
       constants.minRaftThickness,
       Math.min(
@@ -403,7 +408,7 @@ async function processAdvanced(data) {
         : building['نوع الواجهة'] === 'simple' ? prices.facadeSimplePerM2 : prices.facadeLuxuryPerM2));
 
     // **حساب المناور**
-    const skylightCost = building['حديقة داخلية'] 
+    const skylightCost = building['حديقة'] 
       ? roundToTwoDecimals(technicalDetails['مساحة الحديقة (م²)'] * prices.gardenPerM2)
       : roundToTwoDecimals(skylightWallsPlasterArea * prices.plasterLaborPerM2);
 
@@ -417,7 +422,7 @@ async function processAdvanced(data) {
       'رمل الأساس': roundToTwoDecimals(sandBase * prices.sandBasePerM3),
       'عمالة الأساس': roundToTwoDecimals(raftArea * prices.baseLaborPerM2),
       'طابوق': building['نوع الطابوق'] === 'thermostone' 
-        ? roundToTwoDecimals(brickDbls * prices.brickThermostonePerThousand)
+        ? roundToTwoDecimals(BbrickDbls * prices.brickThermostonePerThousand)
         : roundToTwoDecimals(brickDbls * (building['نوع الطابوق'] === 'yellow' ? prices.brickYellowPerDbl : prices.brickRedPerDbl)),
       'جبس': roundToTwoDecimals(gypsumQuantity * prices.gypsumPerTon),
       'جير': roundToTwoDecimals(limeQuantity * prices.limePerTon),
@@ -502,36 +507,36 @@ async function processAdvanced(data) {
         customer: {
           title: 'بيانات العميل',
           fields: [
-            { label: 'الاسم', value: customer['الاسم'] },
-            { label: 'رقم الهاتف', value: customer['الهاتف'] }
+            { label: 'الاسم', value: customer['الاسم'] || 'غير متوفر' },
+            { label: 'رقم الهاتف', value: customer['الهاتف'] || 'غير متوفر' }
           ]
         },
         location: {
           title: 'معلومات الموقع',
           fields: [
-            { label: 'المحافظة', value: location['المحافظة'] },
-            { label: 'المنطقة', value: location['المنطقة'] }
+            { label: 'المحافظة', value: location['المحافظة'] || 'غير محدد' },
+            { label: 'المنطقة', value: location['المنطقة'] || 'غير محدد' }
           ]
         },
         land: {
           title: 'معلومات الأرض',
           fields: [
-            { label: 'مساحة الأرض (م²)', value: land['مساحة الأرض (م²)'] },
-            { label: 'عرض الواجهة (م)', value: land['عرض الواجهة (م)'] }
+            { label: 'مساحة الأرض (م²)', value: land['مساحة الأرض (م²)'] || 0 },
+            { label: 'عرض الواجهة (م)', value: land['عرض الواجهة (م)'] || 0 }
           ]
         },
         building: {
           title: 'تفاصيل المبنى',
           fields: [
-            { label: 'عدد الطوابق', value: building['عدد الطوابق'] },
-            { label: 'عدد الغرف', value: building['عدد الغرف'] },
-            { label: 'عدد الحمامات', value: building['عدد الحمامات'] },
-            { label: 'ارتفاع الطابق الأرضي (م)', value: building['ارتفاع الأرضي (م)'] },
-            { label: 'ارتفاع الطوابق الأخرى (م)', value: building['ارتفاع الطوابق (م)'] },
-            { label: 'سمك السقف (م)', value: building['سمك السقف (م)'] },
+            { label: 'عدد الطوابق', value: building['عدد الطوابق'] || 0 },
+            { label: 'عدد الغرف', value: building['عدد الغرف'] || 0 },
+            { label: 'عدد الحمامات', value: building['عدد الحمامات'] || 0 },
+            { label: 'ارتفاع الطابق الأرضي (م)', value: building['ارتفاع الأرضي (م)'] || 0 },
+            { label: 'ارتفاع الطوابق الأخرى (م)', value: building['ارتفاع الطوابق (م)'] || 0 },
+            { label: 'سمك السقف (م)', value: building['سمك السقف (م)'] || 0 },
             { label: 'نوع الطابوق', value: building['نوع الطابوق'] === 'yellow' ? 'طابوق أصفر' : building['نوع الطابوق'] === 'red' ? 'طابوق أحمر' : 'ثرمستون' },
             { label: 'نوع الواجهة', value: building['نوع الواجهة'] === 'economy' ? 'اقتصادية' : building['نوع الواجهة'] === 'simple' ? 'بسيطة' : 'فاخرة' },
-            { label: 'وجود حديقة', value: building['حديقة داخلية'] ? 'نعم' : 'لا' },
+            { label: 'وجود حديقة', value: building['حديقة'] ? 'نعم' : 'لا' },
             { label: 'وجود مسبح', value: building['مسبح'] ? 'نعم' : 'لا' },
             { label: 'وجود تكييف', value: building['تكييف'] ? 'نعم' : 'لا' },
             { label: 'وجود مصعد', value: building['مصعد'] ? 'نعم' : 'لا' },
@@ -547,12 +552,12 @@ async function processAdvanced(data) {
           {
             subtitle: 'الخرسانة',
             items: [
-              { name: 'إجمالي الخرسانة (م³)', value: totalConcrete, unit: 'م³' },
-              { name: 'خرسانة الأسقف (م³)', value: roofConcrete, unit: 'م³' },
-              { name: 'خرسانة الرباطات (م³)', value: tieBeamConcrete, unit: 'م³' },
-              { name: 'خرسانة الجسور المقلوبة (م³)', value: invertedBeamConcrete, unit: 'م³' },
-              { name: 'خرسانة إضافية (م³)', value: additionalConcrete, unit: 'م³' },
-              { name: 'خرسانة الأساس (م³)', value: raftVolume, unit: 'م³' }
+              { name: 'إجمالي الخرسانة', value: totalConcrete, unit: 'م³' },
+              { name: 'خرسانة الأسقف', value: roofConcrete, unit: 'م³' },
+              { name: 'خرسانة الرباطات', value: tieBeamConcrete, unit: 'م³' },
+              { name: 'خرسانة الجسور المقلوبة', value: invertedBeamConcrete, unit: 'م³' },
+              { name: 'خرسانة إضافية', value: additionalConcrete, unit: 'م³' },
+              { name: 'خرسانة الأساس', value: raftVolume, unit: 'م³' }
             ]
           },
           {
@@ -560,40 +565,40 @@ async function processAdvanced(data) {
             items: [
               { name: 'عدد الطابوقات', value: brickCount, unit: 'طابوقة' },
               { name: 'عدد الدبلات/الآلاف', value: brickDbls, unit: building['نوع الطابوق'] === 'thermostone' ? 'ألف' : 'دبل' },
-              { name: 'حجم الجدران الصافي (م³)', value: wallsVolume, unit: 'م³' }
+              { name: 'حجم الجدران الصافي', value: wallsVolume, unit: 'م³' }
             ]
           },
           {
             subtitle: 'المونة والأرضيات',
             items: [
-              { name: 'إسمنت مونة الأرضيات (طن)', value: cementForFloorMortar, unit: 'طن' },
-              { name: 'رمل مونة الأرضيات (م³)', value: sandForFloorMortar, unit: 'م³' },
-              { name: 'إسمنت مونة الجدران (طن)', value: cementForWallMortar, unit: 'طن' },
-              { name: 'رمل مونة الجدران (م³)', value: sandForWallMortar, unit: 'م³' },
-              { name: 'مساحة الأرضيات (م²)', value: flooringArea, unit: 'م²' }
+              { name: 'إسمنت مونة الأرضيات', value: cementForFloorMortar, unit: 'طن' },
+              { name: 'رمل مونة الأرضيات', value: sandForFloorMortar, unit: 'م³' },
+              { name: 'إسمنت مونة الجدران', value: cementForWallMortar, unit: 'طن' },
+              { name: 'رمل مونة الجدران', value: sandForWallMortar, unit: 'م³' },
+              { name: 'مساحة الأرضيات', value: flooringArea, unit: 'م²' }
             ]
           },
           {
             subtitle: 'الجص',
-           Pillars: [
-              { name: 'إجمالي مساحة الجص (م²)', value: totalPlasterArea, unit: 'م²' },
-              { name: 'كمية الجبس (طن)', value: gypsumQuantity, unit: 'طن' },
-              { name: 'كمية الجير (طن)', value: limeQuantity, unit: 'طن' }
+            items: [
+              { name: 'إجمالي مساحة الجص', value: totalPlasterArea, unit: 'م²' },
+              { name: 'كمية الجبس', value: gypsumQuantity, unit: 'طن' },
+              { name: 'كمية الجير', value: limeQuantity, unit: 'طن' }
             ]
           },
           {
             subtitle: 'الأساس',
             items: [
-              { name: 'حجم الحفر (م³)', value: excavationVolume, unit: 'م³' },
+              { name: 'حجم الحفر', value: excavationVolume, unit: 'م³' },
               { name: 'عدد رحلات النقل', value: truckTrips, unit: 'رحلة' },
-              { name: 'حصى الأساس (م³)', value: gravelBase, unit: 'م³' },
-              { name: 'رمل الأساس (م³)', value: sandBase, unit: 'م³' }
+              { name: 'حصى الأساس', value: gravelBase, unit: 'م³' },
+              { name: 'رمل الأساس', value: sandBase, unit: 'م³' }
             ]
           },
           {
             subtitle: 'حديد التسليح',
             items: [
-              { name: 'إجمالي حديد التسليح (طن)', value: totalSteel, unit: 'طن' }
+              { name: 'إجمالي حديد التسليح', value: totalSteel, unit: 'طن' }
             ]
           }
         ]
@@ -606,24 +611,24 @@ async function processAdvanced(data) {
           {
             subtitle: 'وزن المنشأ',
             items: [
-              { name: 'إجمالي وزن المنشأ (كيلو نيوتن)', value: totalWeight, unit: 'kN' },
-              { name: 'وزن الخرسانة (كيلو نيوتن)', value: concreteWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'وزن حديد التسليح (كيلو نيوتن)', value: steelWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'وزن الطابوق (كيلو نيوتن)', value: brickWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'وزن المونة (كيلو نيوتن)', value: (floorMortarWeight + wallMortarWeight) * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'وزن الأرضيات (كيلو نيوتن)', value: flooringWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'وزن الجص (كيلو نيوتن)', value: plasterWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'الحمل الحي (كيلو نيوتن)', value: liveLoadWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'الحمل الميت الإضافي (كيلو نيوتن)', value: additionalDeadLoadWeight * constants.gravityConstant / 1000, unit: 'kN' },
-              { name: 'وزن الفتحات (كيلو نيوتن)', value: totalOpeningsWeight * constants.gravityConstant / 1000, unit: 'kN' }
+              { name: 'إجمالي وزن المنشأ', value: totalWeight, unit: 'kN' },
+              { name: 'وزن الخرسانة', value: roundToTwoDecimals(concreteWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'وزن حديد التسليح', value: roundToTwoDecimals(steelWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'وزن الطابوق', value: roundToTwoDecimals(brickWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'وزن المونة', value: roundToTwoDecimals((floorMortarWeight + wallMortarWeight) * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'وزن الأرضيات', value: roundToTwoDecimals(flooringWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'وزن الجص', value: roundToTwoDecimals(plasterWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'الحمل الحي', value: roundToTwoDecimals(liveLoadWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'الحمل الميت الإضافي', value: roundToTwoDecimals(additionalDeadLoadWeight * constants.gravityConstant / 1000), unit: 'kN' },
+              { name: 'وزن الفتحات', value: roundToTwoDecimals(totalOpeningsWeight * constants.gravityConstant / 1000), unit: 'kN' }
             ]
           },
           {
             subtitle: 'الأساس',
             items: [
-              { name: 'مساحة الأساس (م²)', value: raftArea, unit: 'م²' },
-              { name: 'سمك الأساس (م)', value: raftThickness, unit: 'م' },
-              { name: 'ضغط الأساس (كيلو نيوتن/م²)', value: pressure, unit: 'kN/m²' },
+              { name: 'مساحة الأساس', value: raftArea, unit: 'م²' },
+              { name: 'سمك الأساس', value: raftThickness, unit: 'م' },
+              { name: 'ضغط الأساس', value: pressure, unit: 'kN/m²' },
               { name: 'نوع الأساس', value: raftType, unit: '' },
               { name: 'توصيات الأساس', value: foundationRecommendation, unit: '' }
             ]
@@ -631,8 +636,8 @@ async function processAdvanced(data) {
           {
             subtitle: 'استقرار الجدران',
             items: [
-              { name: 'سعة تحمل الجدران (كيلو نيوتن)', value: wallCapacity, unit: 'kN' },
-              { name: 'الحد الأدنى لطول الجدران (م)', value: minWallLength, unit: 'م' },
+              { name: 'سعة تحمل الجدران', value: wallCapacity, unit: 'kN' },
+              { name: 'الحد الأدنى لطول الجدران', value: minWallLength, unit: 'م' },
               { name: 'حالة الاستقرار', value: stabilityNote, unit: '' }
             ]
           }
@@ -656,38 +661,38 @@ async function processAdvanced(data) {
         items: Object.entries(prices).map(([key, value]) => {
           let name, unit;
           switch (key) {
-            case 'concreteC30PerM3': name = 'خرسانة C30 (م³)'; unit = 'د.ع/م³'; break;
-            case 'concreteC40PerM3': name = 'خرسانة C40 (م³)'; unit = 'د.ع/م³'; break;
-            case 'steelPerTon': name = 'حديد التسليح (طن)'; unit = 'د.ع/طن'; break;
-            case 'cementOrdinaryPerTon': name = 'إسمنت عادي (طن)'; unit = 'د.ع/طن'; break;
-            case 'sandPerM3': name = 'رمل (م³)'; unit = 'د.ع/م³'; break;
-            case 'gravelBasePerM3': name = 'حصى الأساس (م³)'; unit = 'د.ع/م³'; break;
-            case 'sandBasePerM3': name = 'رمل الأساس (م³)'; unit = 'د.ع/م³'; break;
+            case 'concreteC30PerM3': name = 'خرسانة C30'; unit = 'د.ع/م³'; break;
+            case 'concreteC40PerM3': name = 'خرسانة C40'; unit = 'د.ع/م³'; break;
+            case 'steelPerTon': name = 'حديد التسليح'; unit = 'د.ع/طن'; break;
+            case 'cementOrdinaryPerTon': name = 'إسمنت عادي'; unit = 'د.ع/طن'; break;
+            case 'sandPerM3': name = 'رمل'; unit = 'د.ع/م³'; break;
+            case 'gravelBasePerM3': name = 'حصى الأساس'; unit = 'د.ع/م³'; break;
+            case 'sandBasePerM3': name = 'رمل الأساس'; unit = 'د.ع/م³'; break;
             case 'brickYellowPerDbl': name = 'طابوق أصفر (دبل)'; unit = 'د.ع/دبل'; break;
             case 'brickRedPerDbl': name = 'طابوق أحمر (دبل)'; unit = 'د.ع/دبل'; break;
             case 'brickThermostonePerThousand': name = 'طابوق ثرمستون (ألف)'; unit = 'د.ع/ألف'; break;
-            case 'gypsumPerTon': name = 'جبس (طن)'; unit = 'د.ع/طن'; break;
-            case 'limePerTon': name = 'جير (طن)'; unit = 'د.ع/طن'; break;
-            case 'plasterLaborPerM2': name = 'عمالة الجص (م²)'; unit = 'د.ع/م²'; break;
-            case 'plasterCeilingLaborPerM2': name = 'عمالة جص الأسقف (م²)'; unit = 'د.ع/م²'; break;
-            case 'primingPerM2': name = 'التمهيد (م²)'; unit = 'د.ع/م²'; break;
-            case 'flooringMortarLaborPerM2': name = 'عمالة مونة الأرضيات (م²)'; unit = 'د.ع/م²'; break;
-            case 'facadeEconomyPerM2': name = 'واجهة اقتصادية (م²)'; unit = 'د.ع/م²'; break;
-            case 'facadeSimplePerM2': name = 'واجهة بسيطة (م²)'; unit = 'د.ع/م²'; break;
-            case 'facadeLuxuryPerM2': name = 'واجهة فاخرة (م²)'; unit = 'د.ع/م²'; break;
-            case 'facadeLaborPerM2': name = 'عمالة الواجهة (م²)'; unit = 'د.ع/م²'; break;
+            case 'gypsumPerTon': name = 'جبس'; unit = 'د.ع/طن'; break;
+            case 'limePerTon': name = 'جير'; unit = 'د.ع/طن'; break;
+            case 'plasterLaborPerM2': name = 'عمالة الجص'; unit = 'د.ع/م²'; break;
+            case 'plasterCeilingLaborPerM2': name = 'عمالة جص الأسقف'; unit = 'د.ع/م²'; break;
+            case 'primingPerM2': name = 'التمهيد'; unit = 'د.ع/م²'; break;
+            case 'flooringMortarLaborPerM2': name = 'عمالة مونة الأرضيات'; unit = 'د.ع/م²'; break;
+            case 'facadeEconomyPerM2': name = 'واجهة اقتصادية'; unit = 'د.ع/م²'; break;
+            case 'facadeSimplePerM2': name = 'واجهة بسيطة'; unit = 'د.ع/م²'; break;
+            case 'facadeLuxuryPerM2': name = 'واجهة فاخرة'; unit = 'د.ع/م²'; break;
+            case 'facadeLaborPerM2': name = 'عمالة الواجهة'; unit = 'د.ع/م²'; break;
             case 'externalDoorFixed': name = 'باب خارجي'; unit = 'د.ع'; break;
             case 'internalDoorFixed': name = 'باب داخلي'; unit = 'د.ع'; break;
-            case 'carGatePerM2': name = 'بوابة سيارة (م²)'; unit = 'د.ع/م²'; break;
-            case 'hvacPerM': name = 'تكييف (م)'; unit = 'د.ع/م'; break;
+            case 'carGatePerM2': name = 'بوابة سيارة'; unit = 'د.ع/م²'; break;
+            case 'hvacPerM': name = 'تكييف'; unit = 'د.ع/م'; break;
             case 'poolFixed': name = 'مسبح'; unit = 'د.ع'; break;
-            case 'gardenPerM2': name = 'حديقة داخلية (م²)'; unit = 'د.ع/م²'; break;
-            case 'fencePerM': name = 'سياج (م)'; unit = 'د.ع/م'; break;
+            case 'gardenPerM2': name = 'حديقة'; unit = 'د.ع/م²'; break;
+            case 'fencePerM': name = 'سياج'; unit = 'د.ع/م'; break;
             case 'elevatorBaseCost': name = 'مصعد أساسي'; unit = 'د.ع'; break;
             case 'elevatorPerFloorCost': name = 'مصعد لكل طابق'; unit = 'د.ع'; break;
-            case 'excavationPerM3': name = 'حفر (م³)'; unit = 'د.ع/م³'; break;
-            case 'truckTransportPerTrip': name = 'نقل المخلفات (رحلة)'; unit = 'د.ع/رحلة'; break;
-            case 'baseLaborPerM2': name = 'عمالة الأساس (م²)'; unit = 'د.ع/م²'; break;
+            case 'excavationPerM3': name = 'حفر'; unit = 'د.ع/م³'; break;
+            case 'truckTransportPerTrip': name = 'نقل المخلفات'; unit = 'د.ع/رحلة'; break;
+            case 'baseLaborPerM2': name = 'عمالة الأساس'; unit = 'د.ع/م²'; break;
             case 'electricalPointCost': name = 'نقطة كهربائية'; unit = 'د.ع'; break;
             case 'electricalBoardFixed': name = 'لوحة كهربائية'; unit = 'د.ع'; break;
             case 'electricalLaborPerPoint': name = 'عمالة نقطة كهربائية'; unit = 'د.ع'; break;
@@ -695,9 +700,9 @@ async function processAdvanced(data) {
             case 'plumbingKitchenMaterials': name = 'مواد سباكة المطبخ'; unit = 'د.ع'; break;
             case 'plumbingOtherMaterials': name = 'مواد سباكة أخرى'; unit = 'د.ع'; break;
             case 'plumbingBathroomLabor': name = 'عمالة سباكة الحمام'; unit = 'د.ع'; break;
-            case 'bathroomFittingsPerSet': name = 'تجهيزات الحمام (مجموعة)'; unit = 'د.ع/مجموعة'; break;
+            case 'bathroomFittingsPerSet': name = 'تجهيزات الحمام'; unit = 'د.ع/مجموعة'; break;
             case 'brickLaborPerDbl': name = 'عمالة الطابوق (دبل)'; unit = 'د.ع/دبل'; break;
-            case 'brickLaborPerThousand': name = 'عمالة طابوق ثرمستون (ألف)'; unit = 'د.ع/ألف'; break;
+            case 'brickLaborPerThousand': name = 'عمالة طابوق ثرمستون'; unit = 'د.ع/ألف'; break;
             case 'brickLaborExtraPerFloor': name = 'زيادة عمالة الطابوق لكل طابق'; unit = 'د.ع'; break;
             case 'carpentryLaborPerM3': 
               name = 'عمالة النجارة'; 
@@ -708,17 +713,17 @@ async function processAdvanced(data) {
               }; 
               unit = 'د.ع/م³'; 
               break;
-            case 'steelLaborPerM3': name = 'عمالة حديد التسليح (م³)'; unit = 'د.ع/م³'; break;
-            case 'skylightsPerM2': name = 'مناور (م²)'; unit = 'د.ع/م²'; break;
-            case 'secondaryCeilingsPerM2': name = 'سقوف ثانوية (م²)'; unit = 'د.ع/م²'; break;
-            case 'decorativeWallsPerM2': name = 'جدران ديكورية (م²)'; unit = 'د.ع/م²'; break;
+            case 'steelLaborPerM3': name = 'عمالة حديد التسليح'; unit = 'د.ع/م³'; break;
+            case 'skylightsPerM2': name = 'مناور'; unit = 'د.ع/م²'; break;
+            case 'secondaryCeilingsPerM2': name = 'سقوف ثانوية'; unit = 'د.ع/م²'; break;
+            case 'decorativeWallsPerM2': name = 'جدران ديكورية'; unit = 'د.ع/م²'; break;
             case 'garageCanopyFixed': name = 'مظلة الكراج'; unit = 'د.ع'; break;
-            case 'transportConcretePerM3': name = 'نقل الخرسانة (م³)'; unit = 'د.ع/م³'; break;
-            case 'transportSteelPerTon': name = 'نقل حديد التسليح (طن)'; unit = 'د.ع/طن'; break;
-            case 'transportCementPerTon': name = 'نقل الإسمنت (طن)'; unit = 'د.ع/طن'; break;
-            case 'transportSandPerM3': name = 'نقل الرمل (م³)'; unit = 'د.ع/م³'; break;
+            case 'transportConcretePerM3': name = 'نقل الخرسانة'; unit = 'د.ع/م³'; break;
+            case 'transportSteelPerTon': name = 'نقل حديد التسليح'; unit = 'د.ع/طن'; break;
+            case 'transportCementPerTon': name = 'نقل الإسمنت'; unit = 'د.ع/طن'; break;
+            case 'transportSandPerM3': name = 'نقل الرمل'; unit = 'د.ع/م³'; break;
             case 'transportBricksPerDbl': name = 'نقل الطابوق (دبل)'; unit = 'د.ع/دبل'; break;
-            case 'transportBricksThermostonePerThousand': name = 'نقل طابوق ثرمستون (ألف)'; unit = 'د.ع/ألف'; break;
+            case 'transportBricksThermostonePerThousand': name = 'نقل طابوق ثرمستون'; unit = 'د.ع/ألف'; break;
             default: name = key; unit = 'د.ع'; break;
           }
           return { name, value: roundToTwoDecimals(value), unit };
@@ -729,13 +734,15 @@ async function processAdvanced(data) {
     // **إرجاع النتائج**
     return {
       success: true,
+      message: 'تمت معالجة البيانات بنجاح',
       pdfData
     };
   } catch (error) {
     console.error('❌ **خطأ في processAdvanced**:', error);
     return {
       success: false,
-      error: error.message || 'خطأ في معالجة البيانات'
+      message: error.message || 'خطأ في معالجة البيانات',
+      pdfData: null
     };
   }
 }
