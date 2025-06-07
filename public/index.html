@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <!-- إضافة مكتبات jsPDF و autoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
@@ -225,11 +227,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-section">
-                    <h3><span class="material-icons-outlined">attach_money</span> أسعار التشطيبات</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="flooringPrice">سعر م² تشطيب الأرضيات</label>
+                <div class="formantsPrice">سعر م² تشطيب الأرضيات</label>
                             <input type="number" id="flooringPrice" class="form-control" required step="0.01">
                             <div class="error-message" id="flooringPriceError">الرجاء إدخال سعر</div>
                             <span class="tooltip">أدخل سعر الأرضيات</span>
@@ -520,15 +518,12 @@
                 </div>
             </form>
         </div>
-        <div id="resultContainer" class="result-container">
-            <div class="result-header">
-                <h3><span class="material-icons-outlined">assessment</span> نتيجة الحساب</h3>
-            </div>
-            <div id="resultContent" class="result-content"></div>
-            <button id="downloadPdf" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
+        <!-- قسم لعرض رسالة المعالجة -->
+        <div id="processingMessage" class="disclaimer hidden">
+            <h2><span class="material-icons-outlined">check_circle</span> تم المعالجة</h2>
+            <p>تم المعالجة، والبيانات ستكون مباشرة في ملف PDF</p>
         </div>
     </div>
-
     <script>
         // تعريف أزرار التبديل ومحتواها
         const toggles = [
@@ -576,15 +571,13 @@
             });
         });
 
-        // متغير لتخزين النتيجة لاستخدامه في إنشاء PDF
-        let lastResult = null;
-
         // معالجة إرسال النموذج
         document.getElementById('buildingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
             submitBtn.disabled = true;
+            const processingMessage = document.getElementById('processingMessage');
 
             // دالة لجمع القيم من الحقول
             const getValue = (id, isFloat = false, isInt = false) => {
@@ -690,6 +683,7 @@
                     inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
                     inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
                     inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
+                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
                 }
 
                 // جمع بيانات الجدران الداخلية
@@ -713,78 +707,116 @@
                 });
 
                 if (!response.ok) {
-                    console.error('خطأ في استجابة API:', response.status, response.statusText);
                     throw new Error(`خطأ في الاتصال: ${response.status}`);
                 }
 
                 const result = await response.json();
-                console.log('استجابة API:', result); // للتصحيح
-                lastResult = result; // تخزين النتيجة لاستخدامها في PDF
-                const resultContainer = document.getElementById('resultContainer');
-                const resultContent = document.getElementById('resultContent');
 
-                // عرض النتائج
-                if (result.success) {
-                    // دالة لعرض البيانات في جدول
-                    const displayTable = (title, data) => {
-                        let tableHTML = `<h4>${title}</h4><table><tr><th>البيان</th><th>القيمة</th></tr>`;
-                        for (const key in data) {
-                            tableHTML += `<tr><td>${key}</td><td>${data[key]}</td></tr>`;
-                        }
-                        tableHTML += `</table>`;
-                        return tableHTML;
-                    };
+                // إظهار رسالة المعالجة
+                processingMessage.classList.remove('hidden');
 
-                    // إنشاء HTML لعرض النتائج
-                    let html = '';
-                    if (result.result.customer) {
-                        html += displayTable('معلومات الزبون', result.result.customer);
-                    }
-                     if (result.result.location) {
-                         html += displayTable('معلومات الموقع', result.result.location);
-                     }
-                     if (result.result.land) {
-                         html += displayTable('معلومات الارض', result.result.land);
-                     }
-                     if (result.result.building) {
-                         html += displayTable('معلومات البناء', result.result.building);
-                     }
-                     if (result.result.prices) {
-                         html += displayTable('معلومات الاسعار', result.result.prices);
-                     }
-                    if (result.result.totalCost) {
-                        html += `<h4>التكلفة الكلية: ${result.result.totalCost}</h4>`;
-                    } else {
-                        html += `<p>لم يتم حساب التكلفة الكلية.</p>`;
-                    }
+                // إنشاء ملف PDF باستخدام jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                doc.setFont('Amiri', 'normal'); // استخدام خط عربي (يجب إضافته إذا لزم الأمر)
+                doc.setFontSize(12);
+                doc.setTextColor(40, 40, 40);
 
-                    resultContent.innerHTML = html;
-                    resultContainer.style.display = 'block';
-                } else {
-                    resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${result.error || 'حدث خطأ غير معروف'}</p>`;
-                    resultContainer.style.display = 'block';
-                }
+                let yOffset = 10;
 
-                // إعداد زر تحميل PDF
-                document.getElementById('downloadPdf').onclick = () => {
-                    if (!lastResult || !lastResult.success) {
-                        alert('لا توجد نتائج لتحميلها. الرجاء إرسال النموذج أولاً.');
-                        return;
-                    }
+                // إضافة العنوان
+                doc.text('تقرير تكاليف البناء', 105, yOffset, { align: 'center' });
+                yOffset += 10;
 
-                    // إنشاء PDF هنا باستخدام jsPDF و lastResult
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-                    doc.text('تقرير تكاليف البناء', 10, 10);
-                    // يمكنك إضافة المزيد من التفاصيل إلى PDF هنا بناءً على lastResult
+                // معلومات العميل
+                doc.text('معلومات العميل', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.inputData.customer.fields.forEach(field => {
+                    doc.text(`${field.label}: ${field.value}`, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                });
 
-                    doc.save('building_cost_report.pdf');
-                };
+                // معلومات الموقع
+                yOffset += 5;
+                doc.text('معلومات الموقع', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.inputData.location.fields.forEach(field => {
+                    doc.text(`${field.label}: ${field.value}`, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                });
+
+                // معلومات الأرض
+                yOffset += 5;
+                doc.text('معلومات الأرض', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.inputData.land.fields.forEach(field => {
+                    doc.text(`${field.label}: ${field.value} ${field.unit}`, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                });
+
+                // تفاصيل المبنى
+                yOffset += 5;
+                doc.text('تفاصيل المبنى', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.inputData.building.fields.forEach(field => {
+                    doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                });
+
+                // الكميات
+                yOffset += 5;
+                doc.text('الكميات', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.quantities.sections.forEach(section => {
+                    doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                    section.items.forEach(item => {
+                        doc.text(`${item.name}: ${item.value} ${item.unit}`, 190, yOffset, { align: 'right' });
+                        yOffset += 5;
+                    });
+                    yOffset += 3;
+                });
+
+                // الحسابات الإنشائية
+                yOffset += 5;
+                doc.text('الحسابات الإنشائية', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.engineering.sections.forEach(section => {
+                    doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                    section.items.forEach(item => {
+                        doc.text(`${item.name}: ${item.value} ${item.unit}`, 190, yOffset, { align: 'right' });
+                        yOffset += 5;
+                    });
+                    yOffset += 3;
+                });
+
+                // التكاليف
+                yOffset += 5;
+                doc.text('التكاليف', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.costs.items.forEach(item => {
+                    doc.text(`${item.name}: ${item.value.toLocaleString()} ${item.unit}`, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                });
+                doc.text(`الإجمالي: ${result.pdfData.costs.total.toLocaleString()} د.ع`, 200, yOffset, { align: 'right' });
+
+                // أسعار المواد
+                yOffset += 10;
+                doc.text('أسعار المواد', 200, yOffset, { align: 'right' });
+                yOffset += 5;
+                result.pdfData.materialPrices.forEach(item => {
+                    doc.text(`${item.material}: ${item.price.toLocaleString()} ${item.unit}`, 200, yOffset, { align: 'right' });
+                    yOffset += 5;
+                });
+
+                // حفظ وتنزيل ملف PDF
+                doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
+
             } catch (error) {
-                // عرض الأخطاء إذا حدثت
-                console.error('خطأ:', error);
-                document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
-                document.getElementById('resultContainer').style.display = 'block';
+                // عرض رسالة خطأ إذا حدثت مشكلة
+                processingMessage.innerHTML = `<h2><span class="material-icons-outlined">error</span> خطأ</h2><p>خطأ: ${error.message}</p>`;
+                processingMessage.classList.remove('hidden');
             } finally {
                 // إعادة تعيين زر الإرسال
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
@@ -793,5 +825,4 @@
         });
     </script>
 </body>
-
 </html>
