@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
+        <!-- إضافة مكتبات jsPDF و autoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
+    <!-- إضافة خط Amiri لدعم النصوص العربية -->
+    <script src="https://unpkg.com/@jspdf/font-amiri@latest/Amiri-Regular.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
@@ -523,6 +528,7 @@
             <button id="downloadPdf" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
         </div>
     </div>
+
     <script>
         // تعريف أزرار التبديل ومحتواها
         const toggles = [
@@ -569,6 +575,9 @@
                 input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
             });
         });
+
+        // متغير لتخزين النتيجة لاستخدامه في إنشاء PDF
+        let lastResult = null;
 
         // معالجة إرسال النموذج
         document.getElementById('buildingForm').addEventListener('submit', async (e) => {
@@ -705,50 +714,208 @@
                 });
 
                 if (!response.ok) {
+                    console.error('خطأ في استجابة API:', response.status, response.statusText);
                     throw new Error(`خطأ في الاتصال: ${response.status}`);
                 }
 
                 const result = await response.json();
+                console.log('استجابة API:', result); // للتصحيح
+                lastResult = result; // تخزين النتيجة لاستخدامها في PDF
                 const resultContainer = document.getElementById('resultContainer');
                 const resultContent = document.getElementById('resultContent');
 
                 // عرض النتائج
-                resultContent.innerHTML = `
-                    <div class="result-section" id="pdfContent">
-                        <h3>النتائج</h3>
-                        <table>
-                            <tr><th>البيان</th><th>القيمة</th></tr>
-                            <tr><td>الرسالة</td><td>${result.result.message}</td></tr>
-                            <tr><td>البيانات المدخلة</td><td><pre>${JSON.stringify(result.result.inputData, null, 2)}</pre></td></tr>
-                        </table>
-                    </div>
-                `;
-                resultContainer.style.display = 'block';
+                if (result.success) {
+                    const pdfData = result.result.pdfData || {};
+                    resultContent.innerHTML = `
+                        <div class="result-section" id="pdfContent">
+                            <h3>النتائج</h3>
+                            <h4>معلومات الشركة</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th></tr>
+                                <tr><td>اسم الشركة</td><td>${pdfData.companyInfo?.name || 'غير متوفر'}</td></tr>
+                                <tr><td>الوصف</td><td>${pdfData.companyInfo?.description || 'غير متوفر'}</td></tr>
+                                <tr><td>الهاتف</td><td>${pdfData.companyInfo?.contact?.phone || 'غير متوفر'}</td></tr>
+                                <tr><td>البريد الإلكتروني</td><td>${pdfData.companyInfo?.contact?.email || 'غير متوفر'}</td></tr>
+                                <tr><td>العنوان</td><td>${pdfData.companyInfo?.contact?.address || 'غير متوفر'}</td></tr>
+                            </table>
+                            <h4>معلومات العميل</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th></tr>
+                                ${pdfData.inputData?.customer?.fields?.map(field => `
+                                    <tr><td>${field.label}</td><td>${field.value}</td></tr>
+                                `).join('') || '<tr><td colspan="2">لا توجد بيانات</td></tr>'}
+                            </table>
+                            <h4>معلومات الموقع</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th></tr>
+                                ${pdfData.inputData?.location?.fields?.map(field => `
+                                    <tr><td>${field.label}</td><td>${field.value}</td></tr>
+                                `).join('') || '<tr><td colspan="2">لا توجد بيانات</td></tr>'}
+                            </table>
+                            <h4>معلومات الأرض</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th></tr>
+                                ${pdfData.inputData?.land?.fields?.map(field => `
+                                    <tr><td>${field.label}</td><td>${field.value}</td></tr>
+                                `).join('') || '<tr><td colspan="2">لا توجد بيانات</td></tr>'}
+                            </table>
+                            <h4>تفاصيل المبنى</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th></tr>
+                                ${pdfData.inputData?.building?.fields?.map(field => `
+                                    <tr><td>${field.label}</td><td>${field.value}</td></tr>
+                                `).join('') || '<tr><td colspan="2">لا توجد بيانات</td></tr>'}
+                            </table>
+                            <h4>تفاصيل الكميات</h4>
+                            ${pdfData.quantities?.sections?.map(section => `
+                                <h5>${section.subtitle}</h5>
+                                <table>
+                                    <tr><th>البيان</th><th>القيمة</th><th>الوحدة</th></tr>
+                                    ${section.items.map(item => `
+                                        <tr><td>${item.name}</td><td>${item.value}</td><td>${item.unit}</td></tr>
+                                    `).join('')}
+                                </table>
+                            `).join('') || '<p>لا توجد كميات</p>'}
+                            <h4>الحسابات الإنشائية</h4>
+                            ${pdfData.engineering?.sections?.map(section => `
+                                <h5>${section.subtitle}</h5>
+                                <table>
+                                    <tr><th>البيان</th><th>القيمة</th><th>الوحدة</th></tr>
+                                    ${section.items.map(item => `
+                                        <tr><td>${item.name}</td><td>${item.value}</td><td>${item.unit}</td></tr>
+                                    `).join('')}
+                                </table>
+                            `).join('') || '<p>لا توجد حسابات إنشائية</p>'}
+                            <h4>التكاليف</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th><th>الوحدة</th></tr>
+                                ${pdfData.costs?.items?.map(item => `
+                                    <tr><td>${item.name}</td><td>${item.value}</td><td>${item.unit}</td></tr>
+                                `).join('') || '<tr><td colspan="3">لا توجد تكاليف</td></tr>'}
+                                <tr><td><strong>الإجمالي</strong></td><td><strong>${pdfData.costs?.total || 0}</strong></td><td>د.ع</td></tr>
+                            </table>
+                            <h4>أسعار المواد</h4>
+                            <table>
+                                <tr><th>البيان</th><th>القيمة</th><th>الوحدة</th></tr>
+                                ${pdfData.materialPrices?.items?.map(item => `
+                                    <tr><td>${item.name}</td><td>${item.value}</td><td>${item.unit}</td></tr>
+                                `).join('') || '<tr><td colspan="3">لا توجد أسعار مواد</td></tr>'}
+                            </table>
+                        </div>
+                    `;
+                    resultContainer.style.display = 'block';
+                } else {
+                    resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${result.error || result.result.message || 'حدث خطأ غير معروف'}</p>`;
+                    resultContainer.style.display = 'block';
+                }
 
                 // إعداد زر تحميل PDF
                 document.getElementById('downloadPdf').onclick = () => {
-                    const pdfContent = document.getElementById('pdfContent').innerHTML;
-                    const pdfWindow = window.open('');
-                    pdfWindow.document.write(`
-                        <html dir="rtl">
-                        <head><title>تقرير تكاليف البناء</title>
-                            <style>
-                                body { font-family: 'Tajawal', sans-serif; padding: 10px; background: #FFF6E6; color: #2A2A2A; }
-                                h3 { color: #5C4033; font-size: 1rem; font-weight: 600; }
-                                table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-                                th, td { padding: 6px; text-align: right; border-bottom: 1px solid #E4E2DB; }
-                                th { background: rgba(92, 64, 51, 0.1); color: #5C4033; }
-                                pre { white-space: pre-wrap; background: rgba(255, 245, 235, 0.95); padding: 5px; border-radius: 5px; }
-                            </style>
-                        </head>
-                        <body>${pdfContent}</body>
-                        </html>
-                    `);
-                    pdfWindow.document.close();
-                    pdfWindow.print();
+                    if (!lastResult || !lastResult.success) {
+                        alert('لا توجد نتائج لتحميلها. الرجاء إرسال النموذج أولاً.');
+                        return;
+                    }
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    doc.addFont('Amiri-Regular', 'Amiri', 'normal');
+                    doc.setFont('Amiri', 'normal');
+                    doc.setFontSize(12);
+                    doc.setTextColor(42, 42, 42); // لون النص: #2A2A2A
+
+                    let y = 10;
+                    const addSection = (title, items, isTable = false) => {
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 10;
+                        }
+                        doc.setFontSize(14);
+                        doc.text(title, 190, y, { align: 'right' });
+                        y += 8;
+                        if (isTable) {
+                            doc.autoTable({
+                                startY: y,
+                                head: [['البيان', 'القيمة', 'الوحدة']],
+                                body: items.map(item => [item.name || item.label, item.value, item.unit || '']),
+                                theme: 'striped',
+                                styles: { fontSize: 10, cellPadding: 2, halign: 'right', font: 'Amiri' },
+                                headStyles: { fillColor: [92, 64, 51], textColor: [255, 255, 255], fontStyle: 'bold' },
+                                columnStyles: {
+                                    0: { halign: 'right' },
+                                    1: { halign: 'right' },
+                                    2: { halign: 'right' }
+                                },
+                                didDrawPage: () => { y = doc.lastAutoTable.finalY + 10; }
+                            });
+                        } else {
+                            items.forEach(item => {
+                                if (y > 270) {
+                                    doc.addPage();
+                                    y = 10;
+                                }
+                                doc.setFontSize(10);
+                                doc.text(`${item.label}: ${item.value}`, 190, y, { align: 'right' });
+                                y += 6;
+                            });
+                            y += 5;
+                        }
+                    };
+
+                    const pdfData = lastResult.result.pdfData || {};
+                    // الصفحة الأولى: معلومات الشركة
+                    doc.setFontSize(16);
+                    doc.text(pdfData.companyInfo?.name || 'شركة الإنشاءات الهندسية', 190, y, { align: 'right' });
+                    y += 10;
+                    doc.setFontSize(12);
+                    doc.text(pdfData.companyInfo?.description || 'غير متوفر', 190, y, { align: 'right', maxWidth: 170 });
+                    y += 20;
+                    addSection('معلومات الاتصال', [
+                        { label: 'الهاتف', value: pdfData.companyInfo?.contact?.phone || 'غير متوفر' },
+                        { label: 'البريد الإلكتروني', value: pdfData.companyInfo?.contact?.email || 'غير متوفر' },
+                        { label: 'العنوان', value: pdfData.companyInfo?.contact?.address || 'غير متوفر' }
+                    ]);
+
+                    // الصفحة الثانية: البيانات المدخلة
+                    doc.addPage();
+                    y = 10;
+                    addSection('معلومات العميل', pdfData.inputData?.customer?.fields || []);
+                    addSection('معلومات الموقع', pdfData.inputData?.location?.fields || []);
+                    addSection('معلومات الأرض', pdfData.inputData?.land?.fields || []);
+                    addSection('تفاصيل المبنى', pdfData.inputData?.building?.fields || []);
+
+                    // الصفحة الثالثة: الكميات
+                    doc.addPage();
+                    y = 10;
+                    pdfData.quantities?.sections?.forEach(section => {
+                        addSection(section.subtitle, section.items, true);
+                    });
+
+                    // الصفحة الرابعة: الحسابات الإنشائية
+                    doc.addPage();
+                    y = 10;
+                    pdfData.engineering?.sections?.forEach(section => {
+                        addSection(section.subtitle, section.items, true);
+                    });
+
+                    // الصفحة الخامسة: التكاليف
+                    doc.addPage();
+                    y = 10;
+                    addSection('التكاليف', pdfData.costs?.items || [], true);
+                    doc.setFontSize(12);
+                    doc.text(`الإجمالي: ${pdfData.costs?.total || 0} د.ع`, 190, y, { align: 'right' });
+                    y += 10;
+
+                    // الصفحة السادسة: أسعار المواد
+                    doc.addPage();
+                    y = 10;
+                    addSection('أسعار المواد', pdfData.materialPrices?.items || [], true);
+
+                    doc.save('تقرير_تكاليف_البناء.pdf');
                 };
             } catch (error) {
                 // عرض الأخطاء إذا حدثت
+                console.error('خطأ:', error);
                 document.getElementById('resultContent').innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
                 document.getElementById('resultContainer').style.display = 'block';
             } finally {
