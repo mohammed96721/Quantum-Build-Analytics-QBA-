@@ -227,7 +227,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="formantsPrice">سعر م² تشطيب الأرضيات</label>
+                <div class="form-section">
+                    <h3><span class="material-icons-outlined">attach_money</span> أسعار التشطيبات</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="flooringPrice">سعر م² تشطيب الأرضيات</label>
                             <input type="number" id="flooringPrice" class="form-control" required step="0.01">
                             <div class="error-message" id="flooringPriceError">الرجاء إدخال سعر</div>
                             <span class="tooltip">أدخل سعر الأرضيات</span>
@@ -518,10 +522,12 @@
                 </div>
             </form>
         </div>
-        <!-- قسم لعرض رسالة المعالجة -->
-        <div id="processingMessage" class="disclaimer hidden">
-            <h2><span class="material-icons-outlined">check_circle</span> تم المعالجة</h2>
-            <p>تم المعالجة، والبيانات ستكون مباشرة في ملف PDF</p>
+        <div id="resultContainer" class="result-container hidden">
+            <div class="result-header">
+                <h3><span class="material-icons-outlined">assessment</span> نتيجة الحساب</h3>
+            </div>
+            <div id="resultContent" class="result-content"></div>
+            <button id="downloadPdf" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
         </div>
     </div>
     <script>
@@ -577,7 +583,8 @@
             const submitBtn = e.target.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
             submitBtn.disabled = true;
-            const processingMessage = document.getElementById('processingMessage');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
 
             // دالة لجمع القيم من الحقول
             const getValue = (id, isFloat = false, isInt = false) => {
@@ -712,13 +719,18 @@
 
                 const result = await response.json();
 
-                // إظهار رسالة المعالجة
-                processingMessage.classList.remove('hidden');
+                // إظهار رسالة المعالجة في قسم النتائج
+                resultContent.innerHTML = `
+                    <div class="result-section">
+                        <h3><span class="material-icons-outlined">check_circle</span> تم المعالجة</h3>
+                        <p>تم المعالجة، والبيانات ستكون مباشرة في ملف PDF</p>
+                    </div>
+                `;
+                resultContainer.classList.remove('hidden');
 
                 // إنشاء ملف PDF باستخدام jsPDF
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                doc.setFont('Amiri', 'normal'); // استخدام خط عربي (يجب إضافته إذا لزم الأمر)
                 doc.setFontSize(12);
                 doc.setTextColor(40, 40, 40);
 
@@ -814,9 +826,9 @@
                 doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
 
             } catch (error) {
-                // عرض رسالة خطأ إذا حدثت مشكلة
-                processingMessage.innerHTML = `<h2><span class="material-icons-outlined">error</span> خطأ</h2><p>خطأ: ${error.message}</p>`;
-                processingMessage.classList.remove('hidden');
+                // عرض رسالة الخطأ في قسم النتائج
+                resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
+                resultContainer.classList.remove('hidden');
             } finally {
                 // إعادة تعيين زر الإرسال
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
