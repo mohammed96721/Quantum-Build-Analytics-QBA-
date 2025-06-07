@@ -1,18 +1,21 @@
 /**
  * @file advancedCalculate.js
  * @desc معالجة بيانات النموذج من process.js وحساب التكاليف والتحليل الإنشائي بدقة هندسية.
- * @version 1.6.3
+ * @version 1.6.2
  * @remarks
  * - يعالج بيانات التصميم (خرسانة، طابوق، أساس، تكاليف) حسب معايير العراق 2025.
  * - الحسابات مرتبة: كميات، وزن المنشأ، أساس، تكاليف.
- * - تحسينات: تنظيم النتائج لتكون واضحة ومناسبة لتصدير PDF مع تفاصيل هندسية دقيقة.
- * - إزالة التحققات (تُجرى في process.js).
+ * - شروحات مفصلة لكل قسم.
+ * - تحديث: إزالة التحققات (تُجرى في process.js)، 
  */
 
 /**
  * @function getMaterialPrices
  * @desc إرجاع أسعار المواد والعمالة بالدينار العراقي لعام 2025.
- * @returns {Object} أسعار المواد والعمالة.
+ * @returns {Object} أسعار المواد والعمالة مع تعريف الحقول.
+ * @remarks
+ * - الأسعار مُحدثة لعام 2025 حسب السوق العراقي.
+ * - تشمل الخرسانة، الحديد، الطابوق، العمالة (جص، نجارة، سباكة).
  */
 function getMaterialPrices() {
   return {
@@ -64,7 +67,7 @@ function getMaterialPrices() {
       regular: 120000, // عمالة نجارة عادي: 120000 د.ع/م³
       waffle: 150000 // عمالة نجارة وافل: 150000 د.ع/م³
     },
-    steelLaborPerM3: 100000, //عماله حديد:100000 د.ع/م³
+    steelLaborPerM3: 100000, // عمالة حديد: 100000 د.ع/م³
     skylightsPerM2: 150000, // مناور: 150000 د.ع/م²
     secondaryCeilingsPerM2: 30000, // أسقف ثانوية: 30000 د.ع/م²
     decorativeWallsPerM2: 35000, // جدران زخرفية: 35000 د.ع/م²
@@ -75,6 +78,79 @@ function getMaterialPrices() {
     transportSandPerM3: 1500, // نقل رمل: 1500 د.ع/م³
     transportBricksPerDbl: 40000, // نقل طابوق: 40000 د.ع/دبل
     transportBricksThermostonePerThousand: 10000 // نقل ثرمستون: 10000 د.ع/ألف
+  };
+}
+
+/**
+ * @function getEngineeringConstants
+ * @desc إرجاع الثوابت الهندسية حسب المعايير العراقية.
+ * @returns {Object} الثوابت الهندسية مع تعليقات.
+ * @remarks
+ */
+function getEngineeringConstants() {
+  return {
+    concreteDensity: 2400, // كثافة خرسانة: 2400 كجم/م³
+    steelDensity: 7850, // كثافة حديد: 7850 كجم/م³
+    brickYellowDensity: 1800, // كثافة طابوق أصفر: 1800 كجم/م³
+    brickRedDensity: 2000, // كثافة طابوق أحمر: 2000 كجم/م³
+    brickThermostoneDensity: 600, // كثافة ثرمستون: 600 كجم/م³
+    cementOrdinaryDensity: 1440, // كثافة إسمنت: 1440 كجم/م³
+    sandDensity: 1600, // كثافة رمل: 1600 كجم/م³
+    gravelDensity: 1650, // كثافة حصى: 1650 كجم/م³
+    gypsumDensity: 1200, // كثافة جبس: 1200 كجم/م³
+    limeDensity: 1100, // كثافة جير: 1100 كجم/م³
+    flooringDensity: 3000, // كثافة أرضيات: 3000 كجم/م³
+    mortarFloorDensity: 2000, // كثافة مونة أرضيات: 2000 كجم/م³
+    mortarWallsDensity: 1900, // كثافة مونة جدران: 1900 كجم/م³
+    screedDensity: 2000, // كثافة شتايكر: 2000 كجم/م³
+    cementPerM2MortarFloor: 0.015, // إسمنت مونة أرضيات: 0.015 طن/م²
+    sandPerM2MortarFloor: 0.03, // رمل مونة أرضيات: 0.03 م³/م²
+    cementPerM2MortarWalls: 0.01, // إسمنت مونة جدران: 0.01 طن/م²
+    sandPerM2MortarWalls: 0.02, // رمل مونة جدران: 0.02 م³/م²
+    mortarFloorThickness: 0.08, // سماكة مونة أرضيات: 8 سم
+    mortarWallsThickness: 0.05, // سماكة مونة جدران: 5 سم
+    screedThickness: 0.06, // سماكة شتايكر: 6 سم
+    gypsumPerM2Plaster: 0.03, // جبس للجص: 0.03 طن/م²
+    limePerM2Plaster: 0.01, // جير للجص: 0.01 طن/م²
+    plasterThickness: 0.04, // سماكة جص: 4 سم
+    brickYellowDimensions: { width: 0.24, length: 0.115, height: 0.08 }, // أبعاد طابوق أصفر: 24×11.5×8 سم
+    brickRedDimensions: { width: 0.24, length: 0.115, height: 0.115 }, // أبعاد طابوق أحمر: 24×11.5×11.5 سم
+    brickThermostoneDimensions: { width: 0.4, length: 0.2, height: 0.2 }, // أبعاد ثرمستون: 40×20×20 سم
+    brickYellowCompressiveStrength: 5, // قوة ضغط طابوق أصفر: 5 ميجا باسكال
+    brickRedCompressiveStrength: 7, // قوة ضغط طابوق أحمر: 7 ميجا باسكال
+    brickThermostoneCompressiveStrength: 3.5, // قوة ضغط ثرمستون: 3.5 ميجا باسكال
+    bricksPerDbl: 4000, // طابوقات في دبل: 4000
+    brickYellowCoveragePerDbl: 11, // دبل طابوق أصفر يغطي: 11 م³
+    brickRedCoveragePerDbl: 10.5, // دبل طابوق أحمر يغطي: 10.5 م³
+    brickThermostoneMortarHorizontal: 0.01, // مونة أفقية ثرمستون: 1 سم
+    brickThermostoneMortarVertical: 0.005, // مونة رأسية ثرمستون: 0.5 سم
+    liveLoadPerM2GroundFloor: 200, // حمل حي أرضي: 200 كجم/م²
+    liveLoadPerM2OtherFloors: 150, // حمل حي طوابق أخرى: 150 كجم/م²
+    liveLoadPerM2Roof: 100, // حمل حي سطح: 100 كجم/م²
+    deadLoadAdditionalPerM2: 100, // حمل ميت إضافي: 100 كجم/م²
+    steelPerM3ConcreteRoof: 100, // حديد أسقف: 100 كجم/م³
+    steelPerM3ConcreteFoundation: 120, // حديد أساس: 120 كجم/م³
+    tieBeamHeight: 0.3, // ارتفاع ربط: 30 سم
+    invertedBeamHeight: 0.3, // ارتفاع كمرة مقلوبة: 30 سم
+    excavationDepthBasement: 3, // عمق حفر طوابق سفلية: 3 م
+    electricalPointsPerMWall: 0.5, // نقاط كهربائية لكل م جدار: 0.5
+    electricalPointsPerM2Ceiling: 0.1, // نقاط كهربائية لكل م² سقف: 0.1
+    gravityConstant: 9.81, // جاذبية: 9.81 م/ث²
+    soilBearingCapacity: 125, // قدرة تحمل تربة: 125 kN/m²
+    safetyFactorFoundation: 1.5, // معامل أمان أساس: 1.5
+    minRaftThickness: 0.3, // أدنى سماكة أساس: 30 سم
+    maxRaftThickness: 1.0, // أقصى سماكة أساس: 100 سم
+    baseLayerThickness: 0.3, // سماكة طبقة أساس: 30 سم
+    externalDoorDimensions: { width: 1.2, height: 2.1, thickness: 0.24 }, // أبعاد باب خارجي: 1.2×2.1×0.24 م
+    internalDoorDimensions: { width: 0.9, height: 2.1, thickness: 0.24 }, // أبعاد باب داخلي: 0.9×2.1×0.24 م
+    curtainWallHeight: 1.5, // ارتفاع ستارة: 1.5 م
+    curtainWallWidth: 0.24, // عرض ستارة: 24 سم
+    waffleVoidVolume: 0.1, // حجم فراغ Waffle Slab: 0.1 م³
+    externalDoorWeight: 50, // وزن باب خارجي: 50 كجم
+    internalDoorWeight: 30, // وزن باب داخلي: 30 كجم
+    windowWeightPerM2: 20, // وزن شبابيك: 20 كجم/م²
+    waterTankWeight: 500, // وزن خزان ماء: 500 كجم
+    heaterWeight: 100 // وزن سخان: 100 كجم
   };
 }
 
