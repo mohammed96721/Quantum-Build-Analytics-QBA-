@@ -5,28 +5,22 @@ module.exports = async (req, res) => {
   try {
     // التأكد من أن الطلب من نوع POST
     if (req.method !== 'POST') {
-      return res.status(405).json({ success: false, error:touq 'الطريقة غير مسموح بها، استخدم POST' });
+      return res.status(405).json({ success: false, error: 'الطريقة غير مسموح بها، استخدم POST' });
     }
 
     // تحليل البيانات من الطلب
     const data = req.body;
-    console.log('البيانات المستلمة في /api/process:', JSON.stringify(data, null, 2));
+    console.log('البيانات المستلمة في /api/process:', data);
 
     // التحقق من صلاحية البيانات
     if (!data || typeof data !== 'object') {
       throw new Error('البيانات المستلمة غير صالحة');
     }
 
-    // التحقق من وجود الحقول الأساسية
-    if (!data.customer || !data.location || !data.land || !data.building) {
-      throw new Error('البيانات الأساسية (customer, location, land, building) مفقودة');
-    }
-
     // معالجة البيانات
     const hasMap = data.hasMap || false;
     console.log('hasMap:', hasMap);
     const result = hasMap ? advancedCalculate.processAdvanced(data) : calculate.processBasic(data);
-    console.log('النتيجة المُرجعة:', JSON.stringify(result, null, 2));
 
     // إرجاع النتيجة
     res.status(200).json({ success: true, result });
