@@ -586,16 +586,28 @@
         // معالجة إرسال النموذج
         document.getElementById('buildingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('بدء معالجة إرسال النموذج');
             const submitBtn = e.target.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
             submitBtn.disabled = true;
             const resultContainer = document.getElementById('resultContainer');
             const resultContent = document.getElementById('resultContent');
 
+            // التحقق من وجود العناصر في DOM
+            if (!resultContainer || !resultContent) {
+                console.error('خطأ: عنصر resultContainer أو resultContent غير موجود في DOM');
+                submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
+                submitBtn.disabled = false;
+                return;
+            }
+
             // دالة لجمع القيم من الحقول
             const getValue = (id, isFloat = false, isInt = false) => {
                 const element = document.getElementById(id);
-                if (!element) return isInt ? 0 : isFloat ? 0 : '';
+                if (!element) {
+                    console.warn(`تحذير: العنصر ${id} غير موجود`);
+                    return isInt ? 0 : isFloat ? 0 : '';
+                }
                 let value = element.value.replace(/,/g, '');
                 return isFloat ? parseFloat(value) || 0 : isInt ? parseInt(value) || 0 : value;
             };
@@ -625,11 +637,11 @@
                         brickType: getValue('brickType'),
                         ceilingDetails: getValue('ceilingDetails'),
                         facadeType: getValue('facadeType'),
-                        hasGarden: document.getElementById('hasGarden').checked,
-                        hasPool: document.getElementById('hasPool').checked,
-                        hasHVAC: document.getElementById('hasHVAC').checked,
-                        hasElevator: document.getElementById('hasElevator').checked,
-                        hasFence: document.getElementById('hasFence').checked
+                        hasGarden: document.getElementById('hasGarden')?.checked || false,
+                        hasPool: document.getElementById('hasPool')?.checked || false,
+                        hasHVAC: document.getElementById('hasHVAC')?.checked || false,
+                        hasElevator: document.getElementById('hasElevator')?.checked || false,
+                        hasFence: document.getElementById('hasFence')?.checked || false
                     },
                     prices: {
                         flooring: getValue('flooringPrice', true),
@@ -637,14 +649,14 @@
                         wallPainting: getValue('wallPaintingPrice', true),
                         windowsDoors: getValue('windowsDoorsPrice', true)
                     },
-                    hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
-                    customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
-                    waffleSlabInfo: !document.getElementById('waffleSlabInfo').classList.contains('hidden'),
-                    apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
-                    basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
-                    stairsRailingInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
-                    concreteColumnsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
-                    internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
+                    hasMap: !document.getElementById('mapDetailsInfo')?.classList.contains('hidden') || false,
+                    customFacadeInfo: !document.getElementById('customFacadeInfo')?.classList.contains('hidden') || false,
+                    waffleSlabInfo: !document.getElementById('waffleSlabInfo')?.classList.contains('hidden') || false,
+                    apartmentsInfo: !document.getElementById('apartmentsInfo')?.classList.contains('hidden') || false,
+                    basementInfo: !document.getElementById('basementInfo')?.classList.contains('hidden') || false,
+                    stairsRailingInfo: document.getElementById('mapDetailsInfo')?.classList.contains('hidden') ? false : !document.getElementById('stairsRailingInfo')?.classList.contains('hidden') || false,
+                    concreteColumnsInfo: document.getElementById('mapDetailsInfo')?.classList.contains('hidden') ? false : !document.getElementById('concreteColumnsInfo')?.classList.contains('hidden') || false,
+                    internalWallsInfo: document.getElementById('mapDetailsInfo')?.classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo')?.classList.contains('hidden') || false
                 };
 
                 // جمع بيانات الواجهة المخصصة
@@ -712,7 +724,7 @@
                     inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
                 }
 
-                // تسجيل البيانات المُرسلة للتحقق
+                // تسجيل البيانات المُرسلة
                 console.log('البيانات المُرسلة إلى /api/process:', JSON.stringify(inputs, null, 2));
 
                 // إرسال البيانات إلى الـ API
@@ -722,7 +734,6 @@
                     body: JSON.stringify(inputs)
                 });
 
-                // تسجيل حالة الاستجابة
                 console.log('حالة الاستجابة:', response.status, response.statusText);
 
                 if (!response.ok) {
@@ -730,8 +741,6 @@
                 }
 
                 const result = await response.json();
-
-                // تسجيل الاستجابة الكاملة
                 console.log('الاستجابة من /api/process:', JSON.stringify(result, null, 2));
 
                 // التحقق من نجاح الاستجابة
@@ -739,7 +748,7 @@
                     throw new Error(result.result?.message || 'فشل معالجة البيانات أو pdfData غير موجود');
                 }
 
-                // عرض رسالة النجاح فقط
+                // عرض رسالة النجاح
                 resultContent.innerHTML = `
                     <div class="result-section">
                         <h3><span class="material-icons-outlined">check_circle</span> تم الحساب بنجاح</h3>
@@ -747,15 +756,25 @@
                     </div>
                 `;
                 resultContainer.classList.remove('hidden');
+                console.log('تم عرض رسالة النجاح في resultContainer');
+
+                // إزالة أي معالجات سابقة لزر تحميل PDF
+                const downloadBtn = document.getElementById('downloadPdf');
+                const newDownloadBtn = downloadBtn.cloneNode(true);
+                downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
 
                 // إنشاء ملف PDF عند الضغط على زر التحميل
-                document.getElementById('downloadPdf').addEventListener('click', () => {
+                newDownloadBtn.addEventListener('click', () => {
                     try {
+                        console.log('بدء إنشاء ملف PDF');
+                        if (!window.jspdf || !window.jspdf.jsPDF) {
+                            throw new Error('مكتبة jsPDF غير محملة');
+                        }
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // إعداد الخط لدعم اللغة العربية
-                        doc.setFont('Amiri', 'normal'); // يفترض أن خط Amiri مُحمل في <head>
+                        // استخدام خط افتراضي (Helvetica) لتجنب مشاكل تحميل الخط
+                        doc.setFont('Helvetica', 'normal');
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
 
@@ -781,8 +800,8 @@
                         yOffset = 10;
                         doc.text('معلومات الشركة', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.companyInfo.fields.forEach(field => {
-                            doc.text(`${field.label}: ${field.value}`, 200, yOffset, { align: 'right' });
+                        (pdfData.companyInfo?.fields || []).forEach(field => {
+                            doc.text(`${field.label || 'غير محدد'}: ${field.value || ''}`, 200, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
@@ -794,8 +813,8 @@
                         // معلومات العميل
                         doc.text('معلومات العميل', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.inputData.customer.fields.forEach(field => {
-                            doc.text(`${field.label}: ${field.value}`, 190, yOffset, { align: 'right' });
+                        (pdfData.inputData?.customer?.fields || []).forEach(field => {
+                            doc.text(`${field.label || 'غير محدد'}: ${field.value || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
@@ -804,8 +823,8 @@
                         yOffset += lineHeight;
                         doc.text('معلومات الموقع', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.inputData.location.fields.forEach(field => {
-                            doc.text(`${field.label}: ${field.value}`, 190, yOffset, { align: 'right' });
+                        (pdfData.inputData?.location?.fields || []).forEach(field => {
+                            doc.text(`${field.label || 'غير محدد'}: ${field.value || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
@@ -814,8 +833,8 @@
                         yOffset += lineHeight;
                         doc.text('معلومات الأرض', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.inputData.land.fields.forEach(field => {
-                            doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
+                        (pdfData.inputData?.land?.fields || []).forEach(field => {
+                            doc.text(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
@@ -824,8 +843,8 @@
                         yOffset += lineHeight;
                         doc.text('تفاصيل المبنى', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.inputData.building.fields.forEach(field => {
-                            doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
+                        (pdfData.inputData?.building?.fields || []).forEach(field => {
+                            doc.text(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
@@ -835,11 +854,11 @@
                         yOffset = 10;
                         doc.text('الكميات', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.quantities.sections.forEach(section => {
-                            doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                        (pdfData.quantities?.sections || []).forEach(section => {
+                            doc.text(section.subtitle || 'قسم غير محدد', 200, yOffset, { align: 'right' });
                             yOffset += lineHeight;
-                            section.items.forEach(item => {
-                                doc.text(`${item.name}: ${item.value} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                            (section.items || []).forEach(item => {
+                                doc.text(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
                                 yOffset += lineHeight;
                                 addNewPageIfNeeded();
                             });
@@ -852,11 +871,11 @@
                         yOffset = 10;
                         doc.text('الحسابات الإنشائية', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.engineering.sections.forEach(section => {
-                            doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                        (pdfData.engineering?.sections || []).forEach(section => {
+                            doc.text(section.subtitle || 'قسم غير محدد', 200, yOffset, { align: 'right' });
                             yOffset += lineHeight;
-                            section.items.forEach(item => {
-                                doc.text(`${item.name}: ${item.value} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                            (section.items || []).forEach(item => {
+                                doc.text(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
                                 yOffset += lineHeight;
                                 addNewPageIfNeeded();
                             });
@@ -869,12 +888,12 @@
                         yOffset = 10;
                         doc.text('التكاليف', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.costs.items.forEach(item => {
-                            doc.text(`${item.name}: ${item.value.toLocaleString()} ${item.unit}`, 190, yOffset, { align: 'right' });
+                        (pdfData.costs?.items || []).forEach(item => {
+                            doc.text(`${item.name || 'غير محدد'}: ${item.value?.toLocaleString() || '0'} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
-                        doc.text(`الإجمالي: ${pdfData.costs.total.toLocaleString()} د.ع`, 200, yOffset, { align: 'right' });
+                        doc.text(`الإجمالي: ${pdfData.costs?.total?.toLocaleString() || '0'} د.ع`, 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
                         addNewPageIfNeeded();
 
@@ -883,33 +902,29 @@
                         yOffset = 10;
                         doc.text('أسعار المواد', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        pdfData.materialPrices.forEach(item => {
-                            doc.text(`${item.material}: ${item.price.toLocaleString()} ${item.unit}`, 190, yOffset, { align: 'right' });
+                        (pdfData.materialPrices || []).forEach(item => {
+                            doc.text(`${item.material || 'غير محدد'}: ${item.price?.toLocaleString() || '0'} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
 
-                        // تسجيل نجاح إنشاء PDF
                         console.log('تم إنشاء ملف PDF بنجاح');
-
-                        // حفظ وتنزيل ملف PDF
                         doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
                     } catch (pdfError) {
                         console.error('خطأ أثناء إنشاء PDF:', pdfError);
                         resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${pdfError.message}</p>`;
                         resultContainer.classList.remove('hidden');
                     }
-                }, { once: true }); // مرة واحدة فقط لكل نقرة
+                }, { once: true });
 
             } catch (error) {
-                // عرض رسالة الخطأ في قسم النتائج
                 console.error('خطأ أثناء معالجة النموذج:', error);
                 resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
                 resultContainer.classList.remove('hidden');
             } finally {
-                // إعادة تعيين زر الإرسال
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
                 submitBtn.disabled = false;
+                console.log('تم إعادة تعيين زر الإرسال');
             }
         });
     </script>
