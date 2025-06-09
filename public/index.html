@@ -734,28 +734,41 @@
                 });
 
                 console.log('حالة الاستجابة:', response.status, response.statusText);
+                console.log('رأس Content-Type:', response.headers.get('Content-Type'));
 
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('نص خطأ الاستجابة:', errorText);
-                    throw new Error(`خطأ في الاتصال: ${response.status} ${response.statusText}`);
+                    throw new Error(`خطأ في الاتصال: ${response.status} ${response.statusText} - ${errorText}`);
                 }
 
                 let result;
                 try {
-                    result = await response.json();
-                    console.log('الاستجابة من /api/process:', JSON.stringify(result, null, 2));
+                    // التحقق من نوع الاستجابة
+                    const contentType = response.headers.get('Content-Type');
+                    if (contentType && contentType.includes('application/json')) {
+                        result = await response.json();
+                        console.log('الاستجابة من /api/process:', JSON.stringify(result, null, 2));
+                    } else {
+                        const text = await response.text();
+                        console.error('الاستجابة ليست JSON:', text);
+                        throw new Error('الخادم أرجع استجابة غير JSON');
+                    }
                 } catch (jsonError) {
                     console.error('خطأ في تحليل JSON:', jsonError);
-                    throw new Error('فشل في تحليل استجابة الخادم');
+                    throw new Error(`فشل في تحليل استجابة الخادم: ${jsonError.message}`);
                 }
 
-                // التحقق من نجاح الاستجابة
+                // التحقق من نجاح الاستجابة (بمرونة أكبر)
                 if (!result || typeof result !== 'object') {
-                    throw new Error('استجابة غير صالحة');
+                    throw new Error('استجابة غير صالحة: البيانات فارغة أو غير كائن');
                 }
-                if (!result.success || !result.result || !result.result.success || !result.result.pdfData) {
-                    throw new Error(result.result?.message || 'فشل معالجة البيانات أو pdfData غير موجود');
+
+                // تحقق مرن: إما أن تحتوي على pdfData مباشرة أو داخل result
+                const pdfData = result.pdfData || (result.result && result.result.pdfData);
+                if (!pdfData) {
+                    console.error('هيكلية الاستجابة:', JSON.stringify(result, null, 2));
+                    throw new Error(result.message || result.result?.message || 'فشل معالجة البيانات: pdfData غير موجود');
                 }
 
                 // عرض رسالة النجاح
@@ -791,7 +804,6 @@
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
 
-                        const pdfData = result.result.pdfData;
                         let yOffset = 10;
                         const pageHeight = 270;
                         const lineHeight = 7;
