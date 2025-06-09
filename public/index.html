@@ -525,326 +525,292 @@
             <button id="downloadPdf" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
         </div>
     </div>
-    <script>
-        // تعريف أزرار التبديل ومحتواها
-        const toggles = [
-            { toggle: 'toggleApartments', content: 'apartmentsInfo' },
-            { toggle: 'toggleBasement', content: 'basementInfo' },
-            { toggle: 'toggleMapDetails', content: 'mapDetailsInfo' },
-            { toggle: 'toggleStairsRailing', content: 'stairsRailingInfo' },
-            { toggle: 'toggleConcreteColumns', content: 'concreteColumnsInfo' },
-            { toggle: 'toggleInternalWalls', content: 'internalWallsInfo' }
-        ];
+	<script>
+		// تعريف أزرار التبديل ومحتواها
+		const toggles = [
+			{ toggle: 'toggleApartments', content: 'apartmentsInfo' },
+			{ toggle: 'toggleBasement', content: 'basementInfo' },
+			{ toggle: 'toggleMapDetails', content: 'mapDetailsInfo' },
+			{ toggle: 'toggleStairsRailing', content: 'stairsRailingInfo' },
+			{ toggle: 'toggleConcreteColumns', content: 'concreteColumnsInfo' },
+			{ toggle: 'toggleInternalWalls', content: 'internalWallsInfo' }
+		];
 
-        // إضافة أحداث التبديل لإظهار/إخفاء الأقسام
-        toggles.forEach(({ toggle, content }) => {
-            const toggleBtn = document.getElementById(toggle);
-            const contentDiv = document.getElementById(content);
-            if (toggleBtn && contentDiv) {
-                toggleBtn.addEventListener('click', () => {
-                    contentDiv.classList.toggle('hidden');
-                    toggleBtn.querySelector('.toggle-icon span').textContent = contentDiv.classList.contains('hidden') ? 'add' : 'remove';
-                });
-            }
-        });
+		// إضافة أحداث التبديل لإظهار/إخفاء الأقسام
+		toggles.forEach(({ toggle, content }) => {
+			const toggleBtn = document.getElementById(toggle);
+			const contentDiv = document.getElementById(content);
+			if (toggleBtn && contentDiv) {
+				toggleBtn.addEventListener('click', () => {
+					contentDiv.classList.toggle('hidden');
+					toggleBtn.querySelector('.toggle-icon span').textContent = contentDiv.classList.contains('hidden') ? 'add' : 'remove';
+				});
+			}
+		});
 
-        // إظهار/إخفاء الأقسام بناءً على اختيارات القوائم
-        const toggleSelect = (selectId, contentId, triggerValue) => {
-            const select = document.getElementById(selectId);
-            const content = document.getElementById(contentId);
-            if (select && content) {
-                select.addEventListener('change', () => {
-                    content.classList.toggle('hidden', select.value !== triggerValue);
-                });
-            }
-        };
-        toggleSelect('facadeType', 'customFacadeInfo', 'custom');
-        toggleSelect('ceilingDetails', 'waffleSlabInfo', 'waffle');
+		// إظهار/إخفاء الأقسام بناءً على اختيارات القوائم
+		const toggleSelect = (selectId, contentId, triggerValue) => {
+			const select = document.getElementById(selectId);
+			const content = document.getElementById(contentId);
+			if (select && content) {
+				select.addEventListener('change', () => {
+					content.classList.toggle('hidden', select.value !== triggerValue);
+				});
+			}
+		};
+		toggleSelect('facadeType', 'customFacadeInfo', 'custom');
+		toggleSelect('ceilingDetails', 'waffleSlabInfo', 'waffle');
 
-        // التحقق من صحة الحقول المطلوبة
-        document.querySelectorAll('.form-control[required]').forEach(input => {
-            input.addEventListener('input', () => {
-                const errorDiv = document.getElementById(`${input.id}Error`);
-                if (errorDiv) {
-                    errorDiv.style.display = input.validity.valid ? 'none' : 'block';
-                }
-                input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
-            });
-        });
+		// التحقق من صحة الحقول المطلوبة
+		document.querySelectorAll('.form-control[required]').forEach(input => {
+			input.addEventListener('input', () => {
+				const errorDiv = document.getElementById(`${input.id}Error`);
+				if (errorDiv) {
+					errorDiv.style.display = input.validity.valid ? 'none' : 'block';
+				}
+				input.style.borderColor = input.validity.valid ? '' : 'var(--danger)';
+			});
+		});
 
-        // معالجة إرسال النموذج
-        document.getElementById('buildingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
-            submitBtn.disabled = true;
+		// معالجة إرسال النموذج
+		document.getElementById('buildingForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const submitBtn = e.target.querySelector('button[type="submit"]');
+			submitBtn.innerHTML = '<span class="material-icons-outlined">hourglass_top</span> جارٍ الحساب...';
+			submitBtn.disabled = true;
 
-            // دالة لجمع القيم من الحقول
-            const getValue = (id, isFloat = false, isInt = false) => {
-                const element = document.getElementById(id);
-                if (!element || !element.value) return isInt ? 0 : isFloat ? 0 : '';
-                let value = element.value.replace(/,/g, '');
-                return isFloat ? parseFloat(value) || 0 : isInt ? parseInt(value) || 0 : value;
-            };
+			// دالة لجمع القيم من الحقول
+			const getValue = (id, isFloat = false, isInt = false) => {
+				const element = document.getElementById(id);
+				if (!element || !element.value) return isInt ? 0 : isFloat ? 0 : '';
+				let value = element.value.replace(/,/g, '');
+				return isFloat ? parseFloat(value) || 0 : isInt ? parseInt(value) || 0 : value;
+			};
 
-            try {
-                // جمع البيانات من النموذج
-                const inputs = {
-                    customer: {
-                        name: getValue('customerName'),
-                        phone: getValue('phoneNumber')
-                    },
-                    location: {
-                        governorate: getValue('governorate'),
-                        area: getValue('area')
-                    },
-                    land: {
-                        area: getValue('landArea', true),
-                        facadeWidth: getValue('facadeWidth', true)
-                    },
-                    building: {
-                        floors: getValue('floors', false, true),
-                        rooms: getValue('rooms', false, true),
-                        bathrooms: getValue('bathrooms', false, true),
-                        groundFloorHeight: getValue('groundFloorHeight', true),
-                        otherFloorsHeight: getValue('otherFloorsHeight', true),
-                        ceilingThickness: getValue('ceilingThickness', true),
-                        brickType: getValue('brickType'),
-                        ceilingDetails: getValue('ceilingDetails'),
-                        facadeType: getValue('facadeType'),
-                        hasGarden: document.getElementById('hasGarden').checked,
-                        hasPool: document.getElementById('hasPool').checked,
-                        hasHVAC: document.getElementById('hasHVAC').checked,
-                        hasElevator: document.getElementById('hasElevator').checked,
-                        hasFence: document.getElementById('hasFence').checked
-                    },
-                    prices: {
-                        flooring: getValue('flooringPrice', true),
-                        wallInstallation: getValue('wallInstallationPrice', true),
-                        wallPainting: getValue('wallPaintingPrice', true),
-                        windowsDoors: getValue('windowsDoorsPrice', true)
-                    },
-                    hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
-                    customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
-                    waffleSlabInfo: !document.getElementById('waffleSlabInfo').classList.contains('hidden'),
-                    apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
-                    basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
-                    stairsRailingInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
-                    concreteColumnsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
-                    internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
-                };
+			try {
+				// جمع البيانات من النموذج
+				const inputs = {
+					customer: {
+						name: getValue('customerName'),
+						phone: getValue('phoneNumber')
+					},
+					location: {
+						governorate: getValue('governorate'),
+						area: getValue('area')
+					},
+					land: {
+						area: getValue('landArea', true),
+						facadeWidth: getValue('facadeWidth', true)
+					},
+					building: {
+						floors: getValue('floors', false, true),
+						rooms: getValue('rooms', false, true),
+						bathrooms: getValue('bathrooms', false, true),
+						groundFloorHeight: getValue('groundFloorHeight', true),
+						otherFloorsHeight: getValue('otherFloorsHeight', true),
+						ceilingThickness: getValue('ceilingThickness', true),
+						brickType: getValue('brickType'),
+						ceilingDetails: getValue('ceilingDetails'),
+						facadeType: getValue('facadeType'),
+						hasGarden: document.getElementById('hasGarden').checked,
+						hasPool: document.getElementById('hasPool').checked,
+						hasHVAC: document.getElementById('hasHVAC').checked,
+						hasElevator: document.getElementById('hasElevator').checked,
+						hasFence: document.getElementById('hasFence').checked
+					},
+					prices: {
+						flooring: getValue('flooringPrice', true),
+						wallInstallation: getValue('wallInstallationPrice', true),
+						wallPainting: getValue('wallPaintingPrice', true),
+						windowsDoors: getValue('windowsDoorsPrice', true)
+					},
+					hasMap: !document.getElementById('mapDetailsInfo').classList.contains('hidden'),
+					customFacadeInfo: !document.getElementById('customFacadeInfo').classList.contains('hidden'),
+					waffleSlabInfo: !document.getElementById('waffleSlabInfo').classList.contains('hidden'),
+					apartmentsInfo: !document.getElementById('apartmentsInfo').classList.contains('hidden'),
+					basementInfo: !document.getElementById('basementInfo').classList.contains('hidden'),
+					stairsRailingInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('stairsRailingInfo').classList.contains('hidden'),
+					concreteColumnsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('concreteColumnsInfo').classList.contains('hidden'),
+					internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
+				};
 
-                // جمع بيانات الواجهة المخصصة
-                if (inputs.customFacadeInfo) {
-                    inputs.building.facadeArea = getValue('facadeArea', true);
-                    inputs.building.facadePrice = getValue('facadePrice', true);
-                }
+				// جمع بيانات الواجهة المخصصة
+				if (inputs.customFacadeInfo) {
+					inputs.building.facadeArea = getValue('facadeArea', true);
+					inputs.building.facadePrice = getValue('facadePrice', true);
+				}
 
-                // جمع بيانات تفاصيل السقف (Waffle Slab)
-                if (inputs.waffleSlabInfo) {
-                    inputs.building.voidSize = getValue('voidSize', true);
-                    inputs.building.voidCount = getValue('voidCount', false, true);
-                }
+				// جمع بيانات تفاصيل السقف (Waffle Slab)
+				if (inputs.waffleSlabInfo) {
+					inputs.building.voidSize = getValue('voidSize', true);
+					inputs.building.voidCount = getValue('voidCount', false, true);
+				}
 
-                // جمع بيانات الشقق
-                if (inputs.apartmentsInfo) {
-                    inputs.building.apartmentsCount = getValue('apartmentsCount', false, true);
-                }
+				// جمع بيانات الشقق
+				if (inputs.apartmentsInfo) {
+					inputs.building.apartmentsCount = getValue('apartmentsCount', false, true);
+				}
 
-                // جمع بيانات الطوابق السفلية
-                if (inputs.basementInfo) {
-                    inputs.building.basementFloors = getValue('basementFloors', false, true);
-                    inputs.building.basementCeilingArea = getValue('basementCeilingArea', true);
-                    inputs.building.basementPrice = getValue('basementPrice', true);
-                }
+				// جمع بيانات الطوابق السفلية
+				if (inputs.basementInfo) {
+					inputs.building.basementFloors = getValue('basementFloors', false, true);
+					inputs.building.basementCeilingArea = getValue('basementCeilingArea', true);
+					inputs.building.basementPrice = getValue('basementPrice', true);
+				}
 
-                // جمع بيانات محجر الدرج
-                if (inputs.stairsRailingInfo && inputs.hasMap) {
-                    inputs.stairsRailingLength = getValue('stairsRailingLength', true);
-                    inputs.prices.stairsRailing = getValue('stairsRailingPrice', true);
-                }
+				// جمع بيانات محجر الدرج
+				if (inputs.stairsRailingInfo && inputs.hasMap) {
+					inputs.stairsRailingLength = getValue('stairsRailingLength', true);
+					inputs.prices.stairsRailing = getValue('stairsRailingPrice', true);
+				}
 
-                // جمع بيانات تفاصيل الخريطة
-                if (inputs.hasMap) {
-                    inputs.technicalDetails = inputs.technicalDetails || {};
-                    inputs.technicalDetails.totalRoofArea = getValue('totalRoofArea', true);
-                    inputs.technicalDetails.gardenArea = getValue('gardenArea', true);
-                    inputs.technicalDetails.garagePathArea = getValue('garagePathArea', true);
-                    inputs.technicalDetails.skylightsArea = getValue('skylightsArea', true);
-                    inputs.technicalDetails.tiesLength = getValue('tiesLength', true);
-                    inputs.technicalDetails.invertedBeams = getValue('invertedBeams', true);
-                    inputs.technicalDetails.externalWalls24cm = getValue('externalWalls24cm', true);
-                    inputs.technicalDetails.internalWalls24cm = getValue('internalWalls24cm', true);
-                    inputs.technicalDetails.roofFenceLength = getValue('roofFenceLength', true);
-                    inputs.technicalDetails.externalDoors = getValue('externalDoors', false, true);
-                    inputs.technicalDetails.internalDoors = getValue('internalDoors', false, true);
-                    inputs.technicalDetails.facadeWindowsDoorsArea = getValue('facadeWindowsDoorsArea', true);
-                    inputs.technicalDetails.skylightWindowsDoorsArea = getValue('skylightWindowsDoorsArea', true);
-                    inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
-                    inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
-                    inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
-                    inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
-                }
+				// جمع بيانات تفاصيل الخريطة
+				if (inputs.hasMap) {
+					inputs.technicalDetails = inputs.technicalDetails || {};
+					inputs.technicalDetails.totalRoofArea = getValue('totalRoofArea', true);
+					inputs.technicalDetails.gardenArea = getValue('gardenArea', true);
+					inputs.technicalDetails.garagePathArea = getValue('garagePathArea', true);
+					inputs.technicalDetails.skylightsArea = getValue('skylightsArea', true);
+					inputs.technicalDetails.tiesLength = getValue('tiesLength', true);
+					inputs.technicalDetails.invertedBeams = getValue('invertedBeams', true);
+					inputs.technicalDetails.externalWalls24cm = getValue('externalWalls24cm', true);
+					inputs.technicalDetails.internalWalls24cm = getValue('internalWalls24cm', true);
+					inputs.technicalDetails.roofFenceLength = getValue('roofFenceLength', true);
+					inputs.technicalDetails.externalDoors = getValue('externalDoors', false, true);
+					inputs.technicalDetails.internalDoors = getValue('internalDoors', false, true);
+					inputs.technicalDetails.facadeWindowsDoorsArea = getValue('facadeWindowsDoorsArea', true);
+					inputs.technicalDetails.skylightWindowsDoorsArea = getValue('skylightWindowsDoorsArea', true);
+					inputs.technicalDetails.secondaryCeilingsArea = getValue('secondaryCeilingsArea', true);
+					inputs.technicalDetails.decorativeWallsArea = getValue('decorativeWallsArea', true);
+					inputs.technicalDetails.claddingWallsArea = getValue('claddingWallsArea', true);
+					inputs.technicalDetails.plasterWallsArea = getValue('plasterWallsArea', true);
+				}
 
-                // جمع بيانات الجدران الداخلية
-                if (inputs.internalWallsInfo && inputs.hasMap) {
-                    inputs.technicalDetails = inputs.technicalDetails || {};
-                    inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
-                    inputs.prices.internalWalls = getValue('internalWallsPrice', true);
-                }
+				// جمع بيانات الجدران الداخلية
+				if (inputs.internalWallsInfo && inputs.hasMap) {
+					inputs.technicalDetails = inputs.technicalDetails || {};
+					inputs.technicalDetails.internalWallsArea = getValue('internalWallsArea', true);
+					inputs.prices.internalWalls = getValue('internalWallsPrice', true);
+				}
 
-                // جمع بيانات أعمدة الكونكريت
-                if (inputs.concreteColumnsInfo && inputs.hasMap) {
-                    inputs.technicalDetails = inputs.technicalDetails || {};
-                    inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
-                }
+				// جمع بيانات أعمدة الكونكريت
+				if (inputs.concreteColumnsInfo && inputs.hasMap) {
+					inputs.technicalDetails = inputs.technicalDetails || {};
+					inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
+				}
 
-                // إرسال البيانات إلى الـ API
-                const response = await fetch('/api/process', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(inputs)
-                });
+				// إرسال البيانات إلى الـ API
+				const response = await fetch('/api/process', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(inputs)
+				});
 
-                if (!response.ok) {
-                    throw new Error(`خطأ في الاتصال: ${response.status}`);
-                }
+				if (!response.ok) {
+					throw new Error(`خطأ في الاتصال: ${response.status}`);
+				}
 
-                const result = await response.json();
-                if (!result.success) {
-                    throw new Error(result.error || 'فشل معالجة البيانات');
-                }
+				const result = await response.json();
+				if (!result.success) {
+					throw new Error(result.error || 'فشل معالجة البيانات');
+				}
 
-                const resultContainer = document.getElementById('resultContainer');
-                const resultContent = document.getElementById('resultContent');
+				const resultContainer = document.getElementById('resultContainer');
+				const resultContent = document.getElementById('resultContent');
 
-                // عرض رسالة "تم المعالجة" فقط
-                resultContent.innerHTML = `<p style="font-size: 1rem; font-weight: 600; text-align: center;">تم المعالجة</p>`;
-                resultContainer.style.display = 'block';
+				// عرض رسالة "تم المعالجة" فقط
+				resultContent.innerHTML = `<p style="font-size: 1rem; font-weight: 600; text-align: center;">تم المعالجة</p>`;
+				resultContainer.style.display = 'block';
 
-                // إعداد زر تحميل PDF مع جميع البيانات المعالجة
-                document.getElementById('downloadPdf').onclick = () => {
-                    // دالة لإنشاء جدول HTML من كائن مع دعم الكائنات المتداخلة
-                    const createTable = (title, data) => {
-                        let html = `<h3 style="margin-bottom: 10px;">${title}</h3><table><tr><th>البيان</th><th>القيمة</th></tr>`;
-                        for (const [key, value] of Object.entries(data)) {
-                            // تحويل القيم العددية إلى أرقام ثابتة إذا لزم الأمر
-                            let displayValue = typeof value === 'number' ? value.toFixed(2) : value;
-                            if (typeof value === 'object' && value !== null) {
-                                displayValue = `<pre style="margin: 0; white-space: pre-wrap;">${JSON.stringify(value, null, 2)}</pre>`;
-                            }
-                            html += `<tr><td>${key}</td><td>${displayValue}</td></tr>`;
-                        }
-                        html += `</table>`;
-                        return html;
-                    };
+				// إعداد زر تحميل PDF مع جميع البيانات المعالجة
+				document.getElementById('downloadPdf').onclick = () => {
+					const { jsPDF } = window.jspdf;
+					const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+					doc.setFont('Amiri', 'normal');
+					doc.setFontSize(12);
+					let y = 20;
 
-                    // تنسيق البيانات للـ PDF مع صفحات منفصلة
-                    let pdfContent = `
-                        <h2 style="text-align: center; margin-bottom: 20px;">تقرير تكاليف البناء</h2>
-                        <div class="result-section" style="page-break-after: always;">
-                            ${createTable('الرسالة', { message: result.result.message })}
-                        </div>
-                        <div class="result-section" style="page-break-after: always;">
-                            ${createTable('البيانات المدخلة', result.result.inputData || {})}
-                        </div>
-                        <div class="result-section" style="page-break-after: always;">
-                            ${createTable('الكميات', result.result.quantities || {})}
-                        </div>
-                        <div class="result-section" style="page-break-after: always;">
-                            ${createTable('الأوزان', result.result.weights || {})}
-                        </div>
-                        <div class="result-section" style="page-break-after: always;">
-                            ${createTable('الأساس', result.result.foundation || {})}
-                        </div>
-                        <div class="result-section" style="page-break-after: always;">
-                            ${createTable('التكاليف', result.result.costs || {})}
-                        </div>
-                        <div class="result-section">
-                            ${createTable('بيانات PDF', result.result.pdfData || {})}
-                        </div>
-                    `;
+					const checkPageBreak = () => {
+						if (y > 270) {
+							doc.addPage();
+							y = 20;
+						}
+					};
 
-                    const pdfWindow = window.open('');
-                    pdfWindow.document.write(`
-                        <html dir="rtl">
-                        <head>
-                            <title>تقرير تكاليف البناء</title>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <style>
-                                @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
-                                body { 
-                                    font-family: 'Tajawal', sans-serif; 
-                                    padding: 20px; 
-                                    background: #FFF6E6; 
-                                    color: #2A2A2A; 
-                                    line-height: 1.5; 
-                                    direction: rtl;
-                                }
-                                h2 { 
-                                    color: #5C4033; 
-                                    font-size: 1.2rem; 
-                                    font-weight: 700; 
-                                    text-align: center; 
-                                }
-                                h3 { 
-                                    color: #5C4033; 
-                                    font-size: 1rem; 
-                                    font-weight: 600; 
-                                    margin-bottom: 10px; 
-                                }
-                                table { 
-                                    width: 100%; 
-                                    border-collapse: collapse; 
-                                    font-size: 0.75rem; 
-                                    margin-bottom: 20px; 
-                                }
-                                th, td { 
-                                    padding: 8px; 
-                                    text-align: right; 
-                                    border-bottom: 1px solid #E4E2DB; 
-                                }
-                                th { 
-                                    background: rgba(92, 64, 51, 0.1); 
-                                    color: #5C4033; 
-                                }
-                                pre { 
-                                    white-space: pre-wrap; 
-                                    background: rgba(255, 245, 235, 0.95); 
-                                    padding: 5px; 
-                                    border-radius: 5px; 
-                                    font-size: 0.7rem; 
-                                }
-                                .result-section { 
-                                    margin-bottom: 20px; 
-                                }
-                                @media print { 
-                                    .result-section { 
-                                        page-break-after: always; 
-                                    }
-                                    .result-section:last-child { 
-                                        page-break-after: avoid; 
-                                    }
-                                }
-                            </style>
-                        </head>
-                        <body>${pdfContent}</body>
-                        </html>
-                    `);
-                    pdfWindow.document.close();
-                    pdfWindow.print();
-                };
-            } catch (error) {
-                // عرض الأخطاء إذا حدثت
-                document.getElementById('resultContent').innerHTML = `<p style="color: #C75656; text-align: center;">خطأ: ${error.message}</p>`;
-                document.getElementById('resultContainer').style.display = 'block';
-            } finally {
-                // إعادة تعيين زر الإرسال
-                submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
-                submitBtn.disabled = false;
-            }
-        });
-    </script>
+					const addSection = (title, data) => {
+						checkPageBreak();
+						doc.setFontSize(14);
+						doc.text(title, 190, y, { align: 'right' });
+						y += 10;
+						doc.setFontSize(12);
+
+						if (!data) {
+							doc.text('لا توجد بيانات', 190, y, { align: 'right' });
+							y += 10;
+							return;
+						}
+
+						if (data.sections || data.fields) {
+							const sections = data.sections || [{ fields: data.fields }];
+							sections.forEach(section => {
+								if (section.subtitle || section.title) {
+									checkPageBreak();
+									doc.text(section.subtitle || section.title, 190, y, { align: 'right' });
+									y += 8;
+								}
+								doc.autoTable({
+									startY: y,
+									head: [['البيان', 'القيمة']],
+									body: (section.items || section.fields || []).map(item => [
+										item.name || item.label || '',
+										`${item.value || 'غير متوفر'} ${item.unit || ''}`
+									]),
+									styles: { font: 'Amiri', halign: 'right', fontSize: 10 },
+									headStyles: { fillColor: [92, 64, 51], textColor: [255, 255, 255] },
+									margin: { right: 10, left: 10 }
+								});
+								y = doc.lastAutoTable.finalY + 10;
+							});
+						} else {
+							const body = Object.entries(data).map(([key, value]) => [
+								key,
+								value || 'غير متوفر'
+							]);
+							doc.autoTable({
+								startY: y,
+								head: [['البيان', 'القيمة']],
+								body,
+								styles: { font: 'Amiri', halign: 'right', fontSize: 10 },
+								headStyles: { fillColor: [92, 64, 51], textColor: [255, 255, 255] },
+								margin: { right: 10, left: 10 }
+							});
+							y = doc.lastAutoTable.finalY + 10;
+						}
+					};
+
+					doc.setFontSize(16);
+					doc.text('تقرير تكاليف البناء', 105, 10, { align: 'center' });
+
+					const pdfData = result.result.pdfData || {};
+					addSection('نبذة عن الشركة', pdfData.companyInfo);
+					addSection('البيانات المدخلة', pdfData.inputData);
+					addSection('تفاصيل الكميات الهندسية', pdfData.quantities);
+					addSection('الحسابات الإنشائية', pdfData.engineering);
+					addSection('تفاصيل التكاليف', pdfData.costs);
+					addSection('أسعار المواد المعتمدة (2025)', pdfData.materialPrices);
+
+					doc.save('تقرير_البناء.pdf');
+				};
+			} catch (error) {
+				// عرض الأخطاء إذا حدثت
+				document.getElementById('resultContent').innerHTML = `<p style="color: #C75656; text-align: center;">خطأ: ${error.message}</p>`;
+				document.getElementById('resultContainer').style.display = 'block';
+			} finally {
+				// إعادة تعيين زر الإرسال
+				submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
+				submitBtn.disabled = false;
+			}
+		});
+	</script>
 </body>
 </html>
