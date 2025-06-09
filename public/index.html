@@ -4,18 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
-
+    <!-- تحميل jsPDF مرة واحدة فقط -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script>
-        // تحميل خط Amiri (يجب توفير ملف الخط أو رابط CDN)
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.addFileToVFS('Amiri-Regular.ttf', '/* بيانات الخط base64 */');
-        doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- تحميل jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
-    <!-- إضافة خط Amiri لدعم النصوص العربية -->
+    <!-- تحميل خط Amiri -->
     <script src="https://unpkg.com/@jspdf/font-amiri@latest/Amiri-Regular.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -591,7 +584,7 @@
         document.getElementById('buildingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             console.log('بدء معالجة إرسال النموذج');
-            
+
             const submitBtn = e.target.querySelector('button[type="submit"]');
             if (!submitBtn) {
                 console.error('خطأ: زر الإرسال غير موجود');
@@ -733,9 +726,41 @@
                     inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
                 }
 
-                console.log('البيانات المُرسلة إلى /api/process:', JSON.stringify(inputs, null, 2));
+                console.log('البيانات المُرسلة:', JSON.stringify(inputs, null, 2));
 
-                // إرسال البيانات إلى الـ API
+                // استخدام بيانات وهمية لاختبار الواجهة (تعليق طلب fetch مؤقتًا)
+                const result = {
+                    success: true,
+                    result: {
+                        success: true,
+                        message: "تمت معالجة البيانات بنجاح",
+                        pdfData: {
+                            companyInfo: { fields: [{ label: "الاسم", value: "شركة البناء" }, { label: "العنوان", value: "بغداد" }] },
+                            inputData: {
+                                customer: { fields: [{ label: "الاسم", value: inputs.customer.name }, { label: "الهاتف", value: inputs.customer.phone }] },
+                                location: { fields: [{ label: "المحافظة", value: inputs.location.governorate }, { label: "المنطقة", value: inputs.location.area }] },
+                                land: { fields: [{ label: "المساحة", value: inputs.land.area, unit: "م²" }, { label: "عرض الواجهة", value: inputs.land.facadeWidth, unit: "م" }] },
+                                building: { fields: [
+                                    { label: "الطوابق", value: inputs.building.floors },
+                                    { label: "الغرف", value: inputs.building.rooms },
+                                    { label: "الحمامات", value: inputs.building.bathrooms },
+                                    { label: "ارتفاع الأرضي", value: inputs.building.groundFloorHeight, unit: "م" },
+                                    { label: "ارتفاع الطوابق", value: inputs.building.otherFloorsHeight, unit: "م" },
+                                    { label: "سمك السقف", value: inputs.building.ceilingThickness, unit: "م" },
+                                    { label: "نوع الطابوق", value: inputs.building.brickType },
+                                    { label: "نوع الواجهة", value: inputs.building.facadeType }
+                                ] }
+                            },
+                            quantities: { sections: [{ subtitle: "الكميات", items: [{ name: "الطابوق", value: "1000", unit: "وحدة" }] }] },
+                            engineering: { sections: [{ subtitle: "الحسابات", items: [{ name: "الكونكريت", value: "50", unit: "م³" }] }] },
+                            costs: { items: [{ name: "التكلفة الإجمالية", value: 1000000, unit: "د.ع" }], total: 1000000 },
+                            materialPrices: [{ material: "الطابوق", price: 30, unit: "د.ع/وحدة" }]
+                        }
+                    }
+                };
+
+                /*
+                // إلغاء تعليق هذا الجزء عند إعداد الخادم
                 console.log('إرسال الطلب إلى /api/process');
                 const response = await fetch('/api/process', {
                     method: 'POST',
@@ -759,10 +784,11 @@
                     console.error('خطأ في تحليل JSON:', jsonError);
                     throw new Error('فشل في تحليل استجابة الخادم');
                 }
+                */
 
                 // التحقق من نجاح الاستجابة
                 if (!result || typeof result !== 'object') {
-                    throw new Error('استجابة غير صالحة من الخادم');
+                    throw new Error('استجابة غير صالحة');
                 }
                 if (!result.success || !result.result || !result.result.success || !result.result.pdfData) {
                     throw new Error(result.result?.message || 'فشل معالجة البيانات أو pdfData غير موجود');
@@ -773,14 +799,19 @@
                     <div class="result-section">
                         <h3><span class="material-icons-outlined">check_circle</span> تم الحساب بنجاح</h3>
                         <p>اضغط على الزر أدناه لتحميل ملف PDF</p>
-                        <button id="downloadPdf" class="btn btn-primary">تحميل PDF</button>
+                        <button id="downloadPdfBtn" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
                     </div>
                 `;
                 resultContainer.classList.remove('hidden');
+                resultContainer.style.display = 'block'; // التأكد من الظهور
                 console.log('تم عرض رسالة النجاح وزِر تحميل PDF');
 
                 // إنشاء ملف PDF عند الضغط على زر التحميل
-                const downloadBtn = document.getElementById('downloadPdf');
+                const downloadBtn = document.getElementById('downloadPdfBtn');
+                if (!downloadBtn) {
+                    console.error('خطأ: زر downloadPdfBtn غير موجود');
+                    throw new Error('فشل في إنشاء زر تحميل PDF');
+                }
                 downloadBtn.addEventListener('click', () => {
                     try {
                         console.log('بدء إنشاء ملف PDF');
@@ -790,8 +821,9 @@
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // استخدام خط افتراضي
-                        doc.setFont('Helvetica', 'normal');
+                        // تسجيل واستخدام خط Amiri
+                        doc.addFont('Amiri-Regular', 'Amiri', 'normal');
+                        doc.setFont('Amiri', 'normal');
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
 
@@ -872,7 +904,7 @@
                         doc.text('الكميات', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
                         (pdfData.quantities?.sections || []).forEach(section => {
-                            doc.text(section.subtitle || 'قسم غير محدد', 200, yOffset, { align: 'right' });
+                            doc.text(section.subtitle || 'قسم غير محدد', 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             (section.items || []).forEach(item => {
                                 doc.text(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
@@ -889,7 +921,7 @@
                         doc.text('الحسابات الإنشائية', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
                         (pdfData.engineering?.sections || []).forEach(section => {
-                            doc.text(section.subtitle || 'قسم غير محدد', 200, yOffset, { align: 'right' });
+                            doc.text(section.subtitle || 'قسم غير محدد', 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             (section.items || []).forEach(item => {
                                 doc.text(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
@@ -931,6 +963,7 @@
                         console.error('خطأ أثناء إنشاء PDF:', pdfError);
                         resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${pdfError.message}</p>`;
                         resultContainer.classList.remove('hidden');
+                        resultContainer.style.display = 'block';
                     }
                 }, { once: true });
 
@@ -938,7 +971,7 @@
                 console.error('خطأ أثناء معالجة النموذج:', error);
                 resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${error.message || 'حدث خطأ غير متوقع'}</p>`;
                 resultContainer.classList.remove('hidden');
-            } finally {
+                resultContainer.style.display = 'block';
                 submitBtn.innerHTML = '<span class="material-icons-outlined">calculate</span> حساب التكلفة';
                 submitBtn.disabled = false;
                 console.log('تم إعادة تعيين زر الإرسال');
