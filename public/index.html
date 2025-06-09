@@ -725,39 +725,7 @@
 
                 console.log('البيانات المُرسلة:', JSON.stringify(inputs, null, 2));
 
-                // استخدام بيانات وهمية لاختبار الواجهة
-                const result = {
-                    success: true,
-                    result: {
-                        success: true,
-                        message: "تمت معالجة البيانات بنجاح",
-                        pdfData: {
-                            companyInfo: { fields: [{ label: "الاسم", value: "شركة البناء" }, { label: "العنوان", value: "بغداد" }] },
-                            inputData: {
-                                customer: { fields: [{ label: "الاسم", value: inputs.customer.name }, { label: "الهاتف", value: inputs.customer.phone }] },
-                                location: { fields: [{ label: "المحافظة", value: inputs.location.governorate }, { label: "المنطقة", value: inputs.location.area }] },
-                                land: { fields: [{ label: "المساحة", value: inputs.land.area, unit: "م²" }, { label: "عرض الواجهة", value: inputs.land.facadeWidth, unit: "م" }] },
-                                building: { fields: [
-                                    { label: "الطوابق", value: inputs.building.floors },
-                                    { label: "الغرف", value: inputs.building.rooms },
-                                    { label: "الحمامات", value: inputs.building.bathrooms },
-                                    { label: "ارتفاع الأرضي", value: inputs.building.groundFloorHeight, unit: "م" },
-                                    { label: "ارتفاع الطوابق", value: inputs.building.otherFloorsHeight, unit: "م" },
-                                    { label: "سمك السقف", value: inputs.building.ceilingThickness, unit: "م" },
-                                    { label: "نوع الطابوق", value: inputs.building.brickType },
-                                    { label: "نوع الواجهة", value: inputs.building.facadeType }
-                                ] }
-                            },
-                            quantities: { sections: [{ subtitle: "الكميات", items: [{ name: "الطابوق", value: "1000", unit: "وحدة" }] }] },
-                            engineering: { sections: [{ subtitle: "الحسابات", items: [{ name: "الكونكريت", value: "50", unit: "م³" }] }] },
-                            costs: { items: [{ name: "التكلفة الإجمالية", value: 1000000, unit: "د.ع" }], total: 1000000 },
-                            materialPrices: [{ material: "الطابوق", price: 30, unit: "د.ع/وحدة" }]
-                        }
-                    }
-                };
-
-                /*
-                // إلغاء تعليق هذا الجزء عند إعداد الخادم
+                // إرسال الطلب إلى /api/process
                 console.log('إرسال الطلب إلى /api/process');
                 const response = await fetch('/api/process', {
                     method: 'POST',
@@ -781,7 +749,6 @@
                     console.error('خطأ في تحليل JSON:', jsonError);
                     throw new Error('فشل في تحليل استجابة الخادم');
                 }
-                */
 
                 // التحقق من نجاح الاستجابة
                 if (!result || typeof result !== 'object') {
