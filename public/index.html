@@ -725,7 +725,7 @@
 
                 console.log('البيانات المُرسلة:', JSON.stringify(inputs, null, 2));
 
-                // استخدام بيانات وهمية لاختبار الواجهة (تعليق طلب fetch مؤقتًا)
+                // استخدام بيانات وهمية لاختبار الواجهة
                 const result = {
                     success: true,
                     result: {
@@ -800,7 +800,7 @@
                     </div>
                 `;
                 resultContainer.classList.remove('hidden');
-                resultContainer.style.display = 'block'; // التأكد من الظهور
+                resultContainer.style.display = 'block';
                 console.log('تم عرض رسالة النجاح وزِر تحميل PDF');
 
                 // إنشاء ملف PDF عند الضغط على زر التحميل
@@ -818,9 +818,9 @@
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // تسجيل واستخدام خط Amiri
-                        doc.addFont('Amiri-Regular', 'Amiri', 'normal');
-                        doc.setFont('Amiri', 'normal');
+                        // استخدام خط Helvetica لتجنب أخطاء الخط
+                        doc.setFont('Helvetica', 'normal');
+                        console.warn('استخدام خط Helvetica لدعم النصوص العربية مؤقتًا');
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
 
