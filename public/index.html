@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام حساب تكاليف البناء - العراق</title>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <!-- إضافة مكتبات jsPDF و autoTable -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
     <!-- إضافة خط Amiri لدعم النصوص العربية -->
     <script src="https://unpkg.com/@jspdf/font-amiri@latest/Amiri-Regular.js"></script>
@@ -108,7 +100,72 @@
                 <h2><span class="material-icons-outlined">calculate</span> حاسبة تكاليف البناء</h2>
                 <p>أدخل تفاصيل المشروع لتقدير التكلفة</p>
             </div>
-            <form id="buildingForm">
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+doc.setFontSize(12);
+doc.setTextColor(40, 40, 40);
+
+// الصفحة الأولى: نبذة عن الشركة
+let yOffset = 10;
+doc.text('نبذة عن الشركة', 10, yOffset);
+
+// بدء صفحة جديدة
+if (yOffset > 270) {
+    doc.addPage();
+    yOffset = 10;
+}
+
+// الصفحة الثانية: البيانات المدخلة
+yOffset += 10;
+doc.text('البيانات المدخلة', 10, yOffset);
+
+// بدء صفحة جديدة
+if (yOffset > 270) {
+    doc.addPage();
+    yOffset = 10;
+}
+
+// الصفحة الثالثة: الكميات
+yOffset += 10;
+doc.text('الكميات', 10, yOffset);
+
+// بدء صفحة جديدة
+if (yOffset > 270) {
+    doc.addPage();
+    yOffset = 10;
+}
+
+// الصفحة الرابعة: الحسابات الإنشائية
+yOffset += 10;
+doc.text('الحسابات الإنشائية', 10, yOffset);
+
+// بدء صفحة جديدة
+if (yOffset > 270) {
+    doc.addPage();
+    yOffset = 10;
+}
+
+// الصفحة الخامسة: قائمة الأسعار
+yOffset += 10;
+doc.text('قائمة الأسعار', 10, yOffset);
+
+// بدء صفحة جديدة
+if (yOffset > 270) {
+    doc.addPage();
+    yOffset = 10;
+}
+
+// الصفحة السادسة: قائمة أسعار المواد
+yOffset += 10;
+doc.text('قائمة أسعار المواد', 10, yOffset);
+
+// حفظ ملف PDF
+const savePDF = () => {
+    doc.save('التقرير.pdf');
+};
+
+// استدعاء دالة الحفظ عند الحاجة
+savePDF();            <form id="buildingForm">
                 <div class="form-section">
                     <h3><span class="material-icons-outlined">person</span> معلومات الزبون</h3>
                     <div class="form-row">
@@ -522,12 +579,13 @@
                 </div>
             </form>
         </div>
-        <div id="resultContainer" class="result-container hidden">
-            <div class="result-header">
-                <h3><span class="material-icons-outlined">assessment</span> نتيجة الحساب</h3>
-            </div>
-            <div id="resultContent" class="result-content"></div>
-            <button id="downloadPdf" class="btn btn-primary"><span class="material-icons-outlined">picture_as_pdf</span> تحميل PDF</button>
+        <div id="successMessage" style="display:none; color:green; margin:20px 0;">
+          تم الحساب بنجاح
+        </div>
+        
+        <button id="downloadPdfBtn" style="display:none; background:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:4px;">
+          تحميل التقرير PDF
+        </button>
         </div>
     </div>
     <script>
