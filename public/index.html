@@ -647,7 +647,7 @@
                     internalWallsInfo: document.getElementById('mapDetailsInfo').classList.contains('hidden') ? false : !document.getElementById('internalWallsInfo').classList.contains('hidden')
                 };
 
-                // جمع بيانات,: الواجهة المخصصة
+                // جمع بيانات الواجهة المخصصة
                 if (inputs.customFacadeInfo) {
                     inputs.building.facadeArea = getValue('facadeArea', true);
                     inputs.building.facadePrice = getValue('facadePrice', true);
@@ -712,6 +712,9 @@
                     inputs.technicalDetails.concreteVolume = getValue('concreteVolume', true);
                 }
 
+                // تسجيل البيانات المُرسلة للتحقق
+                console.log('البيانات المُرسلة إلى /api/process:', JSON.stringify(inputs, null, 2));
+
                 // إرسال البيانات إلى الـ API
                 const response = await fetch('/api/process', {
                     method: 'POST',
@@ -719,11 +722,17 @@
                     body: JSON.stringify(inputs)
                 });
 
+                // تسجيل حالة الاستجابة
+                console.log('حالة الاستجابة:', response.status, response.statusText);
+
                 if (!response.ok) {
-                    throw new Error(`خطأ في الاتصال: ${response.status}`);
+                    throw new Error(`خطأ في الاتصال: ${response.status} ${response.statusText}`);
                 }
 
                 const result = await response.json();
+
+                // تسجيل الاستجابة الكاملة
+                console.log('الاستجابة من /api/process:', JSON.stringify(result, null, 2));
 
                 // التحقق من نجاح الاستجابة
                 if (!result.success || !result.result || !result.result.success || !result.result.pdfData) {
@@ -741,150 +750,160 @@
 
                 // إنشاء ملف PDF عند الضغط على زر التحميل
                 document.getElementById('downloadPdf').addEventListener('click', () => {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    try {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                    // إعداد الخط لدعم اللغة العربية
-                    doc.setFont('Amiri', 'normal'); // يفترض أن خط Amiri مُحمل في <head>
-                    doc.setFontSize(12);
-                    doc.setTextColor(40, 40, 40);
+                        // إعداد الخط لدعم اللغة العربية
+                        doc.setFont('Amiri', 'normal'); // يفترض أن خط Amiri مُحمل في <head>
+                        doc.setFontSize(12);
+                        doc.setTextColor(40, 40, 40);
 
-                    const pdfData = result.result.pdfData;
-                    let yOffset = 10;
-                    const pageHeight = 270; // ارتفاع الصفحة (A4 ≈ 297mm، نترك هامش)
-                    const lineHeight = 7;
+                        const pdfData = result.result.pdfData;
+                        let yOffset = 10;
+                        const pageHeight = 270; // ارتفاع الصفحة (A4 ≈ 297mm، نترك هامش)
+                        const lineHeight = 7;
 
-                    // دالة لإضافة صفحة جديدة إذا لزم الأمر
-                    const addNewPageIfNeeded = () => {
-                        if (yOffset > pageHeight) {
-                            doc.addPage();
-                            yOffset = 10;
-                        }
-                    };
+                        // دالة لإضافة صفحة جديدة إذا لزم الأمر
+                        const addNewPageIfNeeded = () => {
+                            if (yOffset > pageHeight) {
+                                doc.addPage();
+                                yOffset = 10;
+                            }
+                        };
 
-                    // العنوان
-                    doc.text('تقرير تكاليف البناء', 105, yOffset, { align: 'center' });
-                    yOffset += 10;
+                        // العنوان
+                        doc.text('تقرير تكاليف البناء', 105, yOffset, { align: 'center' });
+                        yOffset += 10;
 
-                    // 1. معلومات الشركة (صفحة جديدة)
-                    doc.addPage();
-                    yOffset = 10;
-                    doc.text('معلومات الشركة', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.companyInfo.fields.forEach(field => {
-                        doc.text(`${field.label}: ${field.value}`, 200, yOffset, { align: 'right' });
+                        // 1. معلومات الشركة (صفحة جديدة)
+                        doc.addPage();
+                        yOffset = 10;
+                        doc.text('معلومات الشركة', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        addNewPageIfNeeded();
-                    });
-
-                    // 2. بيانات المدخلات (صفحة جديدة)
-                    doc.addPage();
-                    yOffset = 10;
-
-                    // معلومات العميل
-                    doc.text('معلومات العميل', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.inputData.customer.fields.forEach(field => {
-                        doc.text(`${field.label}: ${field.value}`, 190, yOffset, { align: 'right' });
-                        yOffset += lineHeight;
-                        addNewPageIfNeeded();
-                    });
-
-                    // معلومات الموقع
-                    yOffset += lineHeight;
-                    doc.text('معلومات الموقع', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.inputData.location.fields.forEach(field => {
-                        doc.text(`${field.label}: ${field.value}`, 190, yOffset, { align: 'right' });
-                        yOffset += lineHeight;
-                        addNewPageIfNeeded();
-                    });
-
-                    // معلومات الأرض
-                    yOffset += lineHeight;
-                    doc.text('معلومات الأرض', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.inputData.land.fields.forEach(field => {
-                        doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
-                        yOffset += lineHeight;
-                        addNewPageIfNeeded();
-                    });
-
-                    // تفاصيل المبنى
-                    yOffset += lineHeight;
-                    doc.text('تفاصيل المبنى', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.inputData.building.fields.forEach(field => {
-                        doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
-                        yOffset += lineHeight;
-                        addNewPageIfNeeded();
-                    });
-
-                    // 3. الكميات (صفحة جديدة، قد تحتاج صفحتين)
-                    doc.addPage();
-                    yOffset = 10;
-                    doc.text('الكميات', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.quantities.sections.forEach(section => {
-                        doc.text(section.subtitle, 200, yOffset, { align: 'right' });
-                        yOffset += lineHeight;
-                        section.items.forEach(item => {
-                            doc.text(`${item.name}: ${item.value} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                        pdfData.companyInfo.fields.forEach(field => {
+                            doc.text(`${field.label}: ${field.value}`, 200, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
-                        yOffset += 3;
-                        addNewPageIfNeeded();
-                    });
 
-                    // 4. الحسابات الإنشائية (صفحة جديدة، قد تحتاج صفحتين)
-                    doc.addPage();
-                    yOffset = 10;
-                    doc.text('الحسابات الإنشائية', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.engineering.sections.forEach(section => {
-                        doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                        // 2. بيانات المدخلات (صفحة جديدة)
+                        doc.addPage();
+                        yOffset = 10;
+
+                        // معلومات العميل
+                        doc.text('معلومات العميل', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        section.items.forEach(item => {
-                            doc.text(`${item.name}: ${item.value} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                        pdfData.inputData.customer.fields.forEach(field => {
+                            doc.text(`${field.label}: ${field.value}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
-                        yOffset += 3;
-                        addNewPageIfNeeded();
-                    });
 
-                    // 5. التكاليف (صفحة جديدة)
-                    doc.addPage();
-                    yOffset = 10;
-                    doc.text('التكاليف', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.costs.items.forEach(item => {
-                        doc.text(`${item.name}: ${item.value.toLocaleString()} ${item.unit}`, 190, yOffset, { align: 'right' });
+                        // معلومات الموقع
+                        yOffset += lineHeight;
+                        doc.text('معلومات الموقع', 200, yOffset, { align: 'right' });
+                        yOffset += lineHeight;
+                        pdfData.inputData.location.fields.forEach(field => {
+                            doc.text(`${field.label}: ${field.value}`, 190, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            addNewPageIfNeeded();
+                        });
+
+                        // معلومات الأرض
+                        yOffset += lineHeight;
+                        doc.text('معلومات الأرض', 200, yOffset, { align: 'right' });
+                        yOffset += lineHeight;
+                        pdfData.inputData.land.fields.forEach(field => {
+                            doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            addNewPageIfNeeded();
+                        });
+
+                        // تفاصيل المبنى
+                        yOffset += lineHeight;
+                        doc.text('تفاصيل المبنى', 200, yOffset, { align: 'right' });
+                        yOffset += lineHeight;
+                        pdfData.inputData.building.fields.forEach(field => {
+                            doc.text(`${field.label}: ${field.value} ${field.unit || ''}`, 190, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            addNewPageIfNeeded();
+                        });
+
+                        // 3. الكميات (صفحة جديدة، قد تحتاج صفحتين)
+                        doc.addPage();
+                        yOffset = 10;
+                        doc.text('الكميات', 200, yOffset, { align: 'right' });
+                        yOffset += lineHeight;
+                        pdfData.quantities.sections.forEach(section => {
+                            doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            section.items.forEach(item => {
+                                doc.text(`${item.name}: ${item.value} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                                yOffset += lineHeight;
+                                addNewPageIfNeeded();
+                            });
+                            yOffset += 3;
+                            addNewPageIfNeeded();
+                        });
+
+                        // 4. الحسابات الإنشائية (صفحة جديدة، قد تحتاج صفحتين)
+                        doc.addPage();
+                        yOffset = 10;
+                        doc.text('الحسابات الإنشائية', 200, yOffset, { align: 'right' });
+                        yOffset += lineHeight;
+                        pdfData.engineering.sections.forEach(section => {
+                            doc.text(section.subtitle, 200, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            section.items.forEach(item => {
+                                doc.text(`${item.name}: ${item.value} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                                yOffset += lineHeight;
+                                addNewPageIfNeeded();
+                            });
+                            yOffset += 3;
+                            addNewPageIfNeeded();
+                        });
+
+                        // 5. التكاليف (صفحة جديدة)
+                        doc.addPage();
+                        yOffset = 10;
+                        doc.text('التكاليف', 200, yOffset, { align: 'right' });
+                        yOffset += lineHeight;
+                        pdfData.costs.items.forEach(item => {
+                            doc.text(`${item.name}: ${item.value.toLocaleString()} ${item.unit}`, 190, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            addNewPageIfNeeded();
+                        });
+                        doc.text(`الإجمالي: ${pdfData.costs.total.toLocaleString()} د.ع`, 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
                         addNewPageIfNeeded();
-                    });
-                    doc.text(`الإجمالي: ${pdfData.costs.total.toLocaleString()} د.ع`, 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    addNewPageIfNeeded();
 
-                    // 6. أسعار المواد (صفحة جديدة)
-                    doc.addPage();
-                    yOffset = 10;
-                    doc.text('أسعار المواد', 200, yOffset, { align: 'right' });
-                    yOffset += lineHeight;
-                    pdfData.materialPrices.forEach(item => {
-                        doc.text(`${item.material}: ${item.price.toLocaleString()} ${item.unit}`, 190, yOffset, { align: 'right' });
+                        // 6. أسعار المواد (صفحة جديدة)
+                        doc.addPage();
+                        yOffset = 10;
+                        doc.text('أسعار المواد', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        addNewPageIfNeeded();
-                    });
+                        pdfData.materialPrices.forEach(item => {
+                            doc.text(`${item.material}: ${item.price.toLocaleString()} ${item.unit}`, 190, yOffset, { align: 'right' });
+                            yOffset += lineHeight;
+                            addNewPageIfNeeded();
+                        });
 
-                    // حفظ وتنزيل ملف PDF
-                    doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
+                        // تسجيل نجاح إنشاء PDF
+                        console.log('تم إنشاء ملف PDF بنجاح');
+
+                        // حفظ وتنزيل ملف PDF
+                        doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
+                    } catch (pdfError) {
+                        console.error('خطأ أثناء إنشاء PDF:', pdfError);
+                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${pdfError.message}</p>`;
+                        resultContainer.classList.remove('hidden');
+                    }
                 }, { once: true }); // مرة واحدة فقط لكل نقرة
 
             } catch (error) {
                 // عرض رسالة الخطأ في قسم النتائج
+                console.error('خطأ أثناء معالجة النموذج:', error);
                 resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${error.message}</p>`;
                 resultContainer.classList.remove('hidden');
             } finally {
