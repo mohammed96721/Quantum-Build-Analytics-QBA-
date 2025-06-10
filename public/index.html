@@ -8,8 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- تحميل jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
-    <!-- تحميل خط Amiri من CDN (محاولة تحميل) -->
-    <script src="https://cdn.jsdelivr.net/gh/aliftype/amiri-font@1.000/fonts/Amiri-Regular.ttf" type="font/ttf" id="amiri-font"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
@@ -800,29 +798,13 @@
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // جلب ملف خط Amiri من CDN أو استخدام DejaVuSans كبديل
-                        let fontLoaded = false;
+                        // استخدام خط DejaVuSans المدمج (يدعم العربية والإنجليزية)
                         try {
-                            const fontUrl = 'https://cdn.jsdelivr.net/gh/aliftype/amiri-font@1.000/fonts/Amiri-Regular.ttf';
-                            const response = await fetch(fontUrl, { mode: 'cors' });
-                            if (!response.ok) {
-                                throw new Error(`فشل جلب ملف الخط: ${response.statusText}`);
-                            }
-                            const fontArrayBuffer = await response.arrayBuffer();
-                            const fontBase64 = btoa(
-                                new Uint8Array(fontArrayBuffer)
-                                    .reduce((data, byte) => data + String.fromCharCode(byte), '')
-                            );
-                            doc.addFileToVFS('Amiri-Regular.ttf', `data:font/ttf;base64,${fontBase64}`);
-                            doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
-                            doc.setFont('Amiri', 'normal');
-                            fontLoaded = true;
-                            console.log('تم تعيين خط Amiri لدعم النصوص العربية');
-                        } catch (fontError) {
-                            console.warn('تحذير: فشل تحميل خط Amiri، يتم استخدام DejaVuSans كبديل:', fontError);
-                            // استخدام DejaVuSans المدمج في jsPDF (يدعم العربية)
                             doc.setFont('DejaVuSans', 'normal');
-                            fontLoaded = false;
+                            console.log('تم تعيين خط DejaVuSans لدعم النصوص العربية والإنجليزية');
+                        } catch (fontError) {
+                            console.error('خطأ في تعيين DejaVuSans:', fontError);
+                            throw new Error('فشل تعيين الخط المدمج');
                         }
 
                         doc.setFontSize(12);
@@ -855,23 +837,22 @@
                         // دالة لدعم النصوص العربية (RTL) مع تقسيم النصوص الطويلة
                         const renderArabicText = (text, x, y, options = {}) => {
                             const maxWidth = options.maxWidth || contentWidth;
-                            // تنظيف النص من الأحرف غير العربية غير الضرورية
-                            const cleanText = text.replace(/[^ء-ي0-9\s:,.\/-]/g, '');
+                            // تنظيف النص من الأحرف غير العربية/الإنجليزية غير الضرورية
+                            const cleanText = text.replace(/[^\p{L}\p{N}\s:,.\/-]/gu, '');
                             const lines = doc.splitTextToSize(cleanText, maxWidth);
                             lines.forEach(line => {
                                 if (yOffset > pageHeight - lineHeight) {
                                     addNewPage();
                                 }
-                                doc.text(line, x, yOffset, { ...options, align: options.align || 'right' });
-                                yOffset += lineHeight;
+                                doc.text(line, x, yOffset);
                             });
-                        };
+                        }
 
                         // العنوان الرئيسي
-                        doc.setFillColor(232, 185, 35);
-                        doc.rect(0, 0, pageWidth, 30, 'F');
+                        doc.setFillColor('rgb(232, 185, 35)');
+                        doc.rect(0, yOffset, pageWidth, 30, 'F');
                         doc.setFontSize(18);
-                        doc.setTextColor(255, 255, 255);
+                        doc.setTextColor('rgb(255, 255)');
                         doc.text('تقرير تكاليف البناء', pageWidth / 2, 20, { align: 'center' });
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
@@ -926,7 +907,6 @@
                         // تفاصيل المبنى
                         yOffset += 10;
                         renderArabicText('تفاصيل المبنى', margin + contentWidth, yOffset, { align: 'right' });
-                        doc.setFontSize(12);
                         yOffset += 5;
                         (pdfData.inputData?.building?.fields || []).forEach(field => {
                             renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
@@ -988,7 +968,7 @@
                             startY: yOffset,
                             margin: { left: margin, right: margin },
                             styles: {
-                                font: fontLoaded ? 'Amiri' : 'DejaVuSans',
+                                font: 'DejaVuSans',
                                 fontSize: 10,
                                 textColor: [40, 40, 40],
                                 cellPadding: 3,
