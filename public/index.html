@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
-    <!-- استبدل مكتبة jsPDF بمكتبة pdf-lib الأفضل للعربية -->
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://unpkg.com/@pdf-lib/fontkit@0.1.0/dist/fontkit.umd.min.js"></script>
-    <!-- خط عربي متوافق -->
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
         :root {
             --primary: #5C4033; --accent: #E8B923; --background: #F5F1E9; --secondary-bg: #EDE7E0;
@@ -790,165 +789,227 @@
                 }
                 downloadBtn.addEventListener('click', async () => {
                     try {
-                        console.log('بدء إنشاء ملف PDF باستخدام pdf-lib');
+                        console.log('بدء إنشاء ملف PDF');
+                        if (!window.jspdf || !window.jspdf.jsPDF) {
+                            throw new Error('مكتبة jsPDF غير محملة');
+                        }
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // تحميل خط عربي (Amiri)
-                        const fontResponse = await fetch('https://fonts.gstatic.com/s/amiri/v20/J7aRnpd8CGxBHpUrtLMA7w.woff2');
-                        const amiriFontBytes = await fontResponse.arrayBuffer();
+                        // تعيين خط Helvetica الافتراضي (يدعم العربية والإنجليزية)
+                        doc.setFont('Helvetica', 'normal');
+                        doc.setFontSize(12);
+                        doc.setTextColor(40, 40, 40);
 
-                        // إنشاء مستند PDF جديد
-                        const { PDFDocument, rgb } = PDFLib;
-                        const pdfDoc = await PDFDocument.create();
-                        pdfDoc.registerFontkit(fontkit);
+                        // إعدادات الهوامش والتخطيط
+                        const pageWidth = 210;
+                        const margin = 15;
+                        const contentWidth = pageWidth - 2 * margin;
+                        let yOffset = margin;
+                        const pageHeight = 297 - margin;
+                        const lineHeight = 8;
 
-                        // تضمين الخط العربي
-                        const amiriFont = await pdfDoc.embedFont(amiriFontBytes);
-
-                        // إعدادات الصفحة
-                        const pageWidth = 595.28; // A4 عرض بالبكسل (210 مم)
-                        const pageHeight = 841.89; // A4 ارتفاع بالبكسل (297 مم)
-                        const margin = 50;
-                        let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                        let yOffset = pageHeight - margin;
-
-                        // دالة لكتابة النصوص العربية
-                        const renderArabicText = (text, size = 12, x = margin, align = 'right') => {
-                            const textWidth = amiriFont.widthOfTextAtSize(text, size);
-                            const textHeight = amiriFont.heightAtSize(size);
-                            
-                            // إذا لم يكن هناك مساحة كافية، أضف صفحة جديدة
-                            if (yOffset - textHeight < margin) {
-                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                                yOffset = pageHeight - margin;
-                                addHeader(currentPage);
-                            }
-                            
-                            // حساب المحاذاة
-                            let finalX = x;
-                            if (align === 'center') finalX = (pageWidth - textWidth) / 2;
-                            else if (align === 'right') finalX = pageWidth - margin - textWidth;
-                            
-                            currentPage.drawText(text, {
-                                x: finalX,
-                                y: yOffset,
-                                size,
-                                font: amiriFont,
-                                color: rgb(0, 0, 0),
-                            });
-                            
-                            yOffset -= textHeight + 5;
-                            return textHeight;
-                        };
-
-                        // دالة لإضافة رأس الصفحة
-                        const addHeader = (page) => {
-                            page.drawText('تقرير تكاليف البناء', {
-                                x: pageWidth / 2 - 60,
-                                y: pageHeight - 30,
-                                size: 18,
-                                font: amiriFont,
-                                color: rgb(0, 0, 0),
-                            });
-                            
-                            const date = new Date().toLocaleDateString('ar-IQ');
-                            page.drawText(`التاريخ: ${date}`, {
-                                x: pageWidth - margin - 100,
-                                y: pageHeight - 30,
-                                size: 12,
-                                font: amiriFont,
-                                color: rgb(0, 0, 0),
+                        // دالة لمعالجة النصوص العربية والإنجليزية
+                        const renderText = (text, x, y, options = {}) => {
+                            const maxWidth = options.maxWidth || contentWidth;
+                            // التحقق إذا كان النص يحتوي على أحرف عربية
+                            const isArabic = /[\u0600-\u06FF]/.test(text);
+                            const align = isArabic ? 'right' : 'left';
+                            const lines = doc.splitTextToSize(text, maxWidth);
+                            lines.forEach(line => {
+                                if (yOffset > pageHeight - lineHeight) {
+                                    addNewPage();
+                                }
+                                doc.text(line, x, yOffset, { ...options, align });
+                                yOffset += lineHeight;
                             });
                         };
 
-                        // إضافة الرأس للصفحة الأولى
-                        addHeader(currentPage);
-                        yOffset -= 40;
+                        // دالة لإضافة صفحة جديدة مع رأسية
+                        const addNewPage = () => {
+                            doc.addPage();
+                            yOffset = margin;
+                            doc.setFillColor(92, 64, 51);
+                            doc.rect(0, 0, pageWidth, 20, 'F');
+                            doc.setFontSize(16);
+                            doc.setTextColor(255, 255, 255);
+                            renderText('تقرير تكاليف البناء', pageWidth / 2, 12, { align: 'center' });
+                            doc.setFontSize(10);
+                            renderText(`التاريخ: ${new Date().toLocaleDateString('ar-IQ')}`, margin, 18);
+                            doc.setFontSize(12);
+                            doc.setTextColor(40, 40, 40);
+                            yOffset += 10;
+                        };
+
+                        // العنوان الرئيسي
+                        doc.setFillColor(232, 185, 35);
+                        doc.rect(0, 0, pageWidth, 30, 'F');
+                        doc.setFontSize(18);
+                        doc.setTextColor(255, 255, 255);
+                        renderText('تقرير تكاليف البناء', pageWidth / 2, 20, { align: 'center' });
+                        doc.setFontSize(12);
+                        doc.setTextColor(40, 40, 40);
+                        yOffset += 20;
 
                         // 1. معلومات الشركة
-                        renderArabicText('معلومات الشركة', 16, pageWidth - margin, 'right');
-                        renderArabicText('________________________________________', 12, pageWidth - margin, 'right');
-                        
+                        yOffset += 5;
+                        doc.setFontSize(14);
+                        renderText('معلومات الشركة', margin + contentWidth, yOffset);
+                        doc.setFontSize(12);
+                        yOffset += 5;
+                        doc.setLineWidth(0.5);
+                        doc.setDrawColor(92, 64, 51);
+                        doc.line(margin, yOffset, margin + contentWidth, yOffset);
+                        yOffset += 5;
                         (pdfData.companyInfo?.fields || []).forEach(field => {
-                            renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''}`, 12);
+                            renderText(`${field.label || 'غير محدد'}: ${field.value || ''}`, margin + contentWidth, yOffset, { maxWidth: contentWidth });
                         });
 
                         // 2. بيانات المدخلات
-                        renderArabicText('بيانات المدخلات', 16, pageWidth - margin, 'right');
-                        renderArabicText('________________________________________', 12, pageWidth - margin, 'right');
-                        
+                        addNewPage();
+                        doc.setFontSize(14);
+                        renderText('بيانات المدخلات', margin + contentWidth, yOffset);
+                        doc.setFontSize(12);
+                        yOffset += 5;
+                        doc.line(margin, yOffset, margin + contentWidth, yOffset);
+                        yOffset += 5;
+
                         // معلومات العميل
-                        renderArabicText('معلومات العميل', 14);
+                        renderText('معلومات العميل', margin + contentWidth, yOffset);
+                        yOffset += 5;
                         (pdfData.inputData?.customer?.fields || []).forEach(field => {
-                            renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''}`, 12);
-                        });
-                        
-                        // معلومات الموقع
-                        renderArabicText('معلومات الموقع', 14);
-                        (pdfData.inputData?.location?.fields || []).forEach(field => {
-                            renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''}`, 12);
-                        });
-                        
-                        // معلومات الأرض
-                        renderArabicText('معلومات الأرض', 14);
-                        (pdfData.inputData?.land?.fields || []).forEach(field => {
-                            renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, 12);
-                        });
-                        
-                        // تفاصيل المبنى
-                        renderArabicText('تفاصيل المبنى', 14);
-                        (pdfData.inputData?.building?.fields || []).forEach(field => {
-                            renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, 12);
+                            renderText(`${field.label || 'غير محدد'}: ${field.value || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
                         });
 
-                        // ... استمر بنفس النمط لباقي الأقسام ...
+                        // معلومات الموقع
+                        yOffset += 10;
+                        renderText('معلومات الموقع', margin + contentWidth, yOffset);
+                        yOffset += 5;
+                        (pdfData.inputData?.location?.fields || []).forEach(field => {
+                            renderText(`${field.label || 'غير محدد'}: ${field.value || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                        });
+
+                        // معلومات الأرض
+                        yOffset += 10;
+                        renderText('معلومات الأرض', margin + contentWidth, yOffset);
+                        yOffset += 5;
+                        (pdfData.inputData?.land?.fields || []).forEach(field => {
+                            renderText(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                        });
+
+                        // تفاصيل المبنى
+                        yOffset += 10;
+                        renderText('تفاصيل المبنى', margin + contentWidth, yOffset);
+                        yOffset += 5;
+                        (pdfData.inputData?.building?.fields || []).forEach(field => {
+                            renderText(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                        });
+
+                        // 3. الكميات
+                        addNewPage();
+                        doc.setFontSize(14);
+                        renderText('الكميات', margin + contentWidth, yOffset);
+                        doc.setFontSize(12);
+                        yOffset += 5;
+                        doc.line(margin, yOffset, margin + contentWidth, yOffset);
+                        yOffset += 5;
+                        (pdfData.quantities?.sections || []).forEach(section => {
+                            renderText(section.subtitle || 'قسم غير محدد', margin + contentWidth, yOffset);
+                            yOffset += 5;
+                            (section.items || []).forEach(item => {
+                                renderText(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                            });
+                            yOffset += 5;
+                        });
+
+                        // 4. الحسابات الإنشائية
+                        addNewPage();
+                        doc.setFontSize(14);
+                        renderText('الحسابات الإنشائية', margin + contentWidth, yOffset);
+                        doc.setFontSize(12);
+                        yOffset += 5;
+                        doc.line(margin, yOffset, margin + contentWidth, yOffset);
+                        yOffset += 5;
+                        (pdfData.engineering?.sections || []).forEach(section => {
+                            renderText(section.subtitle || 'قسم غير محدد', margin + contentWidth, yOffset);
+                            yOffset += 5;
+                            (section.items || []).forEach(item => {
+                                renderText(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                            });
+                            yOffset += 5;
+                        });
 
                         // 5. التكاليف (جدول)
-                        renderArabicText('التكاليف', 16, pageWidth - margin, 'right');
-                        renderArabicText('________________________________________', 12, pageWidth - margin, 'right');
-                        
-                        // إنشاء جدول التكاليف يدوياً
-                        renderArabicText('البند\t\t\tالتكلفة', 14);
-                        renderArabicText('----------------------------------------', 12);
-                        
-                        (pdfData.costs?.items || []).forEach(item => {
-                            renderArabicText(`${item.name || 'غير محدد'}\t\t\t${item.value?.toLocaleString('ar-IQ') || '0'} ${item.unit || ''}`, 12);
+                        addNewPage();
+                        doc.setFontSize(14);
+                        renderText('التكاليف', margin + contentWidth, yOffset);
+                        doc.setFontSize(12);
+                        yOffset += 5;
+                        doc.line(margin, yOffset, margin + contentWidth, yOffset);
+                        yOffset += 5;
+
+                        // إعداد الجدول باستخدام autoTable
+                        const tableData = (pdfData.costs?.items || []).map(item => [
+                            item.name || 'غير محدد',
+                            `${item.value?.toLocaleString('ar-IQ') || '0'} ${item.unit || ''}`
+                        ]);
+                        tableData.push(['الإجمالي', `${pdfData.costs?.total?.toLocaleString('ar-IQ') || '0'} د.ع`]);
+
+                        doc.autoTable({
+                            head: [['البند', 'التكلفة']],
+                            body: tableData,
+                            startY: yOffset,
+                            margin: { left: margin, right: margin },
+                            styles: {
+                                font: 'Helvetica',
+                                fontSize: 10,
+                                textColor: [40, 40, 40],
+                                cellPadding: 3,
+                                halign: 'right',
+                                overflow: 'linebreak'
+                            },
+                            headStyles: {
+                                fillColor: [92, 64, 51],
+                                textColor: [255, 255, 255],
+                                fontSize: 11
+                            },
+                            columnStyles: {
+                                0: { cellWidth: contentWidth * 0.6 },
+                                1: { cellWidth: contentWidth * 0.4, halign: 'left' }
+                            },
+                            didDrawPage: (data) => {
+                                yOffset = data.cursor.y + 10;
+                            }
                         });
-                        
-                        renderArabicText('----------------------------------------', 12);
-                        renderArabicText(`الإجمالي\t\t\t${pdfData.costs?.total?.toLocaleString('ar-IQ') || '0'} د.ع`, 14);
 
                         // 6. أسعار المواد
-                        renderArabicText('أسعار المواد', 16, pageWidth - margin, 'right');
-                        renderArabicText('________________________________________', 12, pageWidth - margin, 'right');
-                        
+                        addNewPage();
+                        doc.setFontSize(14);
+                        renderText('أسعار المواد', margin + contentWidth, yOffset);
+                        doc.setFontSize(12);
+                        yOffset += 5;
+                        doc.line(margin, yOffset, margin + contentWidth, yOffset);
+                        yOffset += 5;
                         (pdfData.materialPrices?.items || []).forEach(item => {
-                            renderArabicText(`${item.name || 'غير محدد'}: ${item.value?.toLocaleString('ar-IQ') || '0'} ${item.unit || ''}`, 12);
+                            renderText(`${item.name || 'غير محدد'}: ${item.value?.toLocaleString('ar-IQ') || '0'} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
                         });
 
                         // إضافة تذييل لكل صفحة
-                        const pages = pdfDoc.getPages();
-                        pages.forEach((page, index) => {
-                            page.drawText(`صفحة ${index + 1} من ${pages.length}`, {
-                                x: pageWidth / 2 - 30,
-                                y: 30,
-                                size: 10,
-                                font: amiriFont,
-                                color: rgb(0.5, 0.5, 0.5),
-                            });
-                        });
+                        const pageCount = doc.getNumberOfPages();
+                        for (let i = 1; i <= pageCount; i++) {
+                            doc.setPage(i);
+                            doc.setFontSize(10);
+                            doc.setTextColor(100, 100, 100);
+                            renderText(`صفحة ${i} من ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
+                        }
 
-                        // حفظ الملف
-                        const pdfBytes = await pdfDoc.save();
-                        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`;
-                        link.click();
-                        
                         console.log('تم إنشاء ملف PDF بنجاح');
+                        doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
                     } catch (pdfError) {
                         console.error('خطأ أثناء إنشاء PDF:', pdfError);
-                        // ... معالجة الخطأ ...
+                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${pdfError.message}</p>`;
+                        resultContainer.classList.remove('hidden');
+                        resultContainer.style.display = 'block';
                     }
                 }, { once: true });
             } catch (error) {
