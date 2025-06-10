@@ -798,14 +798,14 @@
                         pdfContainer.id = 'pdfContainer';
                         pdfContainer.style.fontFamily = 'Tajawal, Arial, sans-serif';
                         pdfContainer.style.direction = 'rtl';
-                        pdfContainer.style.width = '794px';
-                        pdfContainer.style.minHeight = '1123px';
+                        pdfContainer.style.width = '794px'; // 210mm × 3.78px/mm
+                        pdfContainer.style.minHeight = '1123px'; // 297mm × 3.78px/mm
                         pdfContainer.style.margin = '0';
-                        pdfContainer.style.padding = '0';
+                        pdfContainer.style.padding = '8px'; // حشوة خارجية نظامية
                         pdfContainer.style.background = 'linear-gradient(to bottom, #FDF6E3 0%, #FFF1E0 100%)';
                         pdfContainer.style.fontSize = '14px';
-                        pdfContainer.style.lineHeight = '1.5';
-                        pdfContainer.style.border = '1px solid #C19A6B';
+                        pdfContainer.style.lineHeight = '1.6';
+                        pdfContainer.style.border = '1px solid #C19A6B'; // إطار ذهبي
                         pdfContainer.style.boxSizing = 'border-box';
                         pdfContainer.style.overflow = 'hidden';
                         document.body.appendChild(pdfContainer);
@@ -813,29 +813,86 @@
                         // إضافة CSS
                         const style = document.createElement('style');
                         style.textContent = `
+                            * { box-sizing: border-box; }
                             #pdfContainer {
                                 width: 794px !important;
                                 min-height: 1123px !important;
                                 margin: 0 !important;
-                                padding: 0 !important;
+                                padding: 8px !important;
+                                background: linear-gradient(to bottom, #FDF6E3, #FFF1E0) !important;
+                                border: 1px solid #C19A6B !important;
                                 overflow: hidden !important;
                             }
-                            .group { page-break-before: always; margin: 0; padding: 0; }
-                            .group:first-child { page-break-before: avoid; }
-                            .header { background: #9B2D30; color: #FFF; padding: 5px; text-align: center; margin: 0 0 5px 0; border-radius: 2px; position: relative; }
-                            .group-header { background: #C19A6B; color: #FFF; padding: 4px; text-align: center; font-size: 14px; margin: 0 0 5px 0; border-bottom: 1px solid #9B2D30; }
-                            .logo { position: absolute; left: 5px; top: 5px; width: 25px; height: 25px; border-radius: 50%; border: 1px solid #FFF; }
-                            h1 { font-size: 15px; margin: 1px 0; }
-                            h2 { font-size: 13px; color: #9B2D30; margin: 4px 0 2px; }
-                            h3 { font-size: 12px; color: #4B3C2E; margin: 4px 0 2px; }
-                            hr { border: 0.2px solid #C19A6B; margin: 2px 0; }
-                            table { width: 100%; border-collapse: collapse; margin: 4px 0; }
-                            th, td { border: 1px solid #DBC2A4; padding: 4px; text-align: right; font-size: 12px; }
-                            th { background: #9B2D30; color: #FFF; }
-                            td { background: #FDF6E3; }
-                            .footer { position: relative; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #4B3C2E; border-top: 1px dashed #C19A6B; padding-top: 1px; margin-top: 10px; }
-                            p { margin: 2px 0; }
-                            .content { margin: 0 2px; background: #FFF; padding: 4px; }
+                            .group {
+                                break-before: page;
+                                margin: 0;
+                                padding: 0;
+                                min-height: 1000px; /* لضمان عدم الانقسام العشوائي */
+                            }
+                            .group:first-child { break-before: avoid; }
+                            .header {
+                                background: #9B2D30 !important;
+                                color: #FFF !important;
+                                padding: 8px;
+                                text-align: center;
+                                margin: 0 0 8px 0;
+                                border-radius: 4px;
+                                position: relative;
+                            }
+                            .group-header {
+                                background: #C19A6B !important;
+                                color: #FFF !important;
+                                padding: 6px;
+                                text-align: center;
+                                font-size: 15px;
+                                margin: 0 0 8px 0;
+                                border-bottom: 1px solid #9B2D30;
+                            }
+                            .logo {
+                                position: absolute;
+                                left: 8px;
+                                top: 8px;
+                                width: 30px;
+                                height: 30px;
+                                border-radius: 50%;
+                                border: 1px solid #FFF;
+                            }
+                            h1 { font-size: 16px; margin: 2px 0; }
+                            h2 { font-size: 14px; color: #9B2D30; margin: 6px 0 3px; }
+                            h3 { font-size: 13px; color: #4B3C2E; margin: 6px 0 3px; }
+                            hr { border: 0.3px solid #C19A6B; margin: 5px 0; }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 8px 0;
+                                background: #FDF6E3;
+                            }
+                            th, td {
+                                border: 1px solid #DBC2A4;
+                                padding: 8px;
+                                text-align: right;
+                                font-size: 13px;
+                            }
+                            th { background: #9B2D30 !important; color: #FFF !important; }
+                            td { background: #FFF !important; }
+                            .footer {
+                                position: relative;
+                                bottom: 0;
+                                width: 100%;
+                                text-align: center;
+                                font-size: 11px;
+                                color: #4B3C2E;
+                                border-top: 1px dashed #C19A6B;
+                                padding-top: 3px;
+                                margin-top: 10px;
+                            }
+                            p { margin: 5px 0; }
+                            .content {
+                                margin: 0 5px;
+                                background: #FFF !important;
+                                padding: 8px;
+                                border-radius: 4px;
+                            }
                         `;
                         document.head.appendChild(style);
                 
@@ -887,8 +944,8 @@
                                 header.innerHTML = `
                                     <img class="logo" src="${pdfData.companyInfo.logo}" alt="Logo" onerror="this.style.display='none'"/>
                                     <h1>${title}</h1>
-                                    <p style="font-size:11px; margin: 1px 0;">إعداد: ${pdfData.companyInfo.name}</p>
-                                    <p style="font-size:11px; margin: 1px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                                    <p style="font-size:12px; margin: 2px 0;">إعداد: ${pdfData.companyInfo.name}</p>
+                                    <p style="font-size:12px; margin: 2px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                 `;
                                 section.insertBefore(header, section.firstChild);
                             }
@@ -909,31 +966,31 @@
                         inputSection.className = 'group';
                         pdfContainer.appendChild(inputSection);
                 
-                        const customerItems = (pdfData.inputData.customer.fields || []).map(field => `${field.label}: ${field.value}`);
-                        addSection(pdfData.inputData.customer.title, customerItems, false, true, 'بيانات المدخلات');
+                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${field.label || field.label}: ${field.value}`);
+                        addSection(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true);
                 
-                        const locationItems = (pdfData.inputData.location.fields || []).map(field => `${field.label}: ${field.value}`);
-                        addSection(pdfData.inputData.location.title, locationItems, false, true, 'بيانات المدخلات');
+                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${field.label || field.label}: ${field.value}`);
+                        addSection(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false);
                 
-                        const landItems = (pdfData.inputData.land.fields || []).map(field => `${field.label}: ${field.value} ${field.unit || ''}`);
-                        addSection(pdfData.inputData.land.title, landItems, false, true, 'بيانات المدخلات');
+                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${field.label}: ${field.value} ${field.unit || ''}`);
+                        addSection(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true);
                 
-                        const buildingItems = (pdfData.inputData.building.fields || []).map(field => `${field.label}: ${field.value} ${field.unit || ''}`);
-                        addSection(pdfData.inputData.building.title, buildingItems, false, true, 'بيانات المدخلات');
+                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${field.label}: ${field.value} ${field.unit || ''}`);
+                        addSection(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true);
                 
                         const inputHeader = document.createElement('div');
                         inputHeader.className = 'header';
                         inputHeader.innerHTML = `
-                            <img class="logo" src="${pdfData.companyInfo.logo}" alt="Logo" onerror="this.style.display='none'"/>
+                            <img class="logo" src="${pdfData.companyInfo?.logo || ''}" alt="Logo" onerror="this.style.display='none'"/>
                             <h1>بيانات المدخلات</h1>
-                            <p style="font-size:11px; margin: 1px 0;">إعداد: ${pdfData.companyInfo.name}</p>
-                            <p style="font-size:11px; margin: 1px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                            <p style="font-size:12px; margin: 2px 0;">إعداد: ${pdfData.companyInfo?.name || ''}</p>
+                            <p style="font-size:12px; margin: 2px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                         `;
                         inputSection.insertBefore(inputHeader, inputSection.firstChild);
                 
                         // 3. الكميات
                         const quantitiesItems = [];
-                        (pdfData.quantities.sections || []).forEach(section => {
+                        (pdfData.quantities?.sections || []).forEach(section => {
                             quantitiesItems.push(section.subtitle);
                             section.items.forEach(item => {
                                 quantitiesItems.push(`${item.name}: ${item.value} ${item.unit || ''}`);
@@ -943,7 +1000,7 @@
                 
                         // 4. الحسابات الإنشائية
                         const engineeringItems = [];
-                        (pdfData.engineering.sections || []).forEach(section => {
+                        (pdfData.engineering?.sections || []).forEach(section => {
                             engineeringItems.push(section.subtitle);
                             section.items.forEach(item => {
                                 engineeringItems.push(`${item.name}: ${item.value} ${item.unit || ''}`);
@@ -952,15 +1009,15 @@
                         addSection('الحسابات الإنشائية', engineeringItems);
                 
                         // 5. التكاليف
-                        const costItems = (pdfData.costs.items || []).map(item => [
+                        const costItems = (pdfData.costs?.items || []).map(item => [
                             item.name,
                             `${item.value.toLocaleString('ar-IQ')} ${item.unit}`
                         ]);
-                        costItems.push(['الإجمالي', `${pdfData.costs.total.toLocaleString('ar-IQ')} د.ع`]);
+                        costItems.push(['الإجمالي', `${(pdfData.costs?.total || 0).toLocaleString('ar-IQ')} د.ع`]);
                         addSection('تفاصيل التكاليف', costItems, true);
                 
                         // 6. أسعار المواد
-                        const materialItems = (pdfData.materialPrices.items || []).map(item => `${item.name}: ${item.value.toLocaleString('ar-IQ')} ${item.unit}`);
+                        const materialItems = (pdfData.materialPrices?.items || []).map(item => `${item.name}: ${item.value.toLocaleString('ar-IQ')} ${item.unit}`);
                         addSection('أسعار المواد المعتمدة (2025)', materialItems);
                 
                         // إضافة تذييل للترقيم
@@ -968,16 +1025,16 @@
                         document.querySelectorAll('.group').forEach((group, index) => {
                             const footer = document.createElement('div');
                             footer.className = 'footer';
-                            footer.textContent = `صفحة ${index + 1} من ${groups} | ${pdfData.companyInfo.name}`;
+                            footer.textContent = `صفحة ${index + 1} من ${groups} | ${pdfData.companyInfo?.name || ''}`;
                             group.appendChild(footer);
                         });
                 
                         // إنشاء PDF باستخدام html2pdf.js
                         const opt = {
-                            margin: 0,
+                            margin: 2, // 2mm هوامش خارجية
                             filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
                             image: { type: 'jpeg', quality: 0.98 },
-                            html2canvas: { scale: 2, useCORS: true },
+                            html2canvas: { scale: 3, useCORS: true }, // دقة أعلى
                             jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
                         };
                         await html2pdf().set(opt).from(pdfContainer).save();
