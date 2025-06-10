@@ -8,8 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- تحميل jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
-    <!-- تحميل خط Amiri من CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/amiri-font@1.0.0/fonts/Amiri-Regular.ttf" type="font/ttf" id="amiri-font"></script>
+    <!-- تحميل خط Amiri من CDN (محاولة تحميل) -->
+    <script src="https://cdn.jsdelivr.net/gh/aliftype/amiri-font@1.000/fonts/Amiri-Regular.ttf" type="font/ttf" id="amiri-font"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
@@ -800,10 +800,10 @@
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // جلب ملف خط Amiri من CDN وتحويله إلى Base64
+                        // جلب ملف خط Amiri من CDN أو استخدام DejaVuSans كبديل
                         let fontLoaded = false;
                         try {
-                            const fontUrl = 'https://cdn.jsdelivr.net/npm/amiri-font@1.0.0/fonts/Amiri-Regular.ttf';
+                            const fontUrl = 'https://cdn.jsdelivr.net/gh/aliftype/amiri-font@1.000/fonts/Amiri-Regular.ttf';
                             const response = await fetch(fontUrl, { mode: 'cors' });
                             if (!response.ok) {
                                 throw new Error(`فشل جلب ملف الخط: ${response.statusText}`);
@@ -819,8 +819,10 @@
                             fontLoaded = true;
                             console.log('تم تعيين خط Amiri لدعم النصوص العربية');
                         } catch (fontError) {
-                            console.warn('تحذير: فشل تحميل خط Amiri، يتم استخدام Arial كبديل:', fontError);
-                            doc.setFont('Arial', 'normal'); // استخدام Arial كبديل إذا فشل تحميل Amiri
+                            console.warn('تحذير: فشل تحميل خط Amiri، يتم استخدام DejaVuSans كبديل:', fontError);
+                            // استخدام DejaVuSans المدمج في jsPDF (يدعم العربية)
+                            doc.setFont('DejaVuSans', 'normal');
+                            fontLoaded = false;
                         }
 
                         doc.setFontSize(12);
@@ -853,7 +855,9 @@
                         // دالة لدعم النصوص العربية (RTL) مع تقسيم النصوص الطويلة
                         const renderArabicText = (text, x, y, options = {}) => {
                             const maxWidth = options.maxWidth || contentWidth;
-                            const lines = doc.splitTextToSize(text, maxWidth);
+                            // تنظيف النص من الأحرف غير العربية غير الضرورية
+                            const cleanText = text.replace(/[^ء-ي0-9\s:,.\/-]/g, '');
+                            const lines = doc.splitTextToSize(cleanText, maxWidth);
                             lines.forEach(line => {
                                 if (yOffset > pageHeight - lineHeight) {
                                     addNewPage();
@@ -922,6 +926,7 @@
                         // تفاصيل المبنى
                         yOffset += 10;
                         renderArabicText('تفاصيل المبنى', margin + contentWidth, yOffset, { align: 'right' });
+                        doc.setFontSize(12);
                         yOffset += 5;
                         (pdfData.inputData?.building?.fields || []).forEach(field => {
                             renderArabicText(`${field.label || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
@@ -973,9 +978,9 @@
                         // إعداد الجدول باستخدام autoTable
                         const tableData = (pdfData.costs?.items || []).map(item => [
                             item.name || 'غير محدد',
-                            `${item.value?.toLocaleString() || '0'} ${item.unit || ''}`
+                            `${item.value?.toLocaleString('ar-IQ') || '0'} ${item.unit || ''}`
                         ]);
-                        tableData.push(['الإجمالي', `${pdfData.costs?.total?.toLocaleString() || '0'} د.ع`]);
+                        tableData.push(['الإجمالي', `${pdfData.costs?.total?.toLocaleString('ar-IQ') || '0'} د.ع`]);
 
                         doc.autoTable({
                             head: [['البند', 'التكلفة']],
@@ -983,11 +988,12 @@
                             startY: yOffset,
                             margin: { left: margin, right: margin },
                             styles: {
-                                font: fontLoaded ? 'Amiri' : 'Arial',
+                                font: fontLoaded ? 'Amiri' : 'DejaVuSans',
                                 fontSize: 10,
                                 textColor: [40, 40, 40],
                                 cellPadding: 3,
-                                halign: 'right'
+                                halign: 'right',
+                                overflow: 'linebreak'
                             },
                             headStyles: {
                                 fillColor: [92, 64, 51],
@@ -1012,7 +1018,7 @@
                         doc.line(margin, yOffset, margin + contentWidth, yOffset);
                         yOffset += 5;
                         (pdfData.materialPrices?.items || []).forEach(item => {
-                            renderArabicText(`${item.name || 'غير محدد'}: ${item.value?.toLocaleString() || '0'} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                            renderArabicText(`${item.name || 'غير محدد'}: ${item.value?.toLocaleString('ar-IQ') || '0'} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
                         });
 
                         // إضافة تذييل لكل صفحة
