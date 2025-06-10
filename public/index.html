@@ -837,22 +837,23 @@
                         // دالة لدعم النصوص العربية (RTL) مع تقسيم النصوص الطويلة
                         const renderArabicText = (text, x, y, options = {}) => {
                             const maxWidth = options.maxWidth || contentWidth;
-                            // تنظيف النص من الأحرف غير العربية/الإنجليزية غير الضرورية
+                            // تنظيف النص من الأحرف غير العربية/الإنجليزية
                             const cleanText = text.replace(/[^\p{L}\p{N}\s:,.\/-]/gu, '');
                             const lines = doc.splitTextToSize(cleanText, maxWidth);
                             lines.forEach(line => {
                                 if (yOffset > pageHeight - lineHeight) {
                                     addNewPage();
                                 }
-                                doc.text(line, x, yOffset);
+                                doc.text(line, x, yOffset, { ...options, align: options.align || 'right' });
+                                yOffset += lineHeight;
                             });
-                        }
+                        };
 
                         // العنوان الرئيسي
-                        doc.setFillColor('rgb(232, 185, 35)');
-                        doc.rect(0, yOffset, pageWidth, 30, 'F');
+                        doc.setFillColor(232, 185, 35);
+                        doc.rect(0, 0, pageWidth, 30, 'F');
                         doc.setFontSize(18);
-                        doc.setTextColor('rgb(255, 255)');
+                        doc.setTextColor(255, 255, 255); // إصلاح اللون
                         doc.text('تقرير تكاليف البناء', pageWidth / 2, 20, { align: 'center' });
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
@@ -941,7 +942,7 @@
                             renderArabicText(section.subtitle || 'قسم غير محدد', margin + contentWidth, yOffset, { align: 'right' });
                             yOffset += 5;
                             (section.items || []).forEach(item => {
-                                renderArabicText(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                                renderArabicText(`${item.name || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
                             });
                             yOffset += 5;
                         });
