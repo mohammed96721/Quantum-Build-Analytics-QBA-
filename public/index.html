@@ -796,8 +796,8 @@
                         const { jsPDF } = window.jspdf;
                         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                        // تعيين خط Arial الافتراضي (يدعم العربية والإنجليزية)
-                        doc.setFont('Arial', 'normal');
+                        // تعيين خط Helvetica الافتراضي (يدعم العربية والإنجليزية)
+                        doc.setFont('Helvetica', 'normal');
                         doc.setFontSize(12);
                         doc.setTextColor(40, 40, 40);
 
@@ -934,7 +934,7 @@
                             renderText(section.subtitle || 'قسم غير محدد', margin + contentWidth, yOffset);
                             yOffset += 5;
                             (section.items || []).forEach(item => {
-                                renderText(`${item.name || 'غير محدد'}: ${field.value || ''} ${field.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
+                                renderText(`${item.name || 'غير محدد'}: ${item.value || ''} ${item.unit || ''}`, margin + contentWidth - 10, yOffset, { maxWidth: contentWidth - 10 });
                             });
                             yOffset += 5;
                         });
@@ -961,7 +961,7 @@
                             startY: yOffset,
                             margin: { left: margin, right: margin },
                             styles: {
-                                font: 'Arial',
+                                font: 'Helvetica',
                                 fontSize: 10,
                                 textColor: [40, 40, 40],
                                 cellPadding: 3,
