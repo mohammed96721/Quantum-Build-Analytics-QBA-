@@ -797,14 +797,14 @@
                         pdfContainer.id = 'pdfContainer';
                         pdfContainer.style.fontFamily = 'Tajawal, Arial, sans-serif';
                         pdfContainer.style.direction = 'rtl';
-                        pdfContainer.style.width = '202mm'; // عرض A4 مطروحًا الهوامش (210mm - 2×4mm)
-                        pdfContainer.style.margin = '0'; // إزالة الحشوة الخارجية
+                        pdfContainer.style.width = '208mm'; // عرض A4 مطروحًا الهوامش (210mm - 2×1mm)
+                        pdfContainer.style.margin = '0'; // إزالة الهوامش الخارجية
+                        pdfContainer.style.padding = '0'; // إزالة الحشوة
                         pdfContainer.style.background = 'linear-gradient(to bottom, #FDF6E3 0%, #FFF1E0 100%)'; // تدرج دافئ
                         pdfContainer.style.fontSize = '14px';
-                        pdfContainer.style.lineHeight = '1.6';
+                        pdfContainer.style.lineHeight = '1.5';
                         pdfContainer.style.display = 'none';
                         pdfContainer.style.border = '1px solid #C19A6B'; // إطار ذهبي خفيف
-                        pdfContainer.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                         document.body.appendChild(pdfContainer);
                 
                         // إضافة CSS للطباعة
@@ -813,27 +813,26 @@
                             @media print {
                                 @page {
                                     size: A4;
-                                    margin: 4mm;
+                                    margin: 1mm;
                                 }
                                 body > *:not(#pdfContainer) { display: none; }
                                 #pdfContainer { display: block !important; }
                                 .group { page-break-before: always; margin: 0; }
                                 .group:first-child { page-break-before: avoid; }
-                                .header { background: #9B2D30; color: #FFF; padding: 8px; text-align: center; margin: 0 0 8px 0; border-radius: 2px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-                                .group-header { background: #C19A6B; color: #FFF; padding: 6px; text-align: center; font-size: 15px; margin: 0 0 8px 0; border-bottom: 1px solid #9B2D30; }
-                                .logo { position: absolute; left: 8px; top: 8px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #FFF; }
-                                h1 { font-size: 16px; margin: 2px 0; }
-                                h2 { font-size: 14px; color: #9B2D30; margin: 6px 0 3px; }
-                                h3 { font-size: 13px; color: #4B3C2E; margin: 6px 0 3px; }
-                                hr { border: 0.3px solid #C19A6B; margin: 3px 0; }
-                                table { width: 100%; border-collapse: collapse; margin: 6px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-                                th, td { border: 1px solid #DBC2A4; padding: 6px; text-align: right; font-size: 13px; }
+                                .header { background: #9B2D30; color: #FFF; padding: 5px; text-align: center; margin: 0 0 5px 0; border-radius: 2px; position: relative; }
+                                .group-header { background: #C19A6B; color: #FFF; padding: 4px; text-align: center; font-size: 14px; margin: 0 0 5px 0; border-bottom: 1px solid #9B2D30; }
+                                .logo { position: absolute; left: 5px; top: 5px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #FFF; }
+                                h1 { font-size: 15px; margin: 1px 0; }
+                                h2 { font-size: 13px; color: #9B2D30; margin: 4px 0 2px; }
+                                h3 { font-size: 12px; color: #4B3C2E; margin: 4px 0 2px; }
+                                hr { border: 0.2px solid #C19A6B; margin: 2px 0; }
+                                table { width: 100%; border-collapse: collapse; margin: 4px 0; }
+                                th, td { border: 1px solid #DBC2A4; padding: 4px; text-align: right; font-size: 12px; }
                                 th { background: #9B2D30; color: #FFF; }
                                 td { background: #FDF6E3; }
-                                .footer { position: fixed; bottom: 2mm; width: 202mm; text-align: center; font-size: 11px; color: #4B3C2E; border-top: 1px dashed #C19A6B; padding-top: 1px; }
-                                p { margin: 3px 0; }
-                                .content { margin: 0 3px; border-radius: 2px; background: #FFF; padding: 6px; }
-                                .decorative { position: absolute; top: 0; right: 8px; width: 20px; height: 100%; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 100"><path d="M5 0 L7 5 L3 5 Z M5 10 L7 15 L3 15 Z M5 20 L7 25 L3 25 Z M5 30 L7 35 L3 35 Z M5 40 L7 45 L3 45 Z M5 50 L7 55 L3 55 Z M5 60 L7 65 L3 65 Z M5 70 L7 75 L3 75 Z M5 80 L7 85 L3 85 Z M5 90 L7 95 L3 95 Z" fill="%23C19A6B"/></svg>') repeat-y; }
+                                .footer { position: fixed; bottom: 1mm; width: 208mm; text-align: center; font-size: 10px; color: #4B3C2E; border-top: 1px dashed #C19A6B; padding-top: 1px; }
+                                p { margin: 2px 0; }
+                                .content { margin: 0 2px; background: #FFF; padding: 4px; }
                             }
                         `;
                         document.head.appendChild(style);
@@ -886,10 +885,9 @@
                                 header.className = 'header';
                                 header.innerHTML = `
                                     <img class="logo" src="${pdfData.companyInfo.logo}" alt="Logo" onerror="this.style.display='none'"/>
-                                    <div class="decorative"></div>
                                     <h1>${title}</h1>
-                                    <p style="font-size:12px; margin: 1px 0;">إعداد: ${pdfData.companyInfo.name}</p>
-                                    <p style="font-size:12px; margin: 1px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                                    <p style="font-size:11px; margin: 1px 0;">إعداد: ${pdfData.companyInfo.name}</p>
+                                    <p style="font-size:11px; margin: 1px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                 `;
                                 section.insertBefore(header, section.firstChild);
                             }
@@ -927,10 +925,9 @@
                         inputHeader.className = 'header';
                         inputHeader.innerHTML = `
                             <img class="logo" src="${pdfData.companyInfo.logo}" alt="Logo" onerror="this.style.display='none'"/>
-                            <div class="decorative"></div>
                             <h1>بيانات المدخلات</h1>
-                            <p style="font-size:12px; margin: 1px 0;">إعداد: ${pdfData.companyInfo.name}</p>
-                            <p style="font-size:12px; margin: 1px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                            <p style="font-size:11px; margin: 1px 0;">إعداد: ${pdfData.companyInfo.name}</p>
+                            <p style="font-size:11px; margin: 1px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                         `;
                         inputSection.insertBefore(inputHeader, inputSection.firstChild);
                 
@@ -971,7 +968,7 @@
                         document.querySelectorAll('.group').forEach((group, index) => {
                             const footer = document.createElement('div');
                             footer.className = 'footer';
-                            footer.textContent = `صفحة ${index + 1} من ${groups} | ${pdfData.companyInfo.name} | ${pdfData.companyInfo.contact.phone}`;
+                            footer.textContent = `صفحة ${index + 1} من ${groups} | ${pdfData.companyInfo.name}`;
                             group.appendChild(footer);
                         });
                 
@@ -980,7 +977,7 @@
                 
                         // تنظيف
                         document.body.removeChild(pdfContainer);
-                        document.head.appendChild(style);
+                        document.head.removeChild(style); // إصلاح خطأ: إزالة style بدلاً من إضافته
                 
                         console.log('تم إعداد المستند للطباعة');
                     } catch (error) {
