@@ -803,52 +803,68 @@
                         previewWindow.document.write(`
                             <html dir="rtl">
                             <head>
-                                <title>معاينة PDF</title>
+                                <title>معاينة تقرير PDF</title>
                                 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
                                 <style>
                                     * { box-sizing: border-box; margin: 0; padding: 0; }
+                                    body { background: #f5f5f5; padding: 20px; }
                                     #pdfContainer {
-                                        width: 794px !important;
+                                        width: 794px;
                                         min-height: 1123px;
-                                        margin: 0 auto !important;
-                                        padding: 20px !important;
-                                        background: #FFF !important;
-                                        font-family: 'Tajawal', Arial, sans-serif !important;
-                                        direction: fixed-ltr;
-                                        border: 2px solid #C19A6B !important;
+                                        margin: 0 auto;
+                                        padding: 20px;
+                                        background: #FFF;
+                                        font-family: 'Tajawal', Arial, sans-serif;
+                                        direction: rtl;
+                                        border: 2px solid #C19A6B;
+                                        position: relative;
                                     }
                                     .header {
-                                        background: #9B2D30 !important;
-                                        color: #FFF !important;
-                                        padding: 15px !important;
+                                        background: #9B2D30;
+                                        color: #FFF;
+                                        padding: 15px;
                                         text-align: center;
                                         margin-bottom: 15px;
                                         border-radius: 8px;
                                         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                                     }
-                                    .group { break-before: page; margin-bottom: 20px; }
-                                    .content {
-                                        background: #F9F9F9 !important;
-                                        padding: 15px !important;
+                                    .group { 
+                                        break-before: page; 
+                                        margin-bottom: 20px; 
+                                        position: relative;
+                                        min-height: 1000px; /* احتياطي لتجنب التداخل */
+                                    }
+                                    .group-header {
+                                        background: #C19A6B;
+                                        color: #FFF;
+                                        padding: 12px;
+                                        text-align: center;
+                                        font-size: 16px;
+                                        margin-bottom: 10px;
                                         border-radius: 4px;
-                                        margin: 10px !important;
+                                    }
+                                    .content {
+                                        background: #F9F9F9;
+                                        padding: 15px;
+                                        border-radius: 4px;
+                                        margin: 10px;
                                         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                                     }
                                     table {
-                                        width: 100% !important;
+                                        width: 100%;
                                         border-collapse: collapse;
                                         margin: 15px 0;
-                                        background: #FFF !important;
+                                        background: #FFF;
                                         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                                     }
                                     th, td {
-                                        border: 1px solid #DBC2A4 !important;
-                                        padding: 12px !important;
+                                        border: 1px solid #DBC2A4;
+                                        padding: 12px;
                                         text-align: right;
                                         font-size: 14px;
                                     }
-                                    th { background: #9B2D30 !important; color: #FFF !important; }
-                                    td { background: #FFF !important; }
+                                    th { background: #9B2D30; color: #FFF; }
+                                    td { background: #FFF; }
                                     .footer {
                                         position: absolute;
                                         bottom: 10px;
@@ -866,11 +882,34 @@
                                         height: 0;
                                         line-height: 0;
                                     }
+                                    .logo {
+                                        position: absolute;
+                                        left: 12px;
+                                        top: 12px;
+                                        width: 32px;
+                                        height: 32px;
+                                        border-radius: 50%;
+                                        border: 1px solid #FFF;
+                                    }
+                                    h1 { font-size: 18px; margin: 3px 0; }
+                                    h3 { font-size: 14px; color: #4B3C2E; margin: 8px 0 4px; }
+                                    hr { border: 0.4px solid #C19A6B; margin: 8px 0; }
+                                    #generatePdfBtn {
+                                        display: block;
+                                        margin: 20px auto;
+                                        padding: 10px 20px;
+                                        background: #9B2D30;
+                                        color: #FFF;
+                                        border: none;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-family: 'Tajawal', Arial, sans-serif;
+                                    }
                                 </style>
                             </head>
                             <body>
                                 <div id="pdfContainer"></div>
-                                <button id="generatePdfBtn" style="display: block; margin: 20px auto; padding: 10px 20px; background: #9B2D30; color: #FFF; border: none; border-radius: 4px; cursor: pointer;">تحويل إلى PDF</button>
+                                <button id="generatePdfBtn">تحويل إلى PDF</button>
                             </body>
                             </html>
                         `);
@@ -883,6 +922,7 @@
                             const pageBreak = document.createElement('div');
                             pageBreak.className = 'page-break';
                             previewContainer.appendChild(pageBreak);
+                            console.log('تم إضافة فاصل صفحة');
                         };
 
                         // دالة إضافة قسم
@@ -894,13 +934,14 @@
 
                             const maxItemsPerPage = 20;
                             let currentItems = items;
+                            let isFirstPage = true;
 
                             while (currentItems.length > 0) {
                                 const section = document.createElement('div');
                                 section.className = isSubsection ? '' : 'group';
-                                if (!isSubsection) section.style.breakBefore = 'page';
 
-                                if (!isSubsection) {
+                                // إضافة رأسية للقسم الرئيسي فقط في الصفحة الأولى
+                                if (!isSubsection && isFirstPage) {
                                     const header = document.createElement('div');
                                     header.className = 'header';
                                     header.innerHTML = `
@@ -910,13 +951,14 @@
                                         <p style="font-size:13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                     `;
                                     section.appendChild(header);
-                                } else {
+                                } else if (isSubsection) {
                                     const titleEl = document.createElement('h3');
                                     titleEl.textContent = title;
                                     section.appendChild(titleEl);
                                     section.appendChild(document.createElement('hr'));
                                 }
 
+                                // إضافة المحتوى
                                 const content = document.createElement('div');
                                 content.className = 'content';
                                 const itemsToAdd = currentItems.slice(0, maxItemsPerPage);
@@ -942,9 +984,20 @@
                                 }
                                 section.appendChild(content);
 
+                                // إضافة التذييل
+                                const totalPages = Math.ceil(items.length / maxItemsPerPage);
+                                const currentPage = Math.floor((items.length - currentItems.length) / maxItemsPerPage) + 1;
+                                const footer = document.createElement('div');
+                                footer.className = 'footer';
+                                footer.textContent = `صفحة ${currentPage} من ${totalPages} | ${pdfData.companyInfo?.name || 'غير محدد'}`;
+                                section.appendChild(footer);
+
                                 (parentSection || previewContainer).appendChild(section);
 
+                                console.log(`تم إضافة قسم "${title}" مع ${itemsToAdd.length} عنصرًا`);
+
                                 currentItems = currentItems.slice(maxItemsPerPage);
+                                isFirstPage = false;
                                 if (currentItems.length > 0) addPageBreak();
                             }
                         };
@@ -960,6 +1013,7 @@
                         addSection('معلومات الشركة', companyItems);
                         addPageBreak();
 
+                        // قسم بيانات المدخلات
                         const inputSection = document.createElement('div');
                         inputSection.className = 'group';
                         inputSection.style.breakBefore = 'page';
@@ -1022,21 +1076,26 @@
 
                         // تحويل إلى PDF
                         generatePdfBtn.addEventListener('click', async () => {
-                            const opt = {
-                                margin: [20, 10, 30, 10],
-                                filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
-                                image: { type: 'jpeg', quality: 0.95 },
-                                html2canvas: { scale: 2, useCORS: true, logging: false },
-                                jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
-                                pagebreak: { mode: ['css', 'legacy'], before: '.group' }
-                            };
-                            await html2pdf().set(opt).from(previewContainer).save();
-                            previewWindow.close();
+                            try {
+                                const opt = {
+                                    margin: [20, 10, 30, 10],
+                                    filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
+                                    image: { type: 'jpeg', quality: 0.95 },
+                                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                                    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+                                    pagebreak: { mode: ['css', 'legacy'], before: '.group', avoid: ['.header', '.content'] }
+                                };
+                                await html2pdf().set(opt).from(previewContainer).save();
+                                previewWindow.close();
+                            } catch (pdfError) {
+                                console.error('خطأ أثناء تحويل PDF:', pdfError);
+                                alert('حدث خطأ أثناء إنشاء ملف PDF. تحقق من وحدة التحكم للحصول على التفاصيل.');
+                            }
                         });
 
                     } catch (error) {
-                        console.error('خطأ أثناء إنشاء PDF:', error);
-                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}</p>`;
+                        console.error('خطأ أثناء إنشاء المعاينة:', error);
+                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء المعاينة: ${error.message}</p>`;
                         resultContainer.classList.remove('hidden');
                         resultContainer.style.display = 'block';
                     }
