@@ -10,31 +10,27 @@ module.exports = async (req, res) => {
 
     // تحليل البيانات من الطلب
     const data = req.body;
-    console.log('📥 **البيانات المستلمة في /api/process**:', JSON.stringify(data, null, 2));
+    console.log('البيانات المستلمة في /api/process:', data);
 
     // التحقق من صلاحية البيانات
     if (!data || typeof data !== 'object') {
-      return res.status(400).json({ success: false, error: 'البيانات المستلمة غير صالحة' });
+      throw new Error('البيانات المستلمة غير صالحة');
     }
 
-    // معالجة البيانات بناءً على hasMap
+    // معالجة البيانات
     const hasMap = data.hasMap || false;
-    console.log('🔍 **hasMap**:', hasMap);
-    const result = await (hasMap ? advancedCalculate.processAdvanced(data) : calculate.processBasic(data));
+    console.log('hasMap:', hasMap);
+    const result = hasMap ? advancedCalculate.processAdvanced(data) : calculate.processBasic(data);
 
-    // التحقق من نجاح المعالجة
-    if (!result.success || !result.pdfData) {
-      console.error('❌ **فشل معالجة البيانات**:', result.message || 'pdfData غير موجود');
-      return res.status(400).json({ success: false, error: result.message || 'فشل معالجة البيانات' });
-    }
+    res.setHeader('Content-Type', 'application/json; charset=utf-8'); // إضافة هذا   السطرإضافة هذا السطر  utf-8   
 
-    // تسجيل النتيجة قبل إرجاعها
-    console.log('📤 **النتيجة المُرجعة**:', JSON.stringify({ success: true, pdfData: result.pdfData }, null, 2));
-
-    // إرجاع الاستجابة الموحدة
-    res.status(200).json({ success: true, pdfData: result.pdfData });
+    // إرجاع النتيجة
+    res.status(200).json({ success: true, result });
   } catch (error) {
-    console.error('❌ **خطأ في process.js**:', error.stack);
-    res.status(500).json({ success: false, error: error.message || 'خطأ داخلي في الخادم' });
+    console.error('خطأ في process.js:', error.stack);
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8'); // إضافة هذا السطر  utf-8   تأكيد ترميز استجابة
+
+    res.status(500).json({ success: false, error: error.message });
   }
 };
