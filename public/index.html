@@ -927,8 +927,8 @@
                         yOffset = 10;
                         doc.text('أسعار المواد', 200, yOffset, { align: 'right' });
                         yOffset += lineHeight;
-                        (pdfData.materialPrices || []).forEach(item => {
-                            doc.text(`${item.material || 'غير محدد'}: ${item.price?.toLocaleString() || '0'} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
+                        (pdfData.materialPrices?.items || []).forEach(item => {
+                            doc.text(`${item.name || 'غير محدد'}: ${item.value?.toLocaleString() || '0'} ${item.unit || ''}`, 190, yOffset, { align: 'right' });
                             yOffset += lineHeight;
                             addNewPageIfNeeded();
                         });
