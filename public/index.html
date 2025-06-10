@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
@@ -797,62 +798,44 @@
                         pdfContainer.id = 'pdfContainer';
                         pdfContainer.style.fontFamily = 'Tajawal, Arial, sans-serif';
                         pdfContainer.style.direction = 'rtl';
-                        pdfContainer.style.width = '794px'; // 210mm × 3.78px/mm = 794px
-                        pdfContainer.style.height = '1123px'; // 297mm × 3.78px/mm = 1123px
-                        pdfContainer.style.margin = '0 !important';
+                        pdfContainer.style.width = '794px';
+                        pdfContainer.style.minHeight = '1123px';
+                        pdfContainer.style.margin = '0';
                         pdfContainer.style.padding = '0';
                         pdfContainer.style.background = 'linear-gradient(to bottom, #FDF6E3 0%, #FFF1E0 100%)';
                         pdfContainer.style.fontSize = '14px';
                         pdfContainer.style.lineHeight = '1.5';
-                        pdfContainer.style.display = 'none';
-                        pdfContainer.style.border = '1px solid #C19A6B'; // إطار ذهبي
+                        pdfContainer.style.border = '1px solid #C19A6B';
                         pdfContainer.style.boxSizing = 'border-box';
-                        pdfContainer.style.position = 'absolute';
-                        pdfContainer.style.top = '0';
-                        pdfContainer.style.left = '0';
-                        pdfContainer.style.overflow = 'hidden'; // قص الزائد
+                        pdfContainer.style.overflow = 'hidden';
                         document.body.appendChild(pdfContainer);
                 
-                        // إضافة CSS للطباعة
+                        // إضافة CSS
                         const style = document.createElement('style');
                         style.textContent = `
-                            @media print {
-                                @page {
-                                    size: A4;
-                                    margin: 0mm !important;
-                                }
-                                body {
-                                    margin: 0 !important;
-                                    padding: 0 !important;
-                                    overflow: hidden !important;
-                                }
-                                body > *:not(#pdfContainer) { display: none; }
-                                #pdfContainer {
-                                    display: block !important;
-                                    width: 794px !important;
-                                    height: 1123px !important;
-                                    position: absolute;
-                                    top: 0 !important;
-                                    left: 0 !important;
-                                    overflow: hidden !important;
-                                }
-                                .group { page-break-before: always; margin: 0; padding: 0; }
-                                .group:first-child { page-break-before: avoid; }
-                                .header { background: #9B2D30; color: #FFF; padding: 5px; text-align: center; margin: 0 0 5px 0; border-radius: 2px; position: relative; }
-                                .group-header { background: #C19A6B; color: #FFF; padding: 4px; text-align: center; font-size: 14px; margin: 0 0 5px 0; border-bottom: 1px solid #9B2D30; }
-                                .logo { position: absolute; left: 5px; top: 5px; width: 25px; height: 25px; border-radius: 50%; border: 1px solid #FFF; }
-                                h1 { font-size: 15px; margin: 1px 0; }
-                                h2 { font-size: 13px; color: #9B2D30; margin: 4px 0 2px; }
-                                h3 { font-size: 12px; color: #4B3C2E; margin: 4px 0 2px; }
-                                hr { border: 0.2px solid #C19A6B; margin: 2px 0; }
-                                table { width: 100%; border-collapse: collapse; margin: 4px 0; }
-                                th, td { border: 1px solid #DBC2A4; padding: 4px; text-align: right; font-size: 12px; }
-                                th { background: #9B2D30; color: #FFF; }
-                                td { background: #FDF6E3; }
-                                .footer { position: fixed; bottom: 4px; width: 794px; text-align: center; font-size: 10px; color: #4B3C2E; border-top: 1px dashed #C19A6B; padding-top: 1px; }
-                                p { margin: 2px 0; }
-                                .content { margin: 0 2px; background: #FFF; padding: 4px; }
+                            #pdfContainer {
+                                width: 794px !important;
+                                min-height: 1123px !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                overflow: hidden !important;
                             }
+                            .group { page-break-before: always; margin: 0; padding: 0; }
+                            .group:first-child { page-break-before: avoid; }
+                            .header { background: #9B2D30; color: #FFF; padding: 5px; text-align: center; margin: 0 0 5px 0; border-radius: 2px; position: relative; }
+                            .group-header { background: #C19A6B; color: #FFF; padding: 4px; text-align: center; font-size: 14px; margin: 0 0 5px 0; border-bottom: 1px solid #9B2D30; }
+                            .logo { position: absolute; left: 5px; top: 5px; width: 25px; height: 25px; border-radius: 50%; border: 1px solid #FFF; }
+                            h1 { font-size: 15px; margin: 1px 0; }
+                            h2 { font-size: 13px; color: #9B2D30; margin: 4px 0 2px; }
+                            h3 { font-size: 12px; color: #4B3C2E; margin: 4px 0 2px; }
+                            hr { border: 0.2px solid #C19A6B; margin: 2px 0; }
+                            table { width: 100%; border-collapse: collapse; margin: 4px 0; }
+                            th, td { border: 1px solid #DBC2A4; padding: 4px; text-align: right; font-size: 12px; }
+                            th { background: #9B2D30; color: #FFF; }
+                            td { background: #FDF6E3; }
+                            .footer { position: relative; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #4B3C2E; border-top: 1px dashed #C19A6B; padding-top: 1px; margin-top: 10px; }
+                            p { margin: 2px 0; }
+                            .content { margin: 0 2px; background: #FFF; padding: 4px; }
                         `;
                         document.head.appendChild(style);
                 
@@ -898,7 +881,6 @@
                             section.appendChild(content);
                             pdfContainer.appendChild(section);
                 
-                            // إضافة رأس الصفحة لكل مجموعة
                             if (!isSubsection) {
                                 const header = document.createElement('div');
                                 header.className = 'header';
@@ -939,7 +921,6 @@
                         const buildingItems = (pdfData.inputData.building.fields || []).map(field => `${field.label}: ${field.value} ${field.unit || ''}`);
                         addSection(pdfData.inputData.building.title, buildingItems, false, true, 'بيانات المدخلات');
                 
-                        // إضافة رأس الصفحة لبيانات المدخلات
                         const inputHeader = document.createElement('div');
                         inputHeader.className = 'header';
                         inputHeader.innerHTML = `
@@ -991,14 +972,21 @@
                             group.appendChild(footer);
                         });
                 
-                        // فتح نافذة الطباعة
-                        window.print();
+                        // إنشاء PDF باستخدام html2pdf.js
+                        const opt = {
+                            margin: 0,
+                            filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
+                            image: { type: 'jpeg', quality: 0.98 },
+                            html2canvas: { scale: 2, useCORS: true },
+                            jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+                        };
+                        await html2pdf().set(opt).from(pdfContainer).save();
                 
                         // تنظيف
                         document.body.removeChild(pdfContainer);
                         document.head.removeChild(style);
                 
-                        console.log('تم إعداد المستند للطباعة');
+                        console.log('تم إنشاء ملف PDF');
                     } catch (error) {
                         console.error('خطأ أثناء إنشاء PDF:', error);
                         resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}</p>`;
