@@ -22,14 +22,13 @@ module.exports = async (req, res) => {
     console.log('hasMap:', hasMap);
     const result = hasMap ? advancedCalculate.processAdvanced(data) : calculate.processBasic(data);
 
-    res.setHeader('Content-Type', 'application/json; charset=utf-8'); // إضافة هذا   السطرإضافة هذا السطر  utf-8   
 
     // إرجاع النتيجة
     res.status(200).json({ success: true, result });
   } catch (error) {
     console.error('خطأ في process.js:', error.stack);
 
-    res.setHeader('Content-Type', 'application/json; charset=utf-8'); // إضافة هذا السطر  utf-8   تأكيد ترميز استجابة
+
 
     res.status(500).json({ success: false, error: error.message });
   }
