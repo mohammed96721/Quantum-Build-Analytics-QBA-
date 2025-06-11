@@ -800,11 +800,10 @@
                         const margin = 30;
 
                         // تسجيل fontkit
-                        pdfDoc.registerFontkit(fontkit); // إضافة هذه السطر لتسجيل fontkit
+                        pdfDoc.registerFontkit(fontkit);
 
-                        // تحميل خط Tajawal
-                        const fontUrl = 'https://fonts.gstatic.com/s/tajawal/v9/Iura6YBj_oCad4k1nzGKEw.ttf';
-                        const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
+                        // تحميل خط Tajawal من ملف محلي
+                        const fontBytes = await fetch('/fonts/Tajawal-Regular.ttf').then(res => res.arrayBuffer());
                         const tajawalFont = await pdfDoc.embedFont(fontBytes);
 
                         // دالة لإضافة صفحة جديدة
@@ -815,8 +814,7 @@
                             return page;
                         };
 
-                        // باقي الكود كما هو...
-                        // (دالة addText، دالة addSection، إضافة الأقسام، إلخ)
+                        // دالة لإضافة نص مع دعم الاتجاه من اليمين إلى اليسار
                         const addText = (page, text, x, y, options = {}) => {
                             page.drawText(text, {
                                 x,
@@ -828,6 +826,7 @@
                             });
                         };
 
+                        // دالة لإضافة قسم
                         const addSection = async (title, items, isTable = false, page = null) => {
                             if (!page) page = addPage();
                             let y = pageHeight - margin - 20;
@@ -870,14 +869,14 @@
                                 }
                                 currentItems = currentItems.slice(maxItemsPerPage);
                                 if (currentItems.length > 0) {
-                                    page = addPage();
+                                    page =대한يPage();
                                     y = pageHeight - margin - 20;
                                 }
                             }
                             return page;
                         };
 
-                        // إضافة الأقسام (معلومات الشركة، بيانات المدخلات، إلخ)
+                        // إضافة الأقسام
                         let page = addPage();
                         const companyItems = [
                             `الاسم: ${pdfData.companyInfo?.name || 'غير محدد'}`,
