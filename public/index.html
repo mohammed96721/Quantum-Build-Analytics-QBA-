@@ -804,7 +804,6 @@
                             if (text === null || text === undefined || (typeof text === 'string' && text.trim() === '')) {
                                 return 'غير متوفر';
                             }
-                            // تحويل الأرقام إلى نصوص صالحة إذا لزم الأمر
                             if (typeof text === 'number') {
                                 return text.toLocaleString('ar-IQ');
                             }
@@ -822,7 +821,7 @@
                             const section = document.createElement('div');
                             section.style.fontFamily = 'Amiri, Arial, sans-serif';
                             section.style.direction = 'rtl';
-                            section.style.width = '754px'; // عرض A4 مطروحًا الهوامش (210mm - 20mm * 2)
+                            section.style.width = '754px';
                             section.style.padding = '15px';
                             section.style.background = '#FFF';
                             section.style.border = '2px solid #C19A6B';
@@ -832,6 +831,7 @@
                             section.style.fontSize = '14px';
                             section.style.lineHeight = '1.6';
                             section.style.margin = '10px';
+                            section.style.overflow = 'visible';
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -888,6 +888,7 @@
                                 });
                             }
                             section.appendChild(content);
+                            console.log(`قسم "${title}": عدد العناصر = ${items.length}`, items);
                             return section;
                         };
 
@@ -904,7 +905,7 @@
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
-                                windowHeight: sectionElement.scrollHeight,
+                                windowHeight: sectionElement.scrollHeight + 20, // إضافة هامش إضافي
                                 backgroundColor: '#FFF'
                             });
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -929,7 +930,7 @@
                         };
 
                         // التحقق من pdfData
-                        if (!pdfData || !pdfData.companyInfo || !pdfData.inputData || !pdfData.quantities || !pdfData.engineering || !pdfData.costs || !pdfData.materialPrices) {
+                        if (!pdfData || !pdfData.companyInfo || !pdfData.inputData) {
                             throw new Error('بيانات pdfData غير مكتملة أو غير موجودة');
                         }
                         console.log('بيانات pdfData:', JSON.stringify(pdfData, null, 2));
@@ -938,15 +939,18 @@
                         const maxItemsPerSection = 10;
 
                         // 1. معلومات الشركة
-                        const companyItems = [
-                            pdfData.companyInfo?.name ? `الاسم: ${sanitizeText(pdfData.companyInfo.name)}` : null,
-                            pdfData.companyInfo?.description ? `الوصف: ${sanitizeText(pdfData.companyInfo.description)}` : null,
-                            pdfData.companyInfo?.contact?.phone ? `الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}` : null,
-                            pdfData.companyInfo?.contact?.email ? `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}` : null,
-                            pdfData.companyInfo?.contact?.address ? `العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}` : null
-                        ].filter(item => item !== null);
+                        const companyItems = [];
+                        if (pdfData.companyInfo?.name) companyItems.push(`الاسم: ${sanitizeText(pdfData.companyInfo.name)}`);
+                        if (pdfData.companyInfo?.description) companyItems.push(`الوصف: ${sanitizeText(pdfData.companyInfo.description)}`);
+                        if (pdfData.companyInfo?.contact?.phone) companyItems.push(`الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}`);
+                        if (pdfData.companyInfo?.contact?.email) companyItems.push(`البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}`);
+                        if (pdfData.companyInfo?.contact?.address) companyItems.push(`العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}`);
+                        
+                        console.log('معلومات الشركة:', companyItems);
                         if (companyItems.length > 0) {
                             await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
+                        } else {
+                            console.warn('لم يتم إنشاء قسم "معلومات الشركة" بسبب عدم وجود بيانات');
                         }
 
                         // 2. بيانات المدخلات
@@ -963,6 +967,7 @@
                         inputSection.style.fontSize = '14px';
                         inputSection.style.lineHeight = '1.6';
                         inputSection.style.margin = '10px';
+                        inputSection.style.overflow = 'visible';
 
                         const inputHeader = document.createElement('div');
                         inputHeader.style.background = '#9B2D30';
@@ -978,36 +983,61 @@
                         `;
                         inputSection.appendChild(inputHeader);
 
-                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => 
-                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : null
-                        ).filter(item => item !== null);
+                        let hasInputContent = false;
+
+                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => {
+                            if (field.label) {
+                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}`;
+                            }
+                            return null;
+                        }).filter(item => item !== null);
+                        console.log('بيانات العميل:', customerItems);
                         if (customerItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
+                            hasInputContent = true;
                         }
 
-                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => 
-                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : null
-                        ).filter(item => item !== null);
+                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => {
+                            if (field.label) {
+                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}`;
+                            }
+                            return null;
+                        }).filter(item => item !== null);
+                        console.log('بيانات الموقع:', locationItems);
                         if (locationItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
+                            hasInputContent = true;
                         }
 
-                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
-                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : null
-                        ).filter(item => item !== null);
+                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => {
+                            if (field.label) {
+                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}`;
+                            }
+                            return null;
+                        }).filter(item => item !== null);
+                        console.log('بيانات الأرض:', landItems);
                         if (landItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
+                            hasInputContent = true;
                         }
 
-                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => 
-                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : null
-                        ).filter(item => item !== null);
+                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => {
+                            if (field.label) {
+                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}`;
+                            }
+                            return null;
+                        }).filter(item => item !== null);
+                        console.log('بيانات المبنى:', buildingItems);
                         if (buildingItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
+                            hasInputContent = true;
                         }
 
-                        if (inputSection.childElementCount > 1) { // التأكد من وجود محتوى
+                        if (hasInputContent) {
+                            console.log('إضافة قسم "بيانات المدخلات"');
                             await addSectionToPDF(inputSection, 'بيانات المدخلات');
+                        } else {
+                            console.warn('لم يتم إنشاء قسم "بيانات المدخلات" بسبب عدم وجود بيانات');
                         }
 
                         // 3. الكميات
@@ -1067,7 +1097,7 @@
                             doc.deletePage(pageCount);
                         }
 
-                        // إضافة تذييل للترقيم كصورة باستخدام html2canvas
+                        // إضافة تذييل للترقيم
                         const finalPageCount = doc.internal.getNumberOfPages();
                         const footerElement = document.createElement('div');
                         footerElement.style.fontFamily = 'Amiri, Arial, sans-serif';
