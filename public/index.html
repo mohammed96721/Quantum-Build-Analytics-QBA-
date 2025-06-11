@@ -799,11 +799,17 @@
                             format: 'a4',
                         });
 
+                        // تحميل خط Amiri لـ jsPDF
+                        const fontUrl = 'https://fonts.gstatic.com/s/amiri/v27/J7aRnpd8CGxBHqUp.ttf';
+                        const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
+                        doc.addFileToVFS('Amiri-Regular.ttf', fontBytes);
+                        doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
+
                         // دالة للتحقق من النصوص ومعالجة القيم الفارغة
                         const sanitizeText = (text) => {
                             if (!text || typeof text !== 'string' || text.trim() === '') return 'غير محدد';
-                            // التأكد من أن النص يحتوي فقط على أحرف عربية/إنجليزية/أرقام/رموز شائعة
-                            return text.replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/-]/g, '');
+                            // الاحتفاظ بالأحرف العربية، الإنجليزية، الأرقام، والرموز الشائعة
+                            return text.replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/\-+%]/g, '');
                         };
 
                         // دالة لإنشاء قسم كـ HTML
@@ -816,15 +822,16 @@
                             const section = document.createElement('div');
                             section.style.fontFamily = 'Amiri, Arial, sans-serif';
                             section.style.direction = 'rtl';
-                            section.style.width = '794px'; // عرض A4 ببكسل (210mm * 3.78px/mm)
+                            section.style.width = '754px'; // عرض A4 مطروحًا الهوامش (210mm - 20mm * 2)
                             section.style.padding = '15px';
-                            section.style.background = 'linear-gradient(to bottom, #FDF6E3, #FFF1E0)';
-                            section.style.border = '1px solid #C19A6B';
+                            section.style.background = '#FFF';
+                            section.style.border = '2px solid #C19A6B';
                             section.style.boxSizing = 'border-box';
                             section.style.position = 'absolute';
                             section.style.left = '-9999px';
                             section.style.fontSize = '14px';
                             section.style.lineHeight = '1.6';
+                            section.style.margin = '10px'; // هامش داخلي
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -832,6 +839,7 @@
                                 header.style.color = '#FFF';
                                 header.style.padding = '12px';
                                 header.style.textAlign = 'center';
+                                header.style.borderBottom = '1px solid #C19A6B';
                                 header.innerHTML = `
                                     <img src="${sanitizeText(pdfData.companyInfo?.logo) || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
                                     <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
@@ -843,34 +851,37 @@
                                 const titleEl = document.createElement('h3');
                                 titleEl.style.fontSize = '14px';
                                 titleEl.style.color = '#4B3C2E';
+                                titleEl.style.marginBottom = '8px';
                                 titleEl.textContent = sanitizeText(title);
                                 section.appendChild(titleEl);
                                 const hr = document.createElement('hr');
-                                hr.style.border = '0.4px solid #C19A6B';
+                                hr.style.border = '0.5px solid #C19A6B';
                                 section.appendChild(hr);
                             }
 
                             const content = document.createElement('div');
-                            content.style.margin = '0 10px';
-                            content.style.background = '#FFF';
-                            content.style.padding = '15px';
+                            content.style.margin = '10px';
+                            content.style.padding = '10px';
+                            content.style.background = '#FDF6E3';
                             content.style.borderRadius = '4px';
 
                             if (isTable) {
                                 const table = document.createElement('table');
                                 table.style.width = '100%';
                                 table.style.borderCollapse = 'collapse';
-                                table.style.margin = '12px 0';
-                                table.style.background = '#FDF6E3';
+                                table.style.margin = '10px 0';
                                 table.innerHTML = `
-                                    <thead><tr><th style="border: 1px solid #DBC2A4; padding: 12px; background: #9B2D30; color: #FFF;">البند</th><th style="border: 1px solid #DBC2A4; padding: 12px; background: #9B2D30; color: #FFF;">القيمة</th></tr></thead>
-                                    <tbody>${items.map(item => `<tr><td style="border: 1px solid #DBC2A4; padding: 12px; background: #FFF;">${sanitizeText(item[0])}</td><td style="border: 1px solid #DBC2A4; padding: 12px; background: #FFF;">${sanitizeText(item[1])}</td></tr>`).join('')}</tbody>
+                                    <thead><tr><th style="border: 1px solid #DBC2A4; padding: 10px; background: #9B2D30; color: #FFF;">البند</th><th style="border: 1px solid #DBC2A4; padding: 10px; background: #9B2D30; color: #FFF;">القيمة</th></tr></thead>
+                                    <tbody>${items.map(item => `<tr><td style="border: 1px solid #DBC2A4; padding: 10px;">${sanitizeText(item[0])}</td><td style="border: 1px solid #DBC2A4; padding: 10px;">${sanitizeText(item[1])}</td></tr>`).join('')}</tbody>
                                 `;
                                 content.appendChild(table);
                             } else {
                                 items.forEach(item => {
                                     const p = document.createElement('p');
                                     p.style.margin = '8px 0';
+                                    p.style.padding = '5px';
+                                    p.style.background = '#FFF';
+                                    p.style.borderRadius = '3px';
                                     p.textContent = sanitizeText(item);
                                     content.appendChild(p);
                                 });
@@ -893,12 +904,12 @@
                                 logging: true,
                                 windowWidth: 794,
                                 windowHeight: sectionElement.scrollHeight,
-                                backgroundColor: null
+                                backgroundColor: '#FFF'
                             });
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                            const imgWidth = 210; // عرض A4 بالمم
-                            const imgHeight = Math.min((canvas.height * imgWidth) / canvas.width, 297 * 2); // حد أقصى صفحتين لكل قسم
-                            const pageHeight = 297; // ارتفاع صفحة A4 بالمم
+                            const imgWidth = 190; // عرض A4 مطروحًا الهوامش (210mm - 10mm * 2)
+                            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                            const pageHeight = 277; // ارتفاع A4 مطروحًا الهوامش (297mm - 10mm * 2)
                             let remainingHeight = imgHeight;
                             let yOffset = 0;
 
@@ -906,7 +917,7 @@
 
                             while (remainingHeight > 0) {
                                 const currentHeight = Math.min(remainingHeight, pageHeight);
-                                doc.addImage(imgData, 'JPEG', 0, -yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, 'FAST');
+                                doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, 'FAST');
                                 remainingHeight -= pageHeight;
                                 yOffset += pageHeight * (canvas.width / imgWidth);
                                 if (remainingHeight > 0) {
@@ -914,7 +925,7 @@
                                 }
                             }
                             document.body.removeChild(sectionElement);
-                            if (doc.internal.getNumberOfPages() < 30) { // منع التكرار الزائد
+                            if (doc.internal.getNumberOfPages() < 20) {
                                 doc.addPage();
                             }
                         };
@@ -926,7 +937,7 @@
                         console.log('بيانات pdfData:', JSON.stringify(pdfData, null, 2));
 
                         // الحد الأقصى للعناصر في كل قسم
-                        const maxItemsPerSection = 6;
+                        const maxItemsPerSection = 8;
 
                         // 1. معلومات الشركة
                         const companyItems = [
@@ -935,28 +946,30 @@
                             `الهاتف: ${sanitizeText(pdfData.companyInfo?.contact?.phone)}`,
                             `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo?.contact?.email)}`,
                             `العنوان: ${sanitizeText(pdfData.companyInfo?.contact?.address)}`
-                        ].filter(item => item !== 'غير محدد').slice(0, maxItemsPerSection);
-                        await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems), 'معلومات الشركة');
+                        ].filter(item => sanitizeText(item) !== 'غير محدد');
+                        await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
 
                         // 2. بيانات المدخلات
                         const inputSection = document.createElement('div');
                         inputSection.style.fontFamily = 'Amiri, Arial, sans-serif';
                         inputSection.style.direction = 'rtl';
-                        inputSection.style.width = '794px';
+                        inputSection.style.width = '754px';
                         inputSection.style.padding = '15px';
-                        inputSection.style.background = 'linear-gradient(to bottom, #FDF6E3, #FFF1E0)';
-                        inputSection.style.border = '1px solid #C19A6B';
+                        inputSection.style.background = '#FFF';
+                        inputSection.style.border = '2px solid #C19A6B';
                         inputSection.style.boxSizing = 'border-box';
                         inputSection.style.position = 'absolute';
                         inputSection.style.left = '-9999px';
                         inputSection.style.fontSize = '14px';
                         inputSection.style.lineHeight = '1.6';
+                        inputSection.style.margin = '10px';
 
                         const inputHeader = document.createElement('div');
                         inputHeader.style.background = '#9B2D30';
                         inputHeader.style.color = '#FFF';
                         inputHeader.style.padding = '12px';
                         inputHeader.style.textAlign = 'center';
+                        inputHeader.style.borderBottom = '1px solid #C19A6B';
                         inputHeader.innerHTML = `
                             <img src="${sanitizeText(pdfData.companyInfo?.logo) || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
                             <h1 style="font-size: 18px; margin: 3px 0;">بيانات المدخلات</h1>
@@ -965,16 +978,16 @@
                         `;
                         inputSection.appendChild(inputHeader);
 
-                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)}`).filter(item => item !== 'غير محدد').slice(0, maxItemsPerSection);
+                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)}`).filter(item => sanitizeText(item) !== 'غير محدد');
                         inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
 
-                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)}`).filter(item => item !== 'غير محدد').slice(0, maxItemsPerSection);
+                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)}`).filter(item => sanitizeText(item) !== 'غير محدد');
                         inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
 
-                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit)}`).filter(item => item !== 'غير محدد').slice(0, maxItemsPerSection);
+                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit)}`).filter(item => sanitizeText(item) !== 'غير محدد');
                         inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
 
-                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit)}`).filter(item => item !== 'غير محدد').slice(0, maxItemsPerSection);
+                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit)}`).filter(item => sanitizeText(item) !== 'غير محدد');
                         inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
 
                         await addSectionToPDF(inputSection, 'بيانات المدخلات');
@@ -1003,7 +1016,7 @@
                         const costItems = (pdfData.costs?.items || []).map(item => [
                             sanitizeText(item.name),
                             `${sanitizeText((item.value || 0).toLocaleString('ar-IQ'))} ${sanitizeText(item.unit)}`
-                        ]).filter(item => item[0] !== 'غير محدد' && item[1] !== 'غير محدد').slice(0, maxItemsPerSection);
+                        ]).filter(item => sanitizeText(item[0]) !== 'غير محدد' && sanitizeText(item[1]) !== 'غير محدد');
                         costItems.push(['الإجمالي', `${sanitizeText((pdfData.costs?.total || 0).toLocaleString('ar-IQ'))} د.ع`]);
                         await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
 
@@ -1011,7 +1024,7 @@
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => [
                             sanitizeText(item.name),
                             `${sanitizeText((item.value || 0).toLocaleString('ar-IQ'))} ${sanitizeText(item.unit)}`
-                        ]).filter(item => item[0] !== 'غير محدد' && item[1] !== 'غير محدد').slice(0, maxItemsPerSection);
+                        ]).filter(item => sanitizeText(item[0]) !== 'غير محدد' && sanitizeText(item[1]) !== 'غير محدد');
                         await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
 
                         // إزالة الصفحة الفارغة الأخيرة
@@ -1020,10 +1033,11 @@
                             doc.deletePage(pageCount);
                         }
 
-                        // إضافة تذييل للترقيم
+                        // إضافة تذييل للترقيم باستخدام خط Amiri
                         const finalPageCount = doc.internal.getNumberOfPages();
                         for (let i = 1; i <= finalPageCount; i++) {
                             doc.setPage(i);
+                            doc.setFont('Amiri', 'normal');
                             doc.setFontSize(10);
                             doc.setTextColor(75, 60, 46);
                             doc.text(`صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير محدد'}`, 190, 287, { align: 'right' });
