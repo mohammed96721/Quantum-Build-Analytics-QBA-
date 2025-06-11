@@ -803,27 +803,39 @@
                             <head>
                                 <meta charset="UTF-8">
                                 <title>تقرير تكاليف البناء</title>
+                                <style>
+                                    body { margin: 0; padding: 0; }
+                                    #pdfContainer {
+                                        font-family: 'Tajawal', Arial, sans-serif;
+                                        direction: rtl;
+                                        width: 595px;
+                                        margin: 0 auto;
+                                        padding: 15px;
+                                        box-sizing: border-box;
+                                        text-align: right;
+                                    }
+                                    .page-break { break-before: page; height: 0; margin: 0; padding: 0; }
+                                </style>
                                 <link rel="stylesheet" href="styles.css"> <!-- مرجع لملف CSS خارجي -->
                             </head>
                             <body>
-                                <div id="pdfContainer" style="font-family: Tajawal, Arial, sans-serif; direction: rtl; width: 595px; margin: 0; padding: 15px; box-sizing: border-box;"></div>
+                                <div id="pdfContainer"></div>
                             </body>
                             </html>
                         `);
                         pdfWindow.document.close();
                         const pdfContainer = pdfWindow.document.getElementById('pdfContainer');
 
+                        // دالة للتحقق من البيانات مع قيم افتراضية
+                        const safeValue = (value, defaultValue = 'غير متوفر') => value ?? defaultValue;
+
                         // دالة لإضافة فاصل صفحة
                         const addPageBreak = () => {
                             const pageBreak = document.createElement('div');
                             pageBreak.className = 'page-break';
-                            pageBreak.style.breakBefore = 'page';
                             pdfContainer.appendChild(pageBreak);
                             console.log('تم إضافة فاصل صفحة');
                         };
-
-                        // دالة للتحقق من البيانات مع قيم افتراضية
-                        const safeValue = (value, defaultValue = 'غير متوفر') => value ?? defaultValue;
 
                         // دالة لإضافة قسم مع تقسيم المحتوى الكبير
                         const addSection = (title, items, isTable = false, isSubsection = false, parentSection = null) => {
@@ -839,13 +851,15 @@
                             while (currentItems.length > 0) {
                                 const section = document.createElement('div');
                                 section.className = isSubsection ? '' : 'group';
+                                section.style.width = '100%';
+                                section.style.textAlign = 'right';
 
-                                if (!isSubsection) {
+                                if (!isSubsection && isFirstPage) {
                                     const groupHeader = document.createElement('div');
                                     groupHeader.className = 'group-header';
                                     groupHeader.textContent = safeValue(title);
                                     section.appendChild(groupHeader);
-                                } else {
+                                } else if (isSubsection) {
                                     const titleEl = document.createElement('h3');
                                     titleEl.textContent = safeValue(title);
                                     section.appendChild(titleEl);
@@ -854,10 +868,14 @@
 
                                 const content = document.createElement('div');
                                 content.className = 'content';
+                                content.style.width = '100%';
+                                content.style.textAlign = 'right';
 
                                 const itemsToAdd = currentItems.slice(0, maxItemsPerPage);
                                 if (isTable) {
                                     const table = document.createElement('table');
+                                    table.style.width = '100%';
+                                    table.style.direction = 'rtl';
                                     const thead = document.createElement('thead');
                                     thead.innerHTML = '<tr><th>البند</th><th>القيمة</th></tr>';
                                     table.appendChild(thead);
@@ -873,6 +891,7 @@
                                     itemsToAdd.forEach(item => {
                                         const p = document.createElement('p');
                                         p.textContent = safeValue(item);
+                                        p.style.textAlign = 'right';
                                         content.appendChild(p);
                                     });
                                 }
@@ -881,6 +900,7 @@
                                 if (!isSubsection && isFirstPage) {
                                     const header = document.createElement('div');
                                     header.className = 'header';
+                                    header.style.textAlign = 'center';
                                     header.innerHTML = `
                                         <img class="logo" src="${safeValue(pdfData.companyInfo?.logo, '')}" alt="Logo" onerror="this.style.display='none'"/>
                                         <h1>${safeValue(title)}</h1>
@@ -922,10 +942,13 @@
                         // 2. بيانات المدخلات
                         const inputSection = document.createElement('div');
                         inputSection.className = 'group';
+                        inputSection.style.width = '100%';
+                        inputSection.style.textAlign = 'right';
                         pdfContainer.appendChild(inputSection);
 
                         const inputHeader = document.createElement('div');
                         inputHeader.className = 'header';
+                        inputHeader.style.textAlign = 'center';
                         inputHeader.innerHTML = `
                             <img class="logo" src="${safeValue(pdfData.companyInfo?.logo, '')}" alt="Logo" onerror="this.style.display='none'"/>
                             <h1>بيانات المدخلات</h1>
@@ -983,6 +1006,7 @@
                         groups.forEach((group, index) => {
                             const footer = document.createElement('div');
                             footer.className = 'footer';
+                            footer.style.textAlign = 'center';
                             footer.textContent = `صفحة ${index + 1} من ${groups.length} | ${safeValue(pdfData.companyInfo?.name)}`;
                             group.appendChild(footer);
                         });
@@ -991,15 +1015,31 @@
                         console.log('إجمالي المجموعات:', groups.length);
                         console.log('محتوى pdfContainer (أول 500 حرف):', pdfContainer.innerHTML.substring(0, 500) + '...');
 
-                        // إنشاء PDF
-                        const opt = {
-                            margin: 10, // 10px هوامش
-                            filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
-                            image: { type: 'jpeg', quality: 0.98 },
-                            html2canvas: { scale: 1, useCORS: true, windowWidth: 595 },
-                            jsPDF: { unit: 'px', format: [595, 842], orientation: 'portrait' } // A4 بحجم 72 DPI
-                        };
-                        await html2pdf().set(opt).from(pdfContainer).save();
+                        // إنشاء PDF باستخدام jsPDF وhtml2canvas مباشرة
+                        const pdf = new jspdf.jsPDF({
+                            orientation: 'portrait',
+                            unit: 'px',
+                            format: [595, 842] // A4 بحجم 72 DPI
+                        });
+
+                        const canvas = await html2canvas(pdfContainer, {
+                            scale: 1,
+                            useCORS: true,
+                            windowWidth: 595,
+                            width: 595,
+                            x: 0,
+                            y: 0,
+                            scrollX: 0,
+                            scrollY: 0
+                        });
+
+                        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                        const imgProps = pdf.getImageProperties(imgData);
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                        pdf.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
 
                         // تنظيف
                         pdfWindow.close();
