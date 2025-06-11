@@ -801,9 +801,15 @@
 
                         // دالة للتحقق من النصوص ومعالجة القيم الفارغة
                         const sanitizeText = (text) => {
-                            if (text === null || text === undefined || typeof text !== 'string' || text.trim() === '') return 'غير متوفر';
+                            if (text === null || text === undefined || (typeof text === 'string' && text.trim() === '')) {
+                                return 'غير متوفر';
+                            }
+                            // تحويل الأرقام إلى نصوص صالحة إذا لزم الأمر
+                            if (typeof text === 'number') {
+                                return text.toLocaleString('ar-IQ');
+                            }
                             // الاحتفاظ بالأحرف العربية، الإنجليزية، الأرقام، والرموز الشائعة
-                            return text.replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/\-+%@]/g, '');
+                            return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/\-+%@=د.ع]/g, '');
                         };
 
                         // دالة لإنشاء قسم كـ HTML
@@ -876,6 +882,7 @@
                                     p.style.padding = '5px';
                                     p.style.background = '#FFF';
                                     p.style.borderRadius = '3px';
+                                    p.style.border = '1px solid #DBC2A4';
                                     p.textContent = sanitizeText(item);
                                     content.appendChild(p);
                                 });
@@ -911,7 +918,7 @@
 
                             while (remainingHeight > 0) {
                                 const currentHeight = Math.min(remainingHeight, pageHeight);
-                                doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, false);
+                                doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, 'FAST');
                                 remainingHeight -= pageHeight;
                                 yOffset += pageHeight * (canvas.width / imgWidth);
                                 if (remainingHeight > 0) {
@@ -928,16 +935,16 @@
                         console.log('بيانات pdfData:', JSON.stringify(pdfData, null, 2));
 
                         // الحد الأقصى للعناصر في كل قسم
-                        const maxItemsPerSection = 8;
+                        const maxItemsPerSection = 10;
 
                         // 1. معلومات الشركة
                         const companyItems = [
-                            pdfData.companyInfo?.name ? `الاسم: ${sanitizeText(pdfData.companyInfo.name)}` : '',
-                            pdfData.companyInfo?.description ? `الوصف: ${sanitizeText(pdfData.companyInfo.description)}` : '',
-                            pdfData.companyInfo?.contact?.phone ? `الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}` : '',
-                            pdfData.companyInfo?.contact?.email ? `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}` : '',
-                            pdfData.companyInfo?.contact?.address ? `العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}` : ''
-                        ].filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                            pdfData.companyInfo?.name ? `الاسم: ${sanitizeText(pdfData.companyInfo.name)}` : null,
+                            pdfData.companyInfo?.description ? `الوصف: ${sanitizeText(pdfData.companyInfo.description)}` : null,
+                            pdfData.companyInfo?.contact?.phone ? `الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}` : null,
+                            pdfData.companyInfo?.contact?.email ? `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}` : null,
+                            pdfData.companyInfo?.contact?.address ? `العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}` : null
+                        ].filter(item => item !== null);
                         if (companyItems.length > 0) {
                             await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
                         }
@@ -972,29 +979,29 @@
                         inputSection.appendChild(inputHeader);
 
                         const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => 
-                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : ''
-                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : null
+                        ).filter(item => item !== null);
                         if (customerItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
                         }
 
                         const locationItems = (pdfData.inputData?.location?.fields || []).map(field => 
-                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : ''
-                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : null
+                        ).filter(item => item !== null);
                         if (locationItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
                         }
 
                         const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
-                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : ''
-                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : null
+                        ).filter(item => item !== null);
                         if (landItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
                         }
 
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => 
-                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : ''
-                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                            field.label && field.value !== undefined ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : null
+                        ).filter(item => item !== null);
                         if (buildingItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
                         }
@@ -1009,8 +1016,8 @@
                             if (section.subtitle) {
                                 quantitiesItems.push([sanitizeText(section.subtitle), '']);
                             }
-                            section.items.slice(0, maxItemsPerSection).forEach(item => {
-                                if (item.name && item.value) {
+                            (section.items || []).slice(0, maxItemsPerSection).forEach(item => {
+                                if (item.name && item.value !== undefined) {
                                     quantitiesItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`]);
                                 }
                             });
@@ -1025,8 +1032,8 @@
                             if (section.subtitle) {
                                 engineeringItems.push([sanitizeText(section.subtitle), '']);
                             }
-                            section.items.slice(0, maxItemsPerSection).forEach(item => {
-                                if (item.name && item.value) {
+                            (section.items || []).slice(0, maxItemsPerSection).forEach(item => {
+                                if (item.name && item.value !== undefined) {
                                     engineeringItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`]);
                                 }
                             });
@@ -1037,10 +1044,10 @@
 
                         // 5. التكاليف
                         const costItems = (pdfData.costs?.items || []).map(item => 
-                            item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value.toLocaleString('ar-IQ'))} ${sanitizeText(item.unit || '')}`] : null
-                        ).filter(item => item && sanitizeText(item[0]) !== 'غير متوفر' && sanitizeText(item[1]) !== 'غير متوفر');
+                            item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`] : null
+                        ).filter(item => item !== null);
                         if (pdfData.costs?.total !== undefined) {
-                            costItems.push(['الإجمالي', `${sanitizeText(pdfData.costs.total.toLocaleString('ar-IQ'))} د.ع`]);
+                            costItems.push(['الإجمالي', `${sanitizeText(pdfData.costs.total)} د.ع`]);
                         }
                         if (costItems.length > 0) {
                             await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
@@ -1048,8 +1055,8 @@
 
                         // 6. أسعار المواد
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => 
-                            item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value.toLocaleString('ar-IQ'))} ${sanitizeText(item.unit || '')}`] : null
-                        ).filter(item => item && sanitizeText(item[0]) !== 'غير متوفر' && sanitizeText(item[1]) !== 'غير متوفر');
+                            item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`] : null
+                        ).filter(item => item !== null);
                         if (materialItems.length > 0) {
                             await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
                         }
@@ -1071,10 +1078,11 @@
                         footerElement.style.left = '-9999px';
                         footerElement.style.fontSize = '10px';
                         footerElement.style.textAlign = 'right';
+                        footerElement.style.background = '#FFF';
                         for (let i = 1; i <= finalPageCount; i++) {
                             footerElement.textContent = `صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}`;
                             document.body.appendChild(footerElement);
-                            const footerCanvas = await html2canvas(footerElement, { scale: 2 });
+                            const footerCanvas = await html2canvas(footerElement, { scale: 2, backgroundColor: '#FFF' });
                             const footerImgData = footerCanvas.toDataURL('image/jpeg', 0.95);
                             doc.setPage(i);
                             doc.addImage(footerImgData, 'JPEG', 10, 287 - 5, 190, (footerCanvas.height * 190) / footerCanvas.width);
