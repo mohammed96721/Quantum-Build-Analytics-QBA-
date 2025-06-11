@@ -6,9 +6,6 @@
     <title>نظام حساب تكاليف البناء - العراق</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.0/dist/pdf-lib.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
@@ -804,6 +801,11 @@
 
                         // دالة لإنشاء قسم كـ HTML
                         const createSectionElement = (title, items, isTable = false, isSubsection = false) => {
+                            if (!items || items.length === 0) {
+                                console.warn(`قسم "${title}" فارغ، لن يتم إضافته`);
+                                return null;
+                            }
+
                             const section = document.createElement('div');
                             section.style.fontFamily = 'Tajawal, Arial, sans-serif';
                             section.style.direction = 'rtl';
@@ -813,7 +815,9 @@
                             section.style.border = '1px solid #C19A6B';
                             section.style.boxSizing = 'border-box';
                             section.style.position = 'absolute';
-                            section.style.left = '-9999px'; // إخفاء خارج الشاشة
+                            section.style.left = '-9999px';
+                            section.style.fontSize = '14px';
+                            section.style.lineHeight = '1.6';
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -822,7 +826,7 @@
                                 header.style.padding = '12px';
                                 header.style.textAlign = 'center';
                                 header.innerHTML = `
-                                    <img src="${pdfData.companyInfo?.logo || ''}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
+                                    <img src="${pdfData.companyInfo?.logo || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
                                     <h1 style="font-size: 18px; margin: 3px 0;">${title}</h1>
                                     <p style="font-size: 13px; margin: 3px 0;">إعداد: ${pdfData.companyInfo?.name || 'غير محدد'}</p>
                                     <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
@@ -853,14 +857,14 @@
                                 table.style.background = '#FDF6E3';
                                 table.innerHTML = `
                                     <thead><tr><th style="border: 1px solid #DBC2A4; padding: 12px; background: #9B2D30; color: #FFF;">البند</th><th style="border: 1px solid #DBC2A4; padding: 12px; background: #9B2D30; color: #FFF;">القيمة</th></tr></thead>
-                                    <tbody>${items.map(item => `<tr><td style="border: 1px solid #DBC2A4; padding: 12px; background: #FFF;">${item[0]}</td><td style="border: 1px solid #DBC2A4; padding: 12px; background: #FFF;">${item[1]}</td></tr>`).join('')}</tbody>
+                                    <tbody>${items.map(item => `<tr><td style="border: 1px solid #DBC2A4; padding: 12px; background: #FFF;">${item[0] || 'غير محدد'}</td><td style="border: 1px solid #DBC2A4; padding: 12px; background: #FFF;">${item[1] || 'غير محدد'}</td></tr>`).join('')}</tbody>
                                 `;
                                 content.appendChild(table);
                             } else {
                                 items.forEach(item => {
                                     const p = document.createElement('p');
                                     p.style.margin = '8px 0';
-                                    p.textContent = item;
+                                    p.textContent = item || 'غير محدد';
                                     content.appendChild(p);
                                 });
                             }
@@ -869,15 +873,28 @@
                         };
 
                         // دالة لتحويل قسم إلى صورة وإضافته إلى PDF
-                        const addSectionToPDF = async (sectionElement) => {
+                        const addSectionToPDF = async (sectionElement, sectionName) => {
+                            if (!sectionElement) {
+                                console.warn(`قسم "${sectionName}" لم يتم إنشاؤه بسبب بيانات فارغة`);
+                                return;
+                            }
+
                             document.body.appendChild(sectionElement);
-                            const canvas = await html2canvas(sectionElement, { scale: 2, useCORS: true });
-                            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                            const canvas = await html2canvas(sectionElement, {
+                                scale: 2,
+                                useCORS: true,
+                                logging: true,
+                                windowWidth: 794,
+                                windowHeight: sectionElement.scrollHeight,
+                            });
+                            const imgData = canvas.toDataURL('image/jpeg', 0.95);
                             const imgWidth = 210; // عرض A4 بالمم
                             const imgHeight = (canvas.height * imgWidth) / canvas.width; // ارتفاع الصورة بالمم
                             const pageHeight = 297; // ارتفاع صفحة A4 بالمم
                             let remainingHeight = imgHeight;
                             let yOffset = 0;
+
+                            console.log(`قسم "${sectionName}": ارتفاع الصورة ${imgHeight} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
                             // تقسيم الصورة إذا كانت أطول من صفحة A4
                             while (remainingHeight > 0) {
@@ -893,6 +910,11 @@
                             doc.addPage(); // صفحة جديدة للقسم التالي
                         };
 
+                        // التحقق من pdfData
+                        if (!pdfData || !pdfData.companyInfo || !pdfData.inputData || !pdfData.quantities || !pdfData.engineering || !pdfData.costs || !pdfData.materialPrices) {
+                            throw new Error('بيانات pdfData غير مكتملة أو غير موجودة');
+                        }
+
                         // إنشاء الأقسام الستة كصور
                         // 1. معلومات الشركة
                         const companyItems = [
@@ -902,7 +924,7 @@
                             `البريد الإلكتروني: ${pdfData.companyInfo?.contact?.email || 'غير محدد'}`,
                             `العنوان: ${pdfData.companyInfo?.contact?.address || 'غير محدد'}`
                         ];
-                        await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems));
+                        await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems), 'معلومات الشركة');
 
                         // 2. بيانات المدخلات
                         const inputSection = document.createElement('div');
@@ -915,6 +937,8 @@
                         inputSection.style.boxSizing = 'border-box';
                         inputSection.style.position = 'absolute';
                         inputSection.style.left = '-9999px';
+                        inputSection.style.fontSize = '14px';
+                        inputSection.style.lineHeight = '1.6';
 
                         const inputHeader = document.createElement('div');
                         inputHeader.style.background = '#9B2D30';
@@ -922,7 +946,7 @@
                         inputHeader.style.padding = '12px';
                         inputHeader.style.textAlign = 'center';
                         inputHeader.innerHTML = `
-                            <img src="${pdfData.companyInfo?.logo || ''}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
+                            <img src="${pdfData.companyInfo?.logo || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
                             <h1 style="font-size: 18px; margin: 3px 0;">بيانات المدخلات</h1>
                             <p style="font-size: 13px; margin: 3px 0;">إعداد: ${pdfData.companyInfo?.name || 'غير محدد'}</p>
                             <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
@@ -941,7 +965,7 @@
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
                         inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
 
-                        await addSectionToPDF(inputSection);
+                        await addSectionToPDF(inputSection, 'بيانات المدخلات');
 
                         // 3. الكميات
                         const quantitiesItems = [];
@@ -951,7 +975,7 @@
                                 quantitiesItems.push([item.name || 'غير محدد', `${item.value || 'غير محدد'} ${item.unit || ''}`]);
                             });
                         });
-                        await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true));
+                        await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true), 'تفاصيل الكميات الهندسية');
 
                         // 4. الحسابات الإنشائية
                         const engineeringItems = [];
@@ -961,7 +985,7 @@
                                 engineeringItems.push([item.name || 'غير محدد', `${item.value || 'غير محدد'} ${item.unit || ''}`]);
                             });
                         });
-                        await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true));
+                        await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true), 'الحسابات الإنشائية');
 
                         // 5. التكاليف
                         const costItems = (pdfData.costs?.items || []).map(item => [
@@ -969,30 +993,36 @@
                             `${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`
                         ]);
                         costItems.push(['الإجمالي', `${(pdfData.costs?.total || 0).toLocaleString('ar-IQ')} د.ع`]);
-                        await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true));
+                        await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
 
                         // 6. أسعار المواد
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => [
                             item.name || 'غير محدد',
                             `${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`
                         ]);
-                        await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true));
+                        await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
+
+                        // إزالة الصفحة الفارغة الأخيرة
+                        const pageCount = doc.internal.getNumberOfPages();
+                        if (pageCount > 0 && !doc.getPageInfo(pageCount).pageContext.hasContent) {
+                            doc.deletePage(pageCount);
+                        }
 
                         // إضافة تذييل للترقيم
-                        const pageCount = doc.internal.getNumberOfPages();
-                        for (let i = 1; i <= pageCount; i++) {
+                        const finalPageCount = doc.internal.getNumberOfPages();
+                        for (let i = 1; i <= finalPageCount; i++) {
                             doc.setPage(i);
                             doc.setFontSize(10);
                             doc.setTextColor(75, 60, 46);
-                            doc.text(`صفحة ${i} من ${pageCount} | ${pdfData.companyInfo?.name || 'غير محدد'}`, 190, 287, { align: 'right' });
+                            doc.text(`صفحة ${i} من ${finalPageCount} | ${pdfData.companyInfo?.name || 'غير محدد'}`, 190, 287, { align: 'right' });
                         }
 
                         // حفظ الملف
                         doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
-                        console.log('تم إنشاء ملف PDF');
+                        console.log(`تم إنشاء ملف PDF بـ ${finalPageCount} صفحات`);
                     } catch (error) {
                         console.error('خطأ أثناء إنشاء PDF:', error.stack);
-                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}. يرجى التحقق من اتصال الإنترنت أو المحاولة لاحقًا.</p>`;
+                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}. يرجى التحقق من اتصال الإنترنت أو بيانات pdfData.</p>`;
                         resultContainer.classList.remove('hidden');
                         resultContainer.style.display = 'block';
                     }
