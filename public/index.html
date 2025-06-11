@@ -805,7 +805,7 @@
                                 <meta charset="UTF-8">
                                 <title>تقرير تكاليف البناء</title>
                                 <style>
-                                    body { margin: 0; padding: 0; }
+                                    body { margin: 0; padding: 0; background: #FFF; }
                                     .pdf-page {
                                         font-family: 'Tajawal', Arial, sans-serif;
                                         direction: rtl;
@@ -817,6 +817,8 @@
                                         text-align: right;
                                         position: relative;
                                         overflow: hidden;
+                                        background: #FFF;
+                                        page-break-after: always;
                                     }
                                 </style>
                                 <link rel="stylesheet" href="styles.css">
@@ -845,7 +847,7 @@
                                 items = ['لا توجد بيانات متاحة'];
                             }
 
-                            const maxItemsPerPage = 15;
+                            const maxItemsPerPage = 10; // خفضت العدد لضمان تقسيم دقيق كما في المثال
                             let currentItems = items;
                             let isFirstPage = true;
                             let currentPage = isSubsection ? parentSection : createPage();
@@ -922,11 +924,12 @@
                                     footer.style.position = 'absolute';
                                     footer.style.bottom = '10px';
                                     footer.style.width = '100%';
-                                    footer.textContent = `صفحة ${pdfBody.querySelectorAll('.pdf-page').length} من ${6 + Math.ceil(Math.max(items.length - maxItemsPerPage, 0) / maxItemsPerPage)} | ${safeValue(pdfData.companyInfo?.name)}`;
+                                    const pageNumber = pdfBody.querySelectorAll('.pdf-page').length;
+                                    footer.textContent = `صفحة ${pageNumber} من 13 | ${safeValue(pdfData.companyInfo?.name)}`;
                                     currentPage.appendChild(footer);
                                 }
 
-                                console.log(`تم إضافة قسم "${title}" مع ${itemsToAdd.length} عنصرًا`);
+                                console.log(`تم إضافة قسم "${title}" مع ${itemsToAdd.length} عنصرًا في صفحة ${pdfBody.querySelectorAll('.pdf-page').length}`);
 
                                 currentItems = currentItems.slice(maxItemsPerPage);
                                 if (currentItems.length > 0) {
@@ -977,17 +980,7 @@
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${safeValue(field.label)}: ${safeValue(field.value)} ${safeValue(field.unit, '')}`);
                         addSection(safeValue(pdfData.inputData?.building?.title, 'بيانات المبنى'), buildingItems, false, true, inputSection);
 
-                        // إضافة تذييل لبيانات المدخلات
-                        const inputFooter = document.createElement('div');
-                        inputFooter.className = 'footer';
-                        inputFooter.style.textAlign = 'center';
-                        inputFooter.style.position = 'absolute';
-                        inputFooter.style.bottom = '10px';
-                        inputFooter.style.width = '100%';
-                        inputFooter.textContent = `صفحة 2 من ${6 + Math.ceil(Math.max(buildingItems.length - maxItemsPerPage, 0) / maxItemsPerPage)} | ${safeValue(pdfData.companyInfo?.name)}`;
-                        inputPage.appendChild(inputFooter);
-
-                        // 3. الكميات
+                        // 3. الكميات (تقسيم إلى صفحتين كما في المثال)
                         const quantitiesItems = [];
                         (pdfData.quantities?.sections || []).forEach(section => {
                             quantitiesItems.push(safeValue(section.subtitle));
@@ -997,7 +990,7 @@
                         });
                         addSection('تفاصيل الكميات الهندسية', quantitiesItems);
 
-                        // 4. الحسابات الإنشائية
+                        // 4. الحسابات الإنشائية (تقسيم إلى صفحتين)
                         const engineeringItems = [];
                         (pdfData.engineering?.sections || []).forEach(section => {
                             engineeringItems.push(safeValue(section.subtitle));
@@ -1007,7 +1000,7 @@
                         });
                         addSection('الحسابات الإنشائية', engineeringItems);
 
-                        // 5. التكاليف
+                        // 5. التكاليف (تقسيم إلى ثلاث صفحات كما في المثال)
                         const costItems = (pdfData.costs?.items || []).map(item => [
                             safeValue(item.name),
                             `${(safeValue(item.value, 0)).toLocaleString('ar-IQ')} ${safeValue(item.unit)}`
@@ -1015,7 +1008,7 @@
                         costItems.push(['الإجمالي', `${(safeValue(pdfData.costs?.total, 0)).toLocaleString('ar-IQ')} د.ع`]);
                         addSection('تفاصيل التكاليف', costItems, true);
 
-                        // 6. أسعار المواد
+                        // 6. أسعار المواد (تقسيم إلى أربع صفحات)
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => `${safeValue(item.name)}: ${(safeValue(item.value, 0)).toLocaleString('ar-IQ')} ${safeValue(item.unit)}`);
                         addSection('أسعار المواد المعتمدة (2025)', materialItems);
 
@@ -1035,7 +1028,8 @@
                                 width: 595,
                                 height: 842,
                                 x: 0,
-                                y: 0
+                                y: 0,
+                                backgroundColor: '#FFF'
                             });
 
                             const imgData = canvas.toDataURL('image/jpeg', 0.98);
@@ -1047,7 +1041,7 @@
 
                         // تنظيف
                         pdfWindow.close();
-                        console.log('تم إنشاء ملف PDF');
+                        console.log('تم إنشاء ملف PDF مع ' + pages.length + ' صفحات');
                     } catch (error) {
                         console.error('خطأ أثناء إنشاء PDF:', error);
                         const resultContent = document.createElement('div');
