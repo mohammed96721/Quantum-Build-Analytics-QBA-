@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.0/dist/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
@@ -802,6 +799,9 @@
                         const fontSize = 14;
                         const margin = 30;
 
+                        // تسجيل fontkit
+                        pdfDoc.registerFontkit(fontkit); // إضافة هذه السطر لتسجيل fontkit
+
                         // تحميل خط Tajawal
                         const fontUrl = 'https://fonts.gstatic.com/s/tajawal/v9/Iura6YBj_oCad4k1nzGKEw.ttf';
                         const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
@@ -815,7 +815,8 @@
                             return page;
                         };
 
-                        // دالة لإضافة نص مع دعم الاتجاه من اليمين إلى اليسار
+                        // باقي الكود كما هو...
+                        // (دالة addText، دالة addSection، إضافة الأقسام، إلخ)
                         const addText = (page, text, x, y, options = {}) => {
                             page.drawText(text, {
                                 x,
@@ -827,32 +828,27 @@
                             });
                         };
 
-                        // دالة لإضافة قسم
                         const addSection = async (title, items, isTable = false, page = null) => {
                             if (!page) page = addPage();
                             let y = pageHeight - margin - 20;
 
-                            // إضافة عنوان القسم
-                            addText(page, title, margin, y, { color: rgb(0.6, 0.18, 0.18), size: 16 }); // لون #9B2D30
+                            addText(page, title, margin, y, { color: rgb(0.6, 0.18, 0.18), size: 16 });
                             y -= 20;
 
-                            // إضافة خط فاصل
                             page.drawLine({
                                 start: { x: margin, y: y },
                                 end: { x: pageWidth - margin, y: y },
                                 thickness: 0.5,
-                                color: rgb(0.76, 0.6, 0.42) // لون #C19A6B
+                                color: rgb(0.76, 0.6, 0.42)
                             });
                             y -= 20;
 
-                            // إضافة العناصر
                             const maxItemsPerPage = 15;
                             let currentItems = items;
 
                             while (currentItems.length > 0) {
                                 const itemsToAdd = currentItems.slice(0, maxItemsPerPage);
                                 if (isTable) {
-                                    // إضافة جدول
                                     itemsToAdd.forEach((item, index) => {
                                         if (y < margin + 50) {
                                             page = addPage();
@@ -863,7 +859,6 @@
                                         y -= 20;
                                     });
                                 } else {
-                                    // إضافة نصوص
                                     itemsToAdd.forEach(item => {
                                         if (y < margin + 50) {
                                             page = addPage();
@@ -882,7 +877,7 @@
                             return page;
                         };
 
-                        // 1. معلومات الشركة
+                        // إضافة الأقسام (معلومات الشركة، بيانات المدخلات، إلخ)
                         let page = addPage();
                         const companyItems = [
                             `الاسم: ${pdfData.companyInfo?.name || 'غير محدد'}`,
@@ -893,7 +888,6 @@
                         ];
                         page = await addSection('معلومات الشركة', companyItems, false, page);
 
-                        // 2. بيانات المدخلات
                         page = addPage();
                         const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
                         page = await addSection(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, page);
@@ -907,7 +901,6 @@
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
                         page = await addSection(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, page);
 
-                        // 3. الكميات
                         page = addPage();
                         const quantitiesItems = [];
                         (pdfData.quantities?.sections || []).forEach(section => {
@@ -918,7 +911,6 @@
                         });
                         page = await addSection('تفاصيل الكميات الهندسية', quantitiesItems);
 
-                        // 4. الحسابات الإنشائية
                         page = addPage();
                         const engineeringItems = [];
                         (pdfData.engineering?.sections || []).forEach(section => {
@@ -929,7 +921,6 @@
                         });
                         page = await addSection('الحسابات الإنشائية', engineeringItems);
 
-                        // 5. التكاليف
                         page = addPage();
                         const costItems = (pdfData.costs?.items || []).map(item => [
                             item.name || 'غير محدد',
@@ -938,18 +929,15 @@
                         costItems.push(['الإجمالي', `${(pdfData.costs?.total || 0).toLocaleString('ar-IQ')} د.ع`]);
                         page = await addSection('تفاصيل التكاليف', costItems, true);
 
-                        // 6. أسعار المواد
                         page = addPage();
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => `${item.name || 'غير محدد'}: ${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`);
                         page = await addSection('أسعار المواد المعتمدة (2025)', materialItems);
 
-                        // إضافة تذييل
                         const pages = pdfDoc.getPages();
                         pages.forEach((page, index) => {
                             addText(page, `صفحة ${index + 1} من ${pages.length} | ${pdfData.companyInfo?.name || 'غير محدد'}`, margin, 20, { size: 10 });
                         });
 
-                        // حفظ الملف
                         const pdfBytes = await pdfDoc.save();
                         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                         const url = URL.createObjectURL(blob);
@@ -957,7 +945,7 @@
                         link.href = url;
                         link.download = `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`;
                         link.click();
-                        URL.reعاملى(url);
+                        URL.revokeObjectURL(url);
 
                         console.log('تم إنشاء ملف PDF');
                     } catch (error) {
