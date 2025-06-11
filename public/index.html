@@ -799,12 +799,6 @@
                             format: 'a4',
                         });
 
-                        // تحميل خط Amiri لـ jsPDF
-                        const fontUrl = 'https://fonts.gstatic.com/s/amiri/v27/J7aRnpd8CGxBHqUp.ttf';
-                        const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
-                        doc.addFileToVFS('Amiri-Regular.ttf', fontBytes);
-                        doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
-
                         // دالة للتحقق من النصوص ومعالجة القيم الفارغة
                         const sanitizeText = (text) => {
                             if (!text || typeof text !== 'string' || text.trim() === '') return 'غير محدد';
@@ -831,7 +825,7 @@
                             section.style.left = '-9999px';
                             section.style.fontSize = '14px';
                             section.style.lineHeight = '1.6';
-                            section.style.margin = '10px'; // هامش داخلي
+                            section.style.margin = '10px';
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -1033,14 +1027,15 @@
                             doc.deletePage(pageCount);
                         }
 
-                        // إضافة تذييل للترقيم باستخدام خط Amiri
+                        // إضافة تذييل للترقيم باستخدام خط مدعوم
                         const finalPageCount = doc.internal.getNumberOfPages();
                         for (let i = 1; i <= finalPageCount; i++) {
                             doc.setPage(i);
-                            doc.setFont('Amiri', 'normal');
+                            doc.setFont('helvetica', 'normal'); // استخدام خط مدعوم افتراضي
                             doc.setFontSize(10);
                             doc.setTextColor(75, 60, 46);
-                            doc.text(`صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير محدد'}`, 190, 287, { align: 'right' });
+                            const footerText = `صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير محدد'}`;
+                            doc.text(footerText, 190, 287, { align: 'right' });
                         }
 
                         // حفظ الملف
