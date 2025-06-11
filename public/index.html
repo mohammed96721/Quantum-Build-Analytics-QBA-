@@ -792,7 +792,7 @@
                         console.log('بدء إنشاء ملف PDF باستخدام PDF-lib.js');
 
                         // إنشاء مستند PDF
-                        const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                        const { PDFDocument, rgb } = PDFLib;
                         const pdfDoc = await PDFDocument.create();
                         const pageWidth = 595; // عرض A4 بالنقاط (210mm)
                         const pageHeight = 842; // ارتفاع A4 بالنقاط (297mm)
@@ -802,25 +802,19 @@
                         // تسجيل fontkit لتضمين الخطوط المخصصة
                         pdfDoc.registerFontkit(fontkit);
 
-                        // تحميل خط Noto Sans Arabic
-                        let font = null;
-                        try {
-                            const fontUrl = 'https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf';
-                            const fontBytes = await fetch(fontUrl, { mode: 'cors' }).then(res => {
-                                if (!res.ok) throw new Error('فشل تحميل ملف الخط: ' + res.statusText);
-                                return res.arrayBuffer();
-                            });
-                            font = await pdfDoc.embedFont(fontBytes, { subset: true });
-                            console.log('تم تحميل خط Noto Sans Arabic بنجاح');
-                        } catch (fontError) {
-                            console.warn('فشل تحميل الخط، يتم استخدام Helvetica كبديل:', fontError);
-                            font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-                        }
+                        // تحميل خط Noto Sans Arabic من رابط خام
+                        const fontUrl = 'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf';
+                        const fontBytes = await fetch(fontUrl, { mode: 'cors' }).then(res => {
+                            if (!res.ok) throw new Error(`فشل تحميل ملف الخط: ${res.statusText}`);
+                            return res.arrayBuffer();
+                        });
+                        const notoFont = await pdfDoc.embedFont(fontBytes, { subset: true });
+                        console.log('تم تحميل خط Noto Sans Arabic بنجاح');
 
                         // دالة لإضافة صفحة جديدة
                         const addPage = () => {
                             const page = pdfDoc.addPage([pageWidth, pageHeight]);
-                            page.setFont(font);
+                            page.setFont(notoFont);
                             page.setFontSize(fontSize);
                             return page;
                         };
@@ -830,7 +824,7 @@
                             page.drawText(text, {
                                 x,
                                 y,
-                                font,
+                                font: notoFont,
                                 size: fontSize,
                                 color: options.color || rgb(0, 0, 0),
                                 ...options,
@@ -895,77 +889,77 @@
                             `الاسم: ${pdfData.companyInfo?.name || 'غير محدد'}`,
                             `الوصف: ${pdfData.companyInfo?.description || 'غير محدد'}`,
                             `الهاتف: ${pdfData.companyInfo?.contact?.phone || 'غير محدد'}`,
-                        `البريد الإلكتروني: ${pdfData.companyInfo?.contact?.email || 'غير محدد'}`,
-                        `العنوان: ${pdfData.companyInfo?.contact?.address || 'غير محدد'}`
-                    ];
-                    page = await addSection('معلومات الشركة', companyItems, false, page);
+                            `البريد الإلكتروني: ${pdfData.companyInfo?.contact?.email || 'غير محدد'}`,
+                            `العنوان: ${pdfData.companyInfo?.contact?.address || 'غير محدد'}`
+                        ];
+                        page = await addSection('معلومات الشركة', companyItems, false, page);
 
-                    page = addPage();
-                    const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
-                    page = await addSection(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, page);
+                        page = addPage();
+                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
+                        page = await addSection(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, page);
 
-                    const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
-                    page = await addSection(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, page);
+                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
+                        page = await addSection(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, page);
 
-                    const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
-                    page = await addSection(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, page);
+                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
+                        page = await addSection(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, page);
 
-                    const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
-                    page = await addSection(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, page);
+                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
+                        page = await addSection(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, page);
 
-                    page = addPage();
-                    const quantitiesItems = [];
-                    (pdfData.quantities?.sections || []).forEach(section => {
-                        quantitiesItems.push(section.subtitle || 'غير محدد');
-                        section.items.forEach(item => {
-                            quantitiesItems.push(`${item.name || 'غير محدد'}: ${item.value || 'غير محدد'} ${item.unit || ''}`);
+                        page = addPage();
+                        const quantitiesItems = [];
+                        (pdfData.quantities?.sections || []).forEach(section => {
+                            quantitiesItems.push(section.subtitle || 'غير محدد');
+                            section.items.forEach(item => {
+                                quantitiesItems.push(`${item.name || 'غير محدد'}: ${item.value || 'غير محدد'} ${item.unit || ''}`);
+                            });
                         });
-                    });
-                    page = await addSection('تفاصيل الكميات الهندسية', quantitiesItems);
+                        page = await addSection('تفاصيل الكميات الهندسية', quantitiesItems);
 
-                    page = addPage();
-                    const engineeringItems = [];
-                    (pdfData.engineering?.sections || []).forEach(section => {
-                        engineeringItems.push(section.subtitle || 'غير محدد');
-                        section.items.forEach(item => {
-                            engineeringItems.push(`${item.name || 'غير محدد'}: ${item.value || 'غير محدد'} ${item.unit || ''}`);
+                        page = addPage();
+                        const engineeringItems = [];
+                        (pdfData.engineering?.sections || []).forEach(section => {
+                            engineeringItems.push(section.subtitle || 'غير محدد');
+                            section.items.forEach(item => {
+                                engineeringItems.push(`${item.name || 'غير محدد'}: ${item.value || 'غير محدد'} ${item.unit || ''}`);
+                            });
                         });
-                    });
-                    page = await addSection('الحسابات الإنشائية', engineeringItems);
+                        page = await addSection('الحسابات الإنشائية', engineeringItems);
 
-                    page = addPage();
-                    const costItems = (pdfData.costs?.items || []).map(item => [
-                        item.name || 'غير محدد',
-                        `${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`
-                    ]);
-                    costItems.push(['الإجمالي', `${(pdfData.costs?.total || 0).toLocaleString('ar-IQ')} د.ع`]);
-                    page = await addSection('تفاصيل التكاليف', costItems, true);
+                        page = addPage();
+                        const costItems = (pdfData.costs?.items || []).map(item => [
+                            item.name || 'غير محدد',
+                            `${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`
+                        ]);
+                        costItems.push(['الإجمالي', `${(pdfData.costs?.total || 0).toLocaleString('ar-IQ')} د.ع`]);
+                        page = await addSection('تفاصيل التكاليف', costItems, true);
 
-                    page = addPage();
-                    const materialItems = (pdfData.materialPrices?.items || []).map(item => `${item.name || 'غير محدد'}: ${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`);
-                    page = await addSection('أسعار المواد المعتمدة (2025)', materialItems);
+                        page = addPage();
+                        const materialItems = (pdfData.materialPrices?.items || []).map(item => `${item.name || 'غير محدد'}: ${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`);
+                        page = await addSection('أسعار المواد المعتمدة (2025)', materialItems);
 
-                    const pages = pdfDoc.getPages();
-                    pages.forEach((page, index) => {
-                        addText(page, `صفحة ${index + 1} من ${pages.length} | ${pdfData.companyInfo?.name || 'غير محدد'}`, margin, 20, { size: 10 });
-                    });
+                        const pages = pdfDoc.getPages();
+                        pages.forEach((page, index) => {
+                            addText(page, `صفحة ${index + 1} من ${pages.length} | ${pdfData.companyInfo?.name || 'غير محدد'}`, margin, 20, { size: 10 });
+                        });
 
-                    const pdfBytes = await pdfDoc.save();
-                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`;
-                    link.click();
-                    URL.revokeObjectURL(url);
+                        const pdfBytes = await pdfDoc.save();
+                        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`;
+                        link.click();
+                        URL.revokeObjectURL(url);
 
-                    console.log('تم إنشاء ملف PDF');
-                } catch (error) {
-                    console.error('خطأ أثناء إنشاء PDF:', error.stack);
-                    resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}. تحقق من وحدة التحكم لمزيد من التفاصيل.</p>`;
-                    resultContainer.classList.remove('hidden');
-                    resultContainer.style.display = 'block';
-                }
+                        console.log('تم إنشاء ملف PDF');
+                    } catch (error) {
+                        console.error('خطأ أثناء إنشاء PDF:', error.stack);
+                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}. يرجى التحقق من اتصال الإنترنت أو المحاولة لاحقًا.</p>`;
+                        resultContainer.classList.remove('hidden');
+                        resultContainer.style.display = 'block';
+                    }
                 }, { once: true });
             } catch (error) {
                 console.error('خطأ أثناء معالجة النموذج:', error);
