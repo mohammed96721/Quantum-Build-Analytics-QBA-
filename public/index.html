@@ -801,14 +801,14 @@
 
                         // دالة للتحقق من النصوص ومعالجة القيم الفارغة
                         const sanitizeText = (text) => {
-                            if (!text || typeof text !== 'string' || text.trim() === '') return 'غير محدد';
+                            if (text === null || text === undefined || typeof text !== 'string' || text.trim() === '') return 'غير متوفر';
                             // الاحتفاظ بالأحرف العربية، الإنجليزية، الأرقام، والرموز الشائعة
-                            return text.replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/\-+%]/g, '');
+                            return text.replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/\-+%@]/g, '');
                         };
 
                         // دالة لإنشاء قسم كـ HTML
                         const createSectionElement = (title, items, isTable = false, isSubsection = false) => {
-                            if (!items || items.length === 0) {
+                            if (!items || !Array.isArray(items) || items.length === 0) {
                                 console.warn(`قسم "${sanitizeText(title)}" فارغ، لن يتم إضافته`);
                                 return null;
                             }
@@ -837,7 +837,7 @@
                                 header.innerHTML = `
                                     <img src="${sanitizeText(pdfData.companyInfo?.logo) || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
                                     <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
-                                    <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير محدد'}</p>
+                                    <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
                                     <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                 `;
                                 section.appendChild(header);
@@ -911,7 +911,7 @@
 
                             while (remainingHeight > 0) {
                                 const currentHeight = Math.min(remainingHeight, pageHeight);
-                                doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, 'FAST');
+                                doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, false);
                                 remainingHeight -= pageHeight;
                                 yOffset += pageHeight * (canvas.width / imgWidth);
                                 if (remainingHeight > 0) {
@@ -919,9 +919,6 @@
                                 }
                             }
                             document.body.removeChild(sectionElement);
-                            if (doc.internal.getNumberOfPages() < 20) {
-                                doc.addPage();
-                            }
                         };
 
                         // التحقق من pdfData
@@ -935,13 +932,15 @@
 
                         // 1. معلومات الشركة
                         const companyItems = [
-                            `الاسم: ${sanitizeText(pdfData.companyInfo?.name)}`,
-                            `الوصف: ${sanitizeText(pdfData.companyInfo?.description)}`,
-                            `الهاتف: ${sanitizeText(pdfData.companyInfo?.contact?.phone)}`,
-                            `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo?.contact?.email)}`,
-                            `العنوان: ${sanitizeText(pdfData.companyInfo?.contact?.address)}`
-                        ].filter(item => sanitizeText(item) !== 'غير محدد');
-                        await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
+                            pdfData.companyInfo?.name ? `الاسم: ${sanitizeText(pdfData.companyInfo.name)}` : '',
+                            pdfData.companyInfo?.description ? `الوصف: ${sanitizeText(pdfData.companyInfo.description)}` : '',
+                            pdfData.companyInfo?.contact?.phone ? `الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}` : '',
+                            pdfData.companyInfo?.contact?.email ? `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}` : '',
+                            pdfData.companyInfo?.contact?.address ? `العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}` : ''
+                        ].filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                        if (companyItems.length > 0) {
+                            await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
+                        }
 
                         // 2. بيانات المدخلات
                         const inputSection = document.createElement('div');
@@ -967,59 +966,93 @@
                         inputHeader.innerHTML = `
                             <img src="${sanitizeText(pdfData.companyInfo?.logo) || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
                             <h1 style="font-size: 18px; margin: 3px 0;">بيانات المدخلات</h1>
-                            <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير محدد'}</p>
+                            <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
                             <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                         `;
                         inputSection.appendChild(inputHeader);
 
-                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)}`).filter(item => sanitizeText(item) !== 'غير محدد');
-                        inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
+                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => 
+                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : ''
+                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                        if (customerItems.length > 0) {
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
+                        }
 
-                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)}`).filter(item => sanitizeText(item) !== 'غير محدد');
-                        inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
+                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => 
+                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)}` : ''
+                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                        if (locationItems.length > 0) {
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
+                        }
 
-                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit)}`).filter(item => sanitizeText(item) !== 'غير محدد');
-                        inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
+                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
+                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : ''
+                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                        if (landItems.length > 0) {
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
+                        }
 
-                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit)}`).filter(item => sanitizeText(item) !== 'غير محدد');
-                        inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
+                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => 
+                            field.label && field.value ? `${sanitizeText(field.label)}: ${sanitizeText(field.value)} ${sanitizeText(field.unit || '')}` : ''
+                        ).filter(item => item && sanitizeText(item) !== 'غير متوفر');
+                        if (buildingItems.length > 0) {
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
+                        }
 
-                        await addSectionToPDF(inputSection, 'بيانات المدخلات');
+                        if (inputSection.childElementCount > 1) { // التأكد من وجود محتوى
+                            await addSectionToPDF(inputSection, 'بيانات المدخلات');
+                        }
 
                         // 3. الكميات
                         const quantitiesItems = [];
                         (pdfData.quantities?.sections || []).slice(0, maxItemsPerSection).forEach(section => {
-                            quantitiesItems.push([sanitizeText(section.subtitle) || 'غير محدد', '']);
+                            if (section.subtitle) {
+                                quantitiesItems.push([sanitizeText(section.subtitle), '']);
+                            }
                             section.items.slice(0, maxItemsPerSection).forEach(item => {
-                                quantitiesItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit)}`]);
+                                if (item.name && item.value) {
+                                    quantitiesItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`]);
+                                }
                             });
                         });
-                        await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true), 'تفاصيل الكميات الهندسية');
+                        if (quantitiesItems.length > 0) {
+                            await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true), 'تفاصيل الكميات الهندسية');
+                        }
 
                         // 4. الحسابات الإنشائية
                         const engineeringItems = [];
                         (pdfData.engineering?.sections || []).slice(0, maxItemsPerSection).forEach(section => {
-                            engineeringItems.push([sanitizeText(section.subtitle) || 'غير محدد', '']);
+                            if (section.subtitle) {
+                                engineeringItems.push([sanitizeText(section.subtitle), '']);
+                            }
                             section.items.slice(0, maxItemsPerSection).forEach(item => {
-                                engineeringItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit)}`]);
+                                if (item.name && item.value) {
+                                    engineeringItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`]);
+                                }
                             });
                         });
-                        await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true), 'الحسابات الإنشائية');
+                        if (engineeringItems.length > 0) {
+                            await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true), 'الحسابات الإنشائية');
+                        }
 
                         // 5. التكاليف
-                        const costItems = (pdfData.costs?.items || []).map(item => [
-                            sanitizeText(item.name),
-                            `${sanitizeText((item.value || 0).toLocaleString('ar-IQ'))} ${sanitizeText(item.unit)}`
-                        ]).filter(item => sanitizeText(item[0]) !== 'غير محدد' && sanitizeText(item[1]) !== 'غير محدد');
-                        costItems.push(['الإجمالي', `${sanitizeText((pdfData.costs?.total || 0).toLocaleString('ar-IQ'))} د.ع`]);
-                        await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
+                        const costItems = (pdfData.costs?.items || []).map(item => 
+                            item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value.toLocaleString('ar-IQ'))} ${sanitizeText(item.unit || '')}`] : null
+                        ).filter(item => item && sanitizeText(item[0]) !== 'غير متوفر' && sanitizeText(item[1]) !== 'غير متوفر');
+                        if (pdfData.costs?.total !== undefined) {
+                            costItems.push(['الإجمالي', `${sanitizeText(pdfData.costs.total.toLocaleString('ar-IQ'))} د.ع`]);
+                        }
+                        if (costItems.length > 0) {
+                            await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
+                        }
 
                         // 6. أسعار المواد
-                        const materialItems = (pdfData.materialPrices?.items || []).map(item => [
-                            sanitizeText(item.name),
-                            `${sanitizeText((item.value || 0).toLocaleString('ar-IQ'))} ${sanitizeText(item.unit)}`
-                        ]).filter(item => sanitizeText(item[0]) !== 'غير محدد' && sanitizeText(item[1]) !== 'غير محدد');
-                        await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
+                        const materialItems = (pdfData.materialPrices?.items || []).map(item => 
+                            item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value.toLocaleString('ar-IQ'))} ${sanitizeText(item.unit || '')}`] : null
+                        ).filter(item => item && sanitizeText(item[0]) !== 'غير متوفر' && sanitizeText(item[1]) !== 'غير متوفر');
+                        if (materialItems.length > 0) {
+                            await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
+                        }
 
                         // إزالة الصفحة الفارغة الأخيرة
                         const pageCount = doc.internal.getNumberOfPages();
@@ -1027,15 +1060,25 @@
                             doc.deletePage(pageCount);
                         }
 
-                        // إضافة تذييل للترقيم باستخدام خط مدعوم
+                        // إضافة تذييل للترقيم كصورة باستخدام html2canvas
                         const finalPageCount = doc.internal.getNumberOfPages();
+                        const footerElement = document.createElement('div');
+                        footerElement.style.fontFamily = 'Amiri, Arial, sans-serif';
+                        footerElement.style.direction = 'rtl';
+                        footerElement.style.width = '754px';
+                        footerElement.style.padding = '5px';
+                        footerElement.style.position = 'absolute';
+                        footerElement.style.left = '-9999px';
+                        footerElement.style.fontSize = '10px';
+                        footerElement.style.textAlign = 'right';
                         for (let i = 1; i <= finalPageCount; i++) {
+                            footerElement.textContent = `صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}`;
+                            document.body.appendChild(footerElement);
+                            const footerCanvas = await html2canvas(footerElement, { scale: 2 });
+                            const footerImgData = footerCanvas.toDataURL('image/jpeg', 0.95);
                             doc.setPage(i);
-                            doc.setFont('helvetica', 'normal'); // استخدام خط مدعوم افتراضي
-                            doc.setFontSize(10);
-                            doc.setTextColor(75, 60, 46);
-                            const footerText = `صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير محدد'}`;
-                            doc.text(footerText, 190, 287, { align: 'right' });
+                            doc.addImage(footerImgData, 'JPEG', 10, 287 - 5, 190, (footerCanvas.height * 190) / footerCanvas.width);
+                            document.body.removeChild(footerElement);
                         }
 
                         // حفظ الملف
