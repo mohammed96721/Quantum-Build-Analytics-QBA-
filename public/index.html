@@ -792,175 +792,149 @@
                 downloadBtn.addEventListener('click', async () => {
                     try {
                         console.log('بدء إنشاء ملف PDF');
-
-                        // التحقق من البيانات
-                        if (!pdfData || !pdfData.companyInfo) {
-                            throw new Error('بيانات pdfData غير متوفرة أو ناقصة');
-                        }
-
-                        // فتح نافذة معاينة
-                        const previewWindow = window.open('', '_blank');
-                        previewWindow.document.write(`
-                            <html dir="rtl">
-                            <head>
-                                <title>معاينة تقرير PDF</title>
-                                <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-                                <style>
-                                    * { box-sizing: border-box; margin: 0; padding: 0; }
-                                    body { background: #f5f5f5; padding: 20px; }
-                                    #pdfContainer {
-                                        width: 794px;
-                                        min-height: 1123px;
-                                        margin: 0 auto;
-                                        padding: 20px;
-                                        background: #FFF;
-                                        font-family: 'Tajawal', Arial, sans-serif;
-                                        direction: rtl;
-                                        border: 2px solid #C19A6B;
-                                        position: relative;
-                                    }
-                                    .header {
-                                        background: #9B2D30;
-                                        color: #FFF;
-                                        padding: 15px;
-                                        text-align: center;
-                                        margin-bottom: 15px;
-                                        border-radius: 8px;
-                                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                    }
-                                    .group { 
-                                        break-before: page; 
-                                        margin-bottom: 20px; 
-                                        position: relative;
-                                        min-height: 1000px; /* احتياطي لتجنب التداخل */
-                                    }
-                                    .group-header {
-                                        background: #C19A6B;
-                                        color: #FFF;
-                                        padding: 12px;
-                                        text-align: center;
-                                        font-size: 16px;
-                                        margin-bottom: 10px;
-                                        border-radius: 4px;
-                                    }
-                                    .content {
-                                        background: #F9F9F9;
-                                        padding: 15px;
-                                        border-radius: 4px;
-                                        margin: 10px;
-                                        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-                                    }
-                                    table {
-                                        width: 100%;
-                                        border-collapse: collapse;
-                                        margin: 15px 0;
-                                        background: #FFF;
-                                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                                    }
-                                    th, td {
-                                        border: 1px solid #DBC2A4;
-                                        padding: 12px;
-                                        text-align: right;
-                                        font-size: 14px;
-                                    }
-                                    th { background: #9B2D30; color: #FFF; }
-                                    td { background: #FFF; }
-                                    .footer {
-                                        position: absolute;
-                                        bottom: 10px;
-                                        width: 100%;
-                                        text-align: center;
-                                        font-size: 12px;
-                                        color: #4B3C2E;
-                                        border-top: 1px dashed #C19A6B;
-                                        padding-top: 5px;
-                                    }
-                                    .page-break {
-                                        display: block;
-                                        clear: both;
-                                        page-break-before: always;
-                                        height: 0;
-                                        line-height: 0;
-                                    }
-                                    .logo {
-                                        position: absolute;
-                                        left: 12px;
-                                        top: 12px;
-                                        width: 32px;
-                                        height: 32px;
-                                        border-radius: 50%;
-                                        border: 1px solid #FFF;
-                                    }
-                                    h1 { font-size: 18px; margin: 3px 0; }
-                                    h3 { font-size: 14px; color: #4B3C2E; margin: 8px 0 4px; }
-                                    hr { border: 0.4px solid #C19A6B; margin: 8px 0; }
-                                    #generatePdfBtn {
-                                        display: block;
-                                        margin: 20px auto;
-                                        padding: 10px 20px;
-                                        background: #9B2D30;
-                                        color: #FFF;
-                                        border: none;
-                                        border-radius: 4px;
-                                        cursor: pointer;
-                                        font-family: 'Tajawal', Arial, sans-serif;
-                                    }
-                                </style>
-                            </head>
-                            <body>
-                                <div id="pdfContainer"></div>
-                                <button id="generatePdfBtn">تحويل إلى PDF</button>
-                            </body>
-                            </html>
-                        `);
-
-                        const previewContainer = previewWindow.document.getElementById('pdfContainer');
-                        const generatePdfBtn = previewWindow.document.getElementById('generatePdfBtn');
-
-                        // دالة إضافة فاصل صفحة
+                
+                        // إنشاء عنصر HTML مؤقت للتنسيق
+                        const pdfContainer = document.createElement('div');
+                        pdfContainer.id = 'pdfContainer';
+                        pdfContainer.style.fontFamily = 'Tajawal, Arial, sans-serif';
+                        pdfContainer.style.direction = 'rtl';
+                        pdfContainer.style.width = '794px'; // 210mm × 3.78px/mm
+                        pdfContainer.style.margin = '0';
+                        pdfContainer.style.padding = '15px'; // حشوة خارجية أكبر
+                        pdfContainer.style.background = 'linear-gradient(to bottom, #FDF6E3 0%, #FFF1E0 100%)';
+                        pdfContainer.style.fontSize = '14px';
+                        pdfContainer.style.lineHeight = '1.6';
+                        pdfContainer.style.border = '1px solid #C19A6B'; // إطار ذهبي
+                        pdfContainer.style.boxSizing = 'border-box';
+                        pdfContainer.style.overflow = 'hidden';
+                        document.body.appendChild(pdfContainer);
+                
+                        // إضافة CSS
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            * { box-sizing: border-box; }
+                            #pdfContainer {
+                                width: 794px !important;
+                                margin: 0 !important;
+                                padding: 15px !important;
+                                background: linear-gradient(to bottom, #FDF6E3, #FFF1E0) !important;
+                                border: 1px solid #C19A6B !important;
+                                overflow: hidden !important;
+                            }
+                            .group {
+                                display: block;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .header {
+                                background: #9B2D30 !important;
+                                color: #FFF !important;
+                                padding: 12px;
+                                text-align: center;
+                                margin: 0 0 12px 0;
+                                border-radius: 4px;
+                                position: relative;
+                            }
+                            .group-header {
+                                background: #C19A6B !important;
+                                color: #FFF !important;
+                                padding: 10px;
+                                text-align: center;
+                                font-size: 16px;
+                                margin: 0 0 12px 0;
+                                border-bottom: 1px solid #9B2D30;
+                            }
+                            .logo {
+                                position: absolute;
+                                left: 12px;
+                                top: 12px;
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 50%;
+                                border: 1px solid #FFF;
+                            }
+                            h1 { font-size: 18px; margin: 3px 0; }
+                            h2 { font-size: 15px; color: #9B2D30; margin: 8px 0 4px; }
+                            h3 { font-size: 14px; color: #4B3C2E; margin: 8px 0 4px; }
+                            hr { border: 0.4px solid #C19A6B; margin: 8px 0; }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 12px 0;
+                                background: #FDF6E3;
+                            }
+                            th, td {
+                                border: 1px solid #DBC2A4;
+                                padding: 12px;
+                                text-align: right;
+                                font-size: 14px;
+                            }
+                            th { background: #9B2D30 !important; color: #FFF !important; }
+                            td { background: #FFF !important; }
+                            .footer {
+                                position: relative;
+                                width: 100%;
+                                text-align: center;
+                                font-size: 12px;
+                                color: #4B3C2E;
+                                border-top: 1px dashed #C19A6B;
+                                padding-top: 4px;
+                                margin-top: 15px;
+                            }
+                            p { margin: 8px 0; }
+                            .content {
+                                margin: 0 10px;
+                                background: #FFF !important;
+                                padding: 15px;
+                                border-radius: 4px;
+                            }
+                            .page-break {
+                                break-before: page;
+                                height: 0;
+                                margin: 0;
+                                padding: 0;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                
+                        // دالة لإضافة فاصل صفحة
                         const addPageBreak = () => {
                             const pageBreak = document.createElement('div');
                             pageBreak.className = 'page-break';
-                            previewContainer.appendChild(pageBreak);
+                            pdfContainer.appendChild(pageBreak);
                             console.log('تم إضافة فاصل صفحة');
                         };
-
-                        // دالة إضافة قسم
+                
+                        // دالة لإضافة قسم مع تقسيم المحتوى الكبير
                         const addSection = (title, items, isTable = false, isSubsection = false, parentSection = null) => {
-                            if (!items || !Array.isArray(items) || items.length === 0) {
+                            if (!items || items.length === 0) {
                                 console.warn(`قسم "${title}" فارغ، لن يتم إضافته`);
                                 return;
                             }
-
-                            const maxItemsPerPage = 20;
+                
+                            const maxItemsPerPage = 15; // الحد الأقصى للعناصر في الصفحة
                             let currentItems = items;
-                            let isFirstPage = true;
-
+                
                             while (currentItems.length > 0) {
                                 const section = document.createElement('div');
                                 section.className = isSubsection ? '' : 'group';
-
-                                // إضافة رأسية للقسم الرئيسي فقط في الصفحة الأولى
-                                if (!isSubsection && isFirstPage) {
-                                    const header = document.createElement('div');
-                                    header.className = 'header';
-                                    header.innerHTML = `
-                                        <img class="logo" src="${pdfData.companyInfo?.logo || ''}" alt="Logo" onerror="this.style.display='none'"/>
-                                        <h1>${title}</h1>
-                                        <p style="font-size:13px; margin: 3px 0;">إعداد: ${pdfData.companyInfo?.name || 'غير محدد'}</p>
-                                        <p style="font-size:13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
-                                    `;
-                                    section.appendChild(header);
-                                } else if (isSubsection) {
+                
+                                if (!isSubsection) {
+                                    const groupHeader = document.createElement('div');
+                                    groupHeader.className = 'group-header';
+                                    groupHeader.textContent = title;
+                                    section.appendChild(groupHeader);
+                                } else {
                                     const titleEl = document.createElement('h3');
                                     titleEl.textContent = title;
                                     section.appendChild(titleEl);
                                     section.appendChild(document.createElement('hr'));
                                 }
-
-                                // إضافة المحتوى
+                
                                 const content = document.createElement('div');
                                 content.className = 'content';
+                
+                                // تقسيم العناصر إذا كانت كبيرة
                                 const itemsToAdd = currentItems.slice(0, maxItemsPerPage);
                                 if (isTable) {
                                     const table = document.createElement('table');
@@ -983,26 +957,35 @@
                                     });
                                 }
                                 section.appendChild(content);
-
-                                // إضافة التذييل
-                                const totalPages = Math.ceil(items.length / maxItemsPerPage);
-                                const currentPage = Math.floor((items.length - currentItems.length) / maxItemsPerPage) + 1;
-                                const footer = document.createElement('div');
-                                footer.className = 'footer';
-                                footer.textContent = `صفحة ${currentPage} من ${totalPages} | ${pdfData.companyInfo?.name || 'غير محدد'}`;
-                                section.appendChild(footer);
-
-                                (parentSection || previewContainer).appendChild(section);
-
+                
+                                if (!isSubsection) {
+                                    const header = document.createElement('div');
+                                    header.className = 'header';
+                                    header.innerHTML = `
+                                        <img class="logo" src="${pdfData.companyInfo?.logo || ''}" alt="Logo" onerror="this.style.display='none'"/>
+                                        <h1>${title}</h1>
+                                        <p style="font-size:13px; margin: 3px 0;">إعداد: ${pdfData.companyInfo?.name || 'غير محدد'}</p>
+                                        <p style="font-size:13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                                    `;
+                                    section.insertBefore(header, section.firstChild);
+                                }
+                
+                                if (parentSection) {
+                                    parentSection.appendChild(section);
+                                } else {
+                                    pdfContainer.appendChild(section);
+                                }
+                
                                 console.log(`تم إضافة قسم "${title}" مع ${itemsToAdd.length} عنصرًا`);
-
+                
                                 currentItems = currentItems.slice(maxItemsPerPage);
-                                isFirstPage = false;
-                                if (currentItems.length > 0) addPageBreak();
+                                if (currentItems.length > 0 && !isSubsection) {
+                                    addPageBreak();
+                                }
                             }
                         };
-
-                        // إضافة الأقسام
+                
+                        // 1. معلومات الشركة
                         const companyItems = [
                             `الاسم: ${pdfData.companyInfo?.name || 'غير محدد'}`,
                             `الوصف: ${pdfData.companyInfo?.description || 'غير محدد'}`,
@@ -1012,13 +995,12 @@
                         ];
                         addSection('معلومات الشركة', companyItems);
                         addPageBreak();
-
-                        // قسم بيانات المدخلات
+                
+                        // 2. بيانات المدخلات
                         const inputSection = document.createElement('div');
                         inputSection.className = 'group';
-                        inputSection.style.breakBefore = 'page';
-                        previewContainer.appendChild(inputSection);
-
+                        pdfContainer.appendChild(inputSection);
+                
                         const inputHeader = document.createElement('div');
                         inputHeader.className = 'header';
                         inputHeader.innerHTML = `
@@ -1028,21 +1010,22 @@
                             <p style="font-size:13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                         `;
                         inputSection.appendChild(inputHeader);
-
+                
                         const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
                         addSection(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true, inputSection);
-
+                
                         const locationItems = (pdfData.inputData?.location?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'}`);
                         addSection(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true, inputSection);
-
+                
                         const landItems = (pdfData.inputData?.land?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
                         addSection(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true, inputSection);
-
+                
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${field.label || 'غير محدد'}: ${field.value || 'غير محدد'} ${field.unit || ''}`);
                         addSection(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true, inputSection);
-
+                
                         addPageBreak();
-
+                
+                        // 3. الكميات
                         const quantitiesItems = [];
                         (pdfData.quantities?.sections || []).forEach(section => {
                             quantitiesItems.push(section.subtitle || 'غير محدد');
@@ -1052,7 +1035,8 @@
                         });
                         addSection('تفاصيل الكميات الهندسية', quantitiesItems);
                         addPageBreak();
-
+                
+                        // 4. الحسابات الإنشائية
                         const engineeringItems = [];
                         (pdfData.engineering?.sections || []).forEach(section => {
                             engineeringItems.push(section.subtitle || 'غير محدد');
@@ -1062,7 +1046,8 @@
                         });
                         addSection('الحسابات الإنشائية', engineeringItems);
                         addPageBreak();
-
+                
+                        // 5. التكاليف
                         const costItems = (pdfData.costs?.items || []).map(item => [
                             item.name || 'غير محدد',
                             `${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`
@@ -1070,36 +1055,46 @@
                         costItems.push(['الإجمالي', `${(pdfData.costs?.total || 0).toLocaleString('ar-IQ')} د.ع`]);
                         addSection('تفاصيل التكاليف', costItems, true);
                         addPageBreak();
-
+                
+                        // 6. أسعار المواد
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => `${item.name || 'غير محدد'}: ${(item.value || 0).toLocaleString('ar-IQ')} ${item.unit || 'غير محدد'}`);
                         addSection('أسعار المواد المعتمدة (2025)', materialItems);
-
-                        // تحويل إلى PDF
-                        generatePdfBtn.addEventListener('click', async () => {
-                            try {
-                                const opt = {
-                                    margin: [20, 10, 30, 10],
-                                    filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
-                                    image: { type: 'jpeg', quality: 0.95 },
-                                    html2canvas: { scale: 2, useCORS: true, logging: false },
-                                    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
-                                    pagebreak: { mode: ['css', 'legacy'], before: '.group', avoid: ['.header', '.content'] }
-                                };
-                                await html2pdf().set(opt).from(previewContainer).save();
-                                previewWindow.close();
-                            } catch (pdfError) {
-                                console.error('خطأ أثناء تحويل PDF:', pdfError);
-                                alert('حدث خطأ أثناء إنشاء ملف PDF. تحقق من وحدة التحكم للحصول على التفاصيل.');
-                            }
+                
+                        // إضافة تذييل للترقيم
+                        const groups = document.querySelectorAll('.group');
+                        groups.forEach((group, index) => {
+                            const footer = document.createElement('div');
+                            footer.className = 'footer';
+                            footer.textContent = `صفحة ${index + 1} من ${groups.length} | ${pdfData.companyInfo?.name || 'غير محدد'}`;
+                            group.appendChild(footer);
                         });
-
+                
+                        // تتبع المحتوى
+                        console.log('إجمالي المجموعات:', groups.length);
+                        console.log('محتوى pdfContainer (أول 500 حرف):', pdfContainer.innerHTML.substring(0, 500) + '...');
+                
+                        // إنشاء PDF
+                        const opt = {
+                            margin: 2, // 2mm هوامش خارجية
+                            filename: `تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`,
+                            image: { type: 'jpeg', quality: 0.98 },
+                            html2canvas: { scale: 3, useCORS: true },
+                            jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+                        };
+                        await html2pdf().set(opt).from(pdfContainer).save();
+                
+                        // تنظيف
+                        document.body.removeChild(pdfContainer);
+                        document.head.removeChild(style);
+                
+                        console.log('تم إنشاء ملف PDF');
                     } catch (error) {
-                        console.error('خطأ أثناء إنشاء المعاينة:', error);
-                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء المعاينة: ${error.message}</p>`;
+                        console.error('خطأ أثناء إنشاء PDF:', error);
+                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}</p>`;
                         resultContainer.classList.remove('hidden');
                         resultContainer.style.display = 'block';
                     }
-                });
+                }, { once: true });
             } catch (error) {
                 console.error('خطأ أثناء معالجة النموذج:', error);
                 resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${error.message || 'حدث خطأ غير متوقع'}</p>`;
