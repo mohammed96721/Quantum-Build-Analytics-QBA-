@@ -783,6 +783,7 @@
                 resultContainer.style.display = 'block';
                 console.log('تم عرض رسالة النجاح وزِر تحميل PDF');
 
+
                 // إنشاء ملف PDF عند الضغط على زر التحميل
                 const downloadBtn = document.getElementById('downloadPdfBtn');
                 if (!downloadBtn) {
@@ -805,39 +806,39 @@
                                 <title>تقرير تكاليف البناء</title>
                                 <style>
                                     body { margin: 0; padding: 0; }
-                                    #pdfContainer {
+                                    .pdf-page {
                                         font-family: 'Tajawal', Arial, sans-serif;
                                         direction: rtl;
                                         width: 595px;
+                                        height: 842px;
                                         margin: 0 auto;
                                         padding: 15px;
                                         box-sizing: border-box;
                                         text-align: right;
+                                        position: relative;
+                                        overflow: hidden;
                                     }
-                                    .page-break { break-before: page; height: 0; margin: 0; padding: 0; }
                                 </style>
-                                <link rel="stylesheet" href="styles.css"> <!-- مرجع لملف CSS خارجي -->
+                                <link rel="stylesheet" href="styles.css">
                             </head>
-                            <body>
-                                <div id="pdfContainer"></div>
-                            </body>
+                            <body></body>
                             </html>
                         `);
                         pdfWindow.document.close();
-                        const pdfContainer = pdfWindow.document.getElementById('pdfContainer');
+                        const pdfBody = pdfWindow.document.body;
 
                         // دالة للتحقق من البيانات مع قيم افتراضية
                         const safeValue = (value, defaultValue = 'غير متوفر') => value ?? defaultValue;
 
-                        // دالة لإضافة فاصل صفحة
-                        const addPageBreak = () => {
-                            const pageBreak = document.createElement('div');
-                            pageBreak.className = 'page-break';
-                            pdfContainer.appendChild(pageBreak);
-                            console.log('تم إضافة فاصل صفحة');
+                        // دالة لإنشاء صفحة جديدة
+                        const createPage = () => {
+                            const page = document.createElement('div');
+                            page.className = 'pdf-page';
+                            pdfBody.appendChild(page);
+                            return page;
                         };
 
-                        // دالة لإضافة قسم مع تقسيم المحتوى الكبير
+                        // دالة لإضافة قسم مع تقسيم المحتوى إلى صفحات
                         const addSection = (title, items, isTable = false, isSubsection = false, parentSection = null) => {
                             if (!items || items.length === 0) {
                                 console.warn(`قسم "${title}" فارغ، سيتم إضافته بمحتوى افتراضي`);
@@ -847,6 +848,7 @@
                             const maxItemsPerPage = 15;
                             let currentItems = items;
                             let isFirstPage = true;
+                            let currentPage = isSubsection ? parentSection : createPage();
 
                             while (currentItems.length > 0) {
                                 const section = document.createElement('div');
@@ -910,22 +912,27 @@
                                     section.insertBefore(header, section.firstChild);
                                 }
 
-                                if (parentSection) {
-                                    parentSection.appendChild(section);
-                                } else {
-                                    pdfContainer.appendChild(section);
+                                currentPage.appendChild(section);
+
+                                // إضافة تذييل
+                                if (!isSubsection) {
+                                    const footer = document.createElement('div');
+                                    footer.className = 'footer';
+                                    footer.style.textAlign = 'center';
+                                    footer.style.position = 'absolute';
+                                    footer.style.bottom = '10px';
+                                    footer.style.width = '100%';
+                                    footer.textContent = `صفحة ${pdfBody.querySelectorAll('.pdf-page').length} من ${6 + Math.ceil(Math.max(items.length - maxItemsPerPage, 0) / maxItemsPerPage)} | ${safeValue(pdfData.companyInfo?.name)}`;
+                                    currentPage.appendChild(footer);
                                 }
 
                                 console.log(`تم إضافة قسم "${title}" مع ${itemsToAdd.length} عنصرًا`);
 
                                 currentItems = currentItems.slice(maxItemsPerPage);
-                                if (currentItems.length > 0 && !isSubsection) {
-                                    addPageBreak();
+                                if (currentItems.length > 0) {
+                                    currentPage = isSubsection ? parentSection : createPage();
                                 }
                                 isFirstPage = false;
-                            }
-                            if (!isSubsection) {
-                                addPageBreak();
                             }
                         };
 
@@ -940,11 +947,12 @@
                         addSection('معلومات الشركة', companyItems);
 
                         // 2. بيانات المدخلات
+                        const inputPage = createPage();
                         const inputSection = document.createElement('div');
                         inputSection.className = 'group';
                         inputSection.style.width = '100%';
                         inputSection.style.textAlign = 'right';
-                        pdfContainer.appendChild(inputSection);
+                        inputPage.appendChild(inputSection);
 
                         const inputHeader = document.createElement('div');
                         inputHeader.className = 'header';
@@ -968,6 +976,16 @@
 
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => `${safeValue(field.label)}: ${safeValue(field.value)} ${safeValue(field.unit, '')}`);
                         addSection(safeValue(pdfData.inputData?.building?.title, 'بيانات المبنى'), buildingItems, false, true, inputSection);
+
+                        // إضافة تذييل لبيانات المدخلات
+                        const inputFooter = document.createElement('div');
+                        inputFooter.className = 'footer';
+                        inputFooter.style.textAlign = 'center';
+                        inputFooter.style.position = 'absolute';
+                        inputFooter.style.bottom = '10px';
+                        inputFooter.style.width = '100%';
+                        inputFooter.textContent = `صفحة 2 من ${6 + Math.ceil(Math.max(buildingItems.length - maxItemsPerPage, 0) / maxItemsPerPage)} | ${safeValue(pdfData.companyInfo?.name)}`;
+                        inputPage.appendChild(inputFooter);
 
                         // 3. الكميات
                         const quantitiesItems = [];
@@ -1001,44 +1019,30 @@
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => `${safeValue(item.name)}: ${(safeValue(item.value, 0)).toLocaleString('ar-IQ')} ${safeValue(item.unit)}`);
                         addSection('أسعار المواد المعتمدة (2025)', materialItems);
 
-                        // إضافة تذييل للترقيم
-                        const groups = pdfWindow.document.querySelectorAll('.group');
-                        groups.forEach((group, index) => {
-                            const footer = document.createElement('div');
-                            footer.className = 'footer';
-                            footer.style.textAlign = 'center';
-                            footer.textContent = `صفحة ${index + 1} من ${groups.length} | ${safeValue(pdfData.companyInfo?.name)}`;
-                            group.appendChild(footer);
-                        });
-
-                        // تتبع المحتوى
-                        console.log('إجمالي المجموعات:', groups.length);
-                        console.log('محتوى pdfContainer (أول 500 حرف):', pdfContainer.innerHTML.substring(0, 500) + '...');
-
-                        // إنشاء PDF باستخدام jsPDF وhtml2canvas مباشرة
+                        // إنشاء PDF باستخدام jsPDF وhtml2canvas
                         const pdf = new jspdf.jsPDF({
                             orientation: 'portrait',
                             unit: 'px',
-                            format: [595, 842] // A4 بحجم 72 DPI
+                            format: [595, 842]
                         });
 
-                        const canvas = await html2canvas(pdfContainer, {
-                            scale: 1,
-                            useCORS: true,
-                            windowWidth: 595,
-                            width: 595,
-                            x: 0,
-                            y: 0,
-                            scrollX: 0,
-                            scrollY: 0
-                        });
+                        const pages = pdfWindow.document.querySelectorAll('.pdf-page');
+                        for (let i = 0; i < pages.length; i++) {
+                            const page = pages[i];
+                            const canvas = await html2canvas(page, {
+                                scale: 1,
+                                useCORS: true,
+                                width: 595,
+                                height: 842,
+                                x: 0,
+                                y: 0
+                            });
 
-                        const imgData = canvas.toDataURL('image/jpeg', 0.98);
-                        const imgProps = pdf.getImageProperties(imgData);
-                        const pdfWidth = pdf.internal.pageSize.getWidth();
-                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                            if (i > 0) pdf.addPage();
+                            pdf.addImage(imgData, 'JPEG', 0, 0, 595, 842);
+                        }
 
-                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
                         pdf.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
 
                         // تنظيف
