@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.0/dist/pdf-lib.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -791,35 +792,45 @@
                         console.log('بدء إنشاء ملف PDF باستخدام PDF-lib.js');
 
                         // إنشاء مستند PDF
-                        const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                        const { PDFDocument, rgb } = PDFLib;
                         const pdfDoc = await PDFDocument.create();
                         const pageWidth = 595; // عرض A4 بالنقاط (210mm)
                         const pageHeight = 842; // ارتفاع A4 بالنقاط (297mm)
                         const fontSize = 14;
                         const margin = 30;
 
-                        // استخدام خط مدمج (Helvetica) بدلاً من تحميل خط خارجي
-                        const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                        // تسجيل fontkit لتضمين الخطوط المخصصة
+                        pdfDoc.registerFontkit(fontkit);
+
+                        // تحميل خط Amiri من رابط خام
+                        const fontUrl = 'https://github.com/alif-type/amiri/raw/master/Amiri-Regular.ttf';
+                        const fontBytes = await fetch(fontUrl, { mode: 'cors' }).then(res => {
+                            if (!res.ok) throw new Error('فشل تحميل ملف الخط');
+                            return res.arrayBuffer();
+                        });
+                        const amiriFont = await pdfDoc.embedFont(fontBytes, { subset: true });
 
                         // دالة لإضافة صفحة جديدة
                         const addPage = () => {
                             const page = pdfDoc.addPage([pageWidth, pageHeight]);
-                            page.setFont(helveticaFont);
+                            page.setFont(amiriFont);
                             page.setFontSize(fontSize);
                             return page;
                         };
 
                         // دالة لإضافة نص مع دعم الاتجاه من اليمين إلى اليسار
                         const addText = (page, text, x, y, options = {}) => {
-                            // عكس النص العربي لضمان العرض الصحيح
-                            const reversedText = text.split('').reverse().join('');
-                            page.drawText(reversedText, {
+                            // تحسين عرض النصوص العربية
+                            page.drawText(text, {
                                 x,
                                 y,
-                                font: helveticaFont,
+                                font: amiriFont,
                                 size: fontSize,
                                 color: options.color || rgb(0, 0, 0),
-                                ...options
+                                ...options,
+                                // دعم RTL باستخدام خاصية maxWidth
+                                maxWidth: pageWidth - 2 * margin,
+                                lineHeight: fontSize * 1.2
                             });
                         };
 
@@ -850,7 +861,7 @@
                                             page = addPage();
                                             y = pageHeight - margin - 20;
                                         }
-                                        addText(page, item[0], pageWidth - margin - 100, y, { size: 12 });
+                                        addText(page, item[0], pageWidth - margin - 200, y, { size: 12 });
                                         addText(page, item[1], margin, y, { size: 12 });
                                         y -= 20;
                                     });
