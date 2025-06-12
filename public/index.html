@@ -826,7 +826,6 @@
                             section.style.overflow = 'visible';
                             section.style.display = 'block';
                             section.style.visibility = 'visible';
-                            section.style.minHeight = 'auto'; // إزالة الارتفاع الثابت
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -901,18 +900,21 @@
                                 scrollY: 0,
                                 backgroundColor: '#FFF'
                             });
+
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                            const imgWidth = 190; // عرض ثابت للصورة
+                            const imgWidth = 190; // عرض ثابت
                             const imgHeight = (canvas.height * imgWidth) / canvas.width; // الارتفاع الأصلي
                             const pageHeight = 277 - 20; // ارتفاع الصفحة مطروحًا الهوامش
-                            let position = 0; // الإزاحة في الصورة
+                            let position = 0; // الإزاحة في الصورة (بالمم)
 
                             console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
                             while (position < imgHeight) {
-                                const remainingHeight = Math.min(pageHeight, imgHeight - position);
-                                const sourceY = (position * canvas.height) / imgHeight; // إزاحة المصدر في الصورة
-                                const sourceHeight = (remainingHeight * canvas.height) / imgHeight;
+                                const remainingHeight = Math.min(pageHeight, imgHeight - position); // الارتفاع المتبقي للصفحة
+                                const sourceY = (position / imgHeight) * canvas.height; // إزاحة المصدر في الصورة (بالبكسل)
+                                const sourceHeight = (remainingHeight / imgHeight) * canvas.height; // ارتفاع الجزء المطلوب
+
+                                console.log(`إضافة جزء من قسم "${sectionName}": إزاحة=${position.toFixed(2)} مم, ارتفاع=${remainingHeight.toFixed(2)} مم, sourceY=${sourceY.toFixed(2)} بكسل`);
 
                                 doc.addImage(
                                     imgData,
