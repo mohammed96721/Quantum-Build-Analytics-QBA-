@@ -793,6 +793,7 @@
 
                         // إنشاء كائن jsPDF
                         const { jsPDF } = window.jspdf;
+                        if (!jsPDF) throw new Error('مكتبة jsPDF غير متوفرة');
                         const doc = new jsPDF({
                             orientation: 'portrait',
                             unit: 'mm',
@@ -812,17 +813,22 @@
 
                         // دالة لإنشاء قسم كـ HTML كنصوص مرتبة
                         const createSectionElement = (title, contentItems, isSubsection = false) => {
+                            if (!contentItems || !Array.isArray(contentItems)) {
+                                console.warn(`تحذير: محتوى القسم "${title}" غير صالح`);
+                                return null;
+                            }
+
                             const section = document.createElement('div');
                             section.style.fontFamily = 'Amiri, Arial, sans-serif';
                             section.style.direction = 'rtl';
-                            section.style.width = '754px'; // عرض ثابت للتحجيم المتسق
+                            section.style.width = '754px';
                             section.style.padding = '15px';
                             section.style.background = '#FFF';
                             section.style.border = '2px solid #C19A6B';
                             section.style.boxSizing = 'border-box';
                             section.style.position = 'absolute';
                             section.style.left = '-9999px';
-                            section.style.fontSize = '14px'; // حجم خط ثابت
+                            section.style.fontSize = '14px';
                             section.style.lineHeight = '1.6';
                             section.style.margin = '10px';
                             section.style.overflow = 'visible';
@@ -838,7 +844,7 @@
                                 header.style.borderBottom = '1px solid #C19A6B';
                                 header.innerHTML = `
                                     <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
-                                    <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
+                                    <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData?.companyInfo?.name) || 'غير متوفر'}</p>
                                     <p style="font-size: 12px; margin: 2px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                 `;
                                 section.appendChild(header);
@@ -867,7 +873,7 @@
                                 p.style.background = '#FFF';
                                 p.style.borderRadius = '3px';
                                 p.style.border = '1px solid #DBC2A4';
-                                p.style.fontSize = '14px'; // تأكيد حجم الخط
+                                p.style.fontSize = '14px';
                                 p.textContent = sanitizeText(item);
                                 content.appendChild(p);
                             });
@@ -879,28 +885,33 @@
 
                         // دالة لإضافة قسم إلى PDF
                         const addSectionToPDF = async (sectionElement, sectionName) => {
+                            if (!sectionElement) {
+                                console.warn(`تحذير: عنصر قسم "${sectionName}" غير موجود`);
+                                return;
+                            }
+
                             console.log(`بدء إضافة قسم "${sanitizeText(sectionName)}"`);
                             document.body.appendChild(sectionElement);
 
                             // إضافة تأخير لضمان اكتمال تحميل العناصر
-                            await new Promise(resolve => setTimeout(resolve, 500));
+                            await new Promise(resolve => setTimeout(resolve, 300));
 
                             const canvas = await html2canvas(sectionElement, {
-                                scale: 2, // مقياس ثابت لدقة موحدة
+                                scale: 2,
                                 useCORS: true,
                                 logging: true,
-                                width: 754, // عرض ثابت بالبكسل
-                                height: sectionElement.scrollHeight + 50, // هامش إضافي
+                                width: 754,
+                                height: sectionElement.scrollHeight + 50,
                                 scrollX: 0,
                                 scrollY: 0,
-                                backgroundColor: 'white'
+                                backgroundColor: '#FFF'
                             });
 
-                            const imgData = canvas.toDataURL('image/png', 1.0); // استخدام PNG لجودة أفضل
-                            const imgWidth = 190; // عرض الصورة في PDF (مم)
-                            const imgHeight = (canvas.height * imgWidth) / canvas.width; // ارتفاع الصورة (مم)
-                            const pageHeight = 277 - 30; // ارتفاع الصفحة مطروح: هامش 30 مم
-                            let position = 0; // الإزاحة بالملليمترات
+                            const imgData = canvas.toDataURL('image/png', 1.0);
+                            const imgWidth = 190;
+                            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                            const pageHeight = 277 - 30;
+                            let position = 0;
 
                             console.log(`قسم "${sanitizeText(sectionName)}": عرض الصورة=${canvas.width}px, ارتفاع الصورة=${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع=${Math.ceil(imgHeight / pageHeight)}`);
 
@@ -910,7 +921,7 @@
                             // تقسيم الصورة عبر الصفحات
                             while (position < imgHeight) {
                                 const remainingHeight = Math.min(pageHeight, imgHeight - position);
-                                const offsetY = (position * canvas.height) / imgHeight; // تحويل الإزاحة إلى بكسلس
+                                const offsetY = (position * canvas.height) / imgHeight;
                                 console.log(`-- صفحة قسم "${sanitizeText(sectionName)}": إزاحة=${position.toFixed(2)} مم, offsetY=${offsetY.toFixed(2)} px, ارتفاع=${remainingHeight.toFixed(2)} مم`);
                                 doc.addImage(imgData, 'PNG', 10, 10, imgWidth, remainingHeight, undefined, 'NONE', 0, offsetY, canvas.width, canvas.height);
                                 position += remainingHeight;
@@ -920,6 +931,11 @@
                             }
                             document.body.removeChild(sectionElement);
                         };
+
+                        // التحقق من pdfData
+                        if (!pdfData || typeof pdfData !== 'object') {
+                            throw new Error('بيانات pdfData غير صالحة');
+                        }
 
                         // 1. معلومات الشركة
                         const companyItems = [
@@ -951,7 +967,7 @@
                         const quantitiesItems = [];
                         pdfData.quantities?.sections?.forEach(section => {
                             quantitiesItems.push(`--- ${sanitizeText(section.subtitle)} ---`);
-                            section.items.forEach(item => {
+                            section.items?.forEach(item => {
                                 quantitiesItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
                             });
                         });
@@ -961,7 +977,7 @@
                         const engineeringItems = [];
                         pdfData.engineering?.sections?.forEach(section => {
                             engineeringItems.push(`--- ${sanitizeText(section.subtitle)} ---`);
-                            section.items.forEach(item => {
+                            section.items?.forEach(item => {
                                 engineeringItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
                             });
                         });
@@ -996,9 +1012,9 @@
                         footerElement.style.direction = 'rtl';
                         footerElement.style.width = '754px';
                         footerElement.style.padding = '5px';
-                        footerElement.goodness.style.position = 'absolute';
+                        footerElement.style.position = 'absolute';
                         footerElement.style.left = '-9999px';
-                        footerElement.style.fontSize = '10px'; // حجم خط التذييل ثابت
+                        footerElement.style.fontSize = '10px';
                         footerElement.style.textAlign = 'right';
                         footerElement.style.background = '#FFF';
                         footerElement.style.display = 'block';
@@ -1008,29 +1024,34 @@
                             document.body.appendChild(footerElement);
                             const footerCanvas = await html2canvas(footerElement, {
                                 scale: 2,
-                                backgroundColor: 'white',
+                                backgroundColor: '#FFF',
                                 scrollX: 0,
                                 scrollY: 0
                             });
-                            const footerImgData = footerCanvas.toDataURL('image/png', 1.0);
+                            const footerImgData = canvas.toDataURL('image/png', 1.0);
                             doc.setPage(i);
                             doc.addImage(footerImgData, 'PNG', 10, 287 - 5, 190, (footerCanvas.height * 190) / footerCanvas.width);
                             document.body.removeChild(footerElement);
                         }
 
                         // حفظ الملف
-                        doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
-                        console.log(`تم إنشاء ملف PDF بـ ${finalPageCount} صفحات`);
+                        doc.save(`تقرير_تكاليف_البنية_${new Date().toISOString().split('T')[0]}.pdf`);
+                        console.log(`تم إنشاء PDF بـ ${finalPageCount} صفحات`);
+                        
                     } catch (error) {
                         console.error('خطأ أثناء إنشاء PDF:', error.stack);
-                        const resultContent = document.getElementById('resultContent') || document.createElement('div');
-                        resultContent.innerHTML = `<p style="color: #C75656;">خطأ في إنشاء PDF: ${error.message}.</p>`;
-                        const resultContainer = document.getElementById('resultContainer') || document.createElement('div');
+                        const resultContent = document.getElement('div');
+                        resultContent.id = 'resultContent';
+                        resultContent.innerHTML = `<p style="color: #FF6347;">خطأ في إنشاء PDF: ${error.message}.</p>`;
+                        const resultContainer = document.createElement('div');
+                        resultContainer.id = 'resultContainer';
                         resultContainer.classList.remove('hidden');
                         resultContainer.style.display = 'block';
-                        if (!document.getElementById('resultContainer')) document.body.appendChild(resultContainer);
+                        document.body.appendChild(resultContainer);
+                        resultContainer.appendChild(resultContent);
                     }
-                }, { once: true });
+                }, { once: true 
+                });
             } catch (error) {
                 console.error('خطأ أثناء معالجة النموذج:', error);
                 resultContent.innerHTML = `<p style="color: #C75656;">خطأ: ${error.message || 'حدث خطأ غير متوقع'}</p>`;
