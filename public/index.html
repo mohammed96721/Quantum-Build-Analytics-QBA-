@@ -828,7 +828,7 @@
                             section.style.overflow = 'visible';
                             section.style.display = 'block';
                             section.style.visibility = 'visible';
-                            section.style.minHeight = '600px'; // ضمان ارتفاع كافٍ
+                            section.style.minHeight = '800px'; // زيادة الارتفاع لتجنب القص
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -883,25 +883,25 @@
                             document.body.appendChild(sectionElement);
 
                             // إضافة تأخير لضمان اكتمال تحميل العناصر
-                            await new Promise(resolve => setTimeout(resolve, 500));
+                            await new Promise(resolve => setTimeout(resolve, 600));
 
                             const canvas = await html2canvas(sectionElement, {
                                 scale: 2,
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
-                                windowHeight: sectionElement.scrollHeight + 600, // هامش إضافي
+                                windowHeight: sectionElement.scrollHeight + 800, // هامش إضافي
                                 scrollX: 0,
                                 scrollY: 0,
                                 backgroundColor: '#FFF'
                             });
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                            const imgWidth = 190;
-                            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                            const pageHeight = 277 - 20; // هامش 20 مم
-                            let position = 0;
+                            const imgWidth = 190; // عرض الصورة في الـ PDF
+                            const imgHeight = (canvas.height * imgWidth) / canvas.width; // ارتفاع الصورة
+                            const pageHeight = 277 - 30; // ارتفاع الصفحة مطروحًا هامش 30 مم
+                            let position = 0; // الإزاحة في الصورة
 
-                            console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
+                            console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
                             // إضافة صفحة جديدة لكل قسم
                             doc.addPage();
@@ -909,7 +909,8 @@
                             // تقسيم الصورة عبر الصفحات
                             while (position < imgHeight) {
                                 const remainingHeight = Math.min(pageHeight, imgHeight - position);
-                                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, remainingHeight, undefined, 'FAST', 0, position / (imgWidth / canvas.width));
+                                console.log(`إضافة صورة لقسم "${sectionName}": إزاحة=${position.toFixed(2)} مم, ارتفاع=${remainingHeight.toFixed(2)} مم`);
+                                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, remainingHeight, undefined, 'FAST');
                                 position += remainingHeight;
                                 if (position < imgHeight) {
                                     doc.addPage();
