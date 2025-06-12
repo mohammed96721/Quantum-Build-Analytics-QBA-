@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام حساب تكاليف البناء - العراق</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -798,14 +799,15 @@
                             format: 'a4',
                         });
 
+                        // تبسيط دالة sanitizeText لتجنب حذف الوحدات
                         const sanitizeText = (text) => {
                             if (text === null || text === undefined || (typeof text === 'string' && text.trim() === '')) {
                                 return 'غير متوفر';
                             }
                             if (typeof text === 'number') {
-                                return text.toLocaleString('ar-IQ') + ' ';
+                                return text.toLocaleString('ar-IQ');
                             }
-                            return String(text).replace(/[^\u0600-\u06FF\s0-9a-zA-Z.,:()/\-+%@=د.ع]/g, '').trim();
+                            return String(text); // الاحتفاظ بالنص كما هو دون تصفية
                         };
 
                         const createSectionElement = (title, contentItems, isSubsection = false) => {
@@ -820,7 +822,7 @@
                             section.style.position = 'absolute';
                             section.style.left = '-9999px';
                             section.style.fontSize = '14px';
-                            section.style.lineHeight = '1.8';
+                            section.style.lineHeight = '2'; // زيادة تباعد الأسطر
                             section.style.margin = '10px';
                             section.style.overflow = 'visible';
                             section.style.display = 'block';
@@ -857,22 +859,27 @@
                             content.style.padding = '10px';
                             content.style.background = '#FDF6E3';
                             content.style.borderRadius = '4px';
-                            content.style.display = 'table';
 
                             contentItems.forEach(item => {
-                                const row = document.createElement('div');
-                                row.style.display = 'table-row';
-                                const cell = document.createElement('div');
-                                cell.style.display = 'table-cell';
-                                cell.style.padding = '8px';
-                                cell.style.background = '#FFF';
-                                cell.style.borderRadius = '3px';
-                                cell.style.border = '1px solid #DBC2A4';
-                                cell.style.textAlign = 'right';
-                                const [label, value] = item.split(':').map(part => part.trim());
-                                cell.innerHTML = `<span style="margin-left: 10px;">${sanitizeText(label)}:</span> <span>${sanitizeText(value)}</span>`;
-                                row.appendChild(cell);
-                                content.appendChild(row);
+                                const p = document.createElement('p');
+                                p.style.display = 'flex';
+                                p.style.justifyContent = 'space-between';
+                                p.style.margin = '8px 0';
+                                p.style.padding = '8px';
+                                p.style.background = '#FFF';
+                                p.style.borderRadius = '3px';
+                                p.style.border = '1px solid #DBC2A4';
+                                p.style.fontSize = '13px';
+
+                                // فصل النص والقيمة والوحدة
+                                const parts = item.split(':').map(part => part.trim());
+                                const label = parts[0] || '';
+                                const valueAndUnit = parts[1] || '';
+                                p.innerHTML = `
+                                    <span style="flex: 1; text-align: right; margin-left: 10px;">${sanitizeText(label)}:</span>
+                                    <span style="flex: 1; text-align: right;">${sanitizeText(valueAndUnit)}</span>
+                                `;
+                                content.appendChild(p);
                             });
 
                             section.appendChild(content);
@@ -887,7 +894,7 @@
                             await new Promise(resolve => setTimeout(resolve, 1000));
 
                             const canvas = await html2canvas(sectionElement, {
-                                scale: 3,
+                                scale: 3, // زيادة الدقة
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
@@ -918,7 +925,7 @@
                             document.body.removeChild(sectionElement);
                         };
 
-                        // إضافة الأقسام (معلومات الشركة، بيانات المدخلات، إلخ)
+                        // إضافة الأقسام
                         const companyItems = [
                             `الاسم: ${sanitizeText(pdfData.companyInfo?.name)}`,
                             `الوصف: ${sanitizeText(pdfData.companyInfo?.description)}`,
