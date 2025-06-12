@@ -799,7 +799,6 @@
                             format: 'a4',
                         });
 
-                        // تبسيط دالة sanitizeText لتجنب حذف الوحدات
                         const sanitizeText = (text) => {
                             if (text === null || text === undefined || (typeof text === 'string' && text.trim() === '')) {
                                 return 'غير متوفر';
@@ -807,7 +806,7 @@
                             if (typeof text === 'number') {
                                 return text.toLocaleString('ar-IQ');
                             }
-                            return String(text); // الاحتفاظ بالنص كما هو دون تصفية
+                            return String(text); // الاحتفاظ بالنص كما هو
                         };
 
                         const createSectionElement = (title, contentItems, isSubsection = false) => {
@@ -822,7 +821,7 @@
                             section.style.position = 'absolute';
                             section.style.left = '-9999px';
                             section.style.fontSize = '14px';
-                            section.style.lineHeight = '2'; // زيادة تباعد الأسطر
+                            section.style.lineHeight = '1.6'; // تقليل تباعد الأسطر
                             section.style.margin = '10px';
                             section.style.overflow = 'visible';
                             section.style.display = 'block';
@@ -863,21 +862,21 @@
                             contentItems.forEach(item => {
                                 const p = document.createElement('p');
                                 p.style.display = 'flex';
-                                p.style.justifyContent = 'space-between';
-                                p.style.margin = '8px 0';
-                                p.style.padding = '8px';
+                                p.style.alignItems = 'center';
+                                p.style.margin = '6px 0'; // تقليل المسافة العمودية
+                                p.style.padding = '6px'; // تقليل الحشوة
                                 p.style.background = '#FFF';
                                 p.style.borderRadius = '3px';
                                 p.style.border = '1px solid #DBC2A4';
                                 p.style.fontSize = '13px';
 
-                                // فصل النص والقيمة والوحدة
+                                // فصل النص والقيمة
                                 const parts = item.split(':').map(part => part.trim());
                                 const label = parts[0] || '';
                                 const valueAndUnit = parts[1] || '';
                                 p.innerHTML = `
-                                    <span style="flex: 1; text-align: right; margin-left: 10px;">${sanitizeText(label)}:</span>
-                                    <span style="flex: 1; text-align: right;">${sanitizeText(valueAndUnit)}</span>
+                                    <span style="min-width: 150px; text-align: right; margin-left: 10px;">${sanitizeText(label)}:</span>
+                                    <span style="text-align: right;">${sanitizeText(valueAndUnit)}</span>
                                 `;
                                 content.appendChild(p);
                             });
@@ -894,7 +893,7 @@
                             await new Promise(resolve => setTimeout(resolve, 1000));
 
                             const canvas = await html2canvas(sectionElement, {
-                                scale: 3, // زيادة الدقة
+                                scale: 3,
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
@@ -1017,8 +1016,9 @@
 
                         // فتح PDF في نافذة جديدة
                         const pdfDataUri = doc.output('datauristring');
-                        const pdfWindow = window.open('', '_blank');
+                        const pdfWindow = window.open('', '_blank', 'noopener,noreferrer'); // إضافة خيارات للأمان
                         if (pdfWindow) {
+                            pdfWindow.document.open();
                             pdfWindow.document.write(`
                                 <html>
                                     <head>
@@ -1031,7 +1031,8 @@
                             `);
                             pdfWindow.document.close();
                         } else {
-                            console.error('فشل فتح النافذة. تحقق من إعدادات حظر النوافذ المنبثقة.');
+                            console.error('فشل فتح النافذة الجديدة. تحقق من إعدادات حظر النوافذ المنبثقة في المتصفح.');
+                            // الرجوع إلى التنزيل إذا فشل فتح النافذة
                             doc.save(`تقرير_تكاليف_البناء_${new Date().toISOString().split('T')[0]}.pdf`);
                         }
 
