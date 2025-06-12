@@ -799,16 +799,6 @@
                             format: 'a4',
                         });
 
-                        const sanitizeText = (text) => {
-                            if (text === null || text === undefined || (typeof text === 'string' && text.trim() === '')) {
-                                return 'غير متوفر';
-                            }
-                            if (typeof text === 'number') {
-                                return text.toLocaleString('ar-IQ');
-                            }
-                            return String(text);
-                        };
-
                         const createSectionElement = (title, contentItems, isSubsection = false) => {
                             console.log(`إنشاء قسم "${title}": عدد العناصر = ${contentItems.length}`, contentItems);
                             const section = document.createElement('div');
@@ -836,8 +826,8 @@
                                 header.style.textAlign = 'center';
                                 header.style.borderBottom = '1px solid #C19A6B';
                                 header.innerHTML = `
-                                    <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
-                                    <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
+                                    <h1 style="font-size: 18px; margin: 3px 0;">${String(title)}</h1>
+                                    <p style="font-size: 13px; margin: 3px 0;">إعداد: ${String(pdfData.companyInfo?.name)}</p>
                                     <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                 `;
                                 section.appendChild(header);
@@ -846,7 +836,7 @@
                                 titleEl.style.fontSize = '14px';
                                 titleEl.style.color = '#4B3C2E';
                                 titleEl.style.marginBottom = '8px';
-                                titleEl.textContent = sanitizeText(title);
+                                titleEl.textContent = String(title);
                                 section.appendChild(titleEl);
                                 const hr = document.createElement('hr');
                                 hr.style.border = '0.5px solid #C19A6B';
@@ -874,8 +864,8 @@
                                 const label = parts[0] || '';
                                 const valueAndUnit = parts[1] || '';
                                 p.innerHTML = `
-                                    <span style="min-width: 120px; text-align: right; margin-left: 8px;">${sanitizeText(label)}:</span>
-                                    <span style="text-align: right;">${sanitizeText(valueAndUnit)}</span>
+                                    <span style="min-width: 120px; text-align: right; margin-left: 8px;">${String(label)}:</span>
+                                    <span style="text-align: right;">${String(valueAndUnit)}</span>
                                 `;
                                 content.appendChild(p);
                             });
@@ -886,7 +876,7 @@
                         };
 
                         const addSectionToPDF = async (sectionElement, sectionName) => {
-                            console.log(`بدء إضافة قسم "${sanitizeText(sectionName)}"`);
+                            console.log(`بدء إضافة قسم "${String(sectionName)}"`);
                             document.body.appendChild(sectionElement);
 
                             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -902,7 +892,7 @@
                                 backgroundColor: '#FFF'
                             });
 
-                            console.log(`قسم "${sanitizeText(sectionName)}": تم إنشاء الصورة بعرض ${canvas.width} بكسل وارتفاع ${canvas.height} بكسل`);
+                            console.log(`قسم "${String(sectionName)}": تم إنشاء الصورة بعرض ${canvas.width} بكسل وارتفاع ${canvas.height} بكسل`);
 
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
                             const imgWidth = 190;
@@ -910,12 +900,11 @@
                             const pageHeight = 277 - 20;
                             let position = 0;
 
-                            console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
+                            console.log(`قسم "${String(sectionName)}": ارتفاع الصورة ${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
                             const currentPage = doc.internal.getNumberOfPages();
-                            console.log(`إضافة قسم "${sanitizeText(sectionName)}" بدءًا من الصفحة ${currentPage + 1}`);
+                            console.log(`إضافة قسم "${String(sectionName)}" بدءًا من الصفحة ${currentPage + 1}`);
 
-                            // إضافة صفحة جديدة فقط إذا لم يكن هناك صفحات أو إذا كانت الصفحة الحالية غير فارغة
                             if (currentPage === 0 || doc.internal.pages[currentPage].length > 0) {
                                 doc.addPage();
                             }
@@ -950,30 +939,28 @@
                             }
 
                             document.body.removeChild(sectionElement);
-                            console.log(`تم إضافة قسم "${sanitizeText(sectionName)}" بنجاح`);
+                            console.log(`تم إضافة قسم "${String(sectionName)}" بنجاح`);
                         };
 
-                        // التحقق من بيانات pdfData.companyInfo
-                        console.log('بيانات pdfData.companyInfo:', pdfData.companyInfo);
+                        // التحقق من بيانات pdfData
+                        console.log('بيانات pdfData الكاملة:', JSON.stringify(pdfData, null, 2));
+
                         const companyItems = [
-                            `الاسم: ${sanitizeText(pdfData.companyInfo?.name)}`,
-                            `الوصف: ${sanitizeText(pdfData.companyInfo?.description)}`,
-                            `الهاتف: ${sanitizeText(pdfData.companyInfo?.contact?.phone)}`,
-                            `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo?.contact?.email)}`,
-                            `العنوان: ${sanitizeText(pdfData.companyInfo?.contact?.address)}`
+                            `الاسم: ${String(pdfData.companyInfo?.name)}`,
+                            `الوصف: ${String(pdfData.companyInfo?.description)}`,
+                            `الهاتف: ${String(pdfData.companyInfo?.contact?.phone)}`,
+                            `البريد الإلكتروني: ${String(pdfData.companyInfo?.contact?.email)}`,
+                            `العنوان: ${String(pdfData.companyInfo?.contact?.address)}`
                         ];
-                        if (companyItems.every(item => item.includes('غير متوفر'))) {
-                            console.warn('تحذير: جميع بيانات معلومات الشركة غير متوفرة');
-                        }
                         await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems), 'معلومات الشركة');
 
-                        console.log('بيانات pdfData.inputData:', pdfData.inputData);
                         const inputItems = [];
                         const addInputSection = (section, title) => {
                             if (section?.fields?.length > 0) {
-                                inputItems.push(`--- ${sanitizeText(title)} ---`);
+                                inputItems.push(`--- ${String(title)} ---`);
                                 section.fields.forEach(field => {
-                                    inputItems.push(`${sanitizeText(field.label)}: ${sanitizeText(field.value)}${field.unit ? ` ${sanitizeText(field.unit)}` : ''}`);
+                                    const value = typeof field.value === 'number' ? field.value.toLocaleString('ar-IQ') : String(field.value);
+                                    inputItems.push(`${String(field.label)}: ${value}${field.unit ? ` ${String(field.unit)}` : ''}`);
                                 });
                             }
                         };
@@ -985,34 +972,39 @@
 
                         const quantitiesItems = [];
                         pdfData.quantities?.sections?.forEach(section => {
-                            quantitiesItems.push(`--- ${sanitizeText(section.subtitle)} ---`);
+                            quantitiesItems.push(`--- ${String(section.subtitle)} ---`);
                             section.items.forEach(item => {
-                                quantitiesItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
+                                const value = typeof item.value === 'number' ? item.value.toLocaleString('ar-IQ') : String(item.value);
+                                quantitiesItems.push(`${String(item.name)}: ${value} ${String(item.unit || '')}`);
                             });
                         });
                         await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems), 'تفاصيل الكميات الهندسية');
 
                         const engineeringItems = [];
                         pdfData.engineering?.sections?.forEach(section => {
-                            engineeringItems.push(`--- ${sanitizeText(section.subtitle)} ---`);
+                            engineeringItems.push(`--- ${String(section.subtitle)} ---`);
                             section.items.forEach(item => {
-                                engineeringItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
+                                const value = typeof item.value === 'number' ? item.value.toLocaleString('ar-IQ') : String(item.value);
+                                engineeringItems.push(`${String(item.name)}: ${value} ${String(item.unit || '')}`);
                             });
                         });
                         await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems), 'الحسابات الإنشائية');
 
                         const costItems = [];
                         pdfData.costs?.items?.forEach(item => {
-                            costItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
+                            const value = typeof item.value === 'number' ? item.value.toLocaleString('ar-IQ') : String(item.value);
+                            costItems.push(`${String(item.name)}: ${value} ${String(item.unit || '')}`);
                         });
                         if (pdfData.costs?.total) {
-                            costItems.push(`الإجمالي: ${sanitizeText(pdfData.costs.total)} د.ع`);
+                            const total = typeof pdfData.costs.total === 'number' ? pdfData.costs.total.toLocaleString('ar-IQ') : String(pdfData.costs.total);
+                            costItems.push(`الإجمالي: ${total} د.ع`);
                         }
                         await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems), 'تفاصيل التكاليف');
 
                         const materialItems = [];
                         pdfData.materialPrices?.items?.forEach(item => {
-                            materialItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
+                            const value = typeof item.value === 'number' ? item.value.toLocaleString('ar-IQ') : String(item.value);
+                            materialItems.push(`${String(item.name)}: ${value} ${String(item.unit || '')}`);
                         });
                         await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems), 'أسعار المواد');
 
@@ -1030,7 +1022,7 @@
                         footerElement.style.display = 'block';
                         footerElement.style.visibility = 'visible';
                         for (let i = 1; i <= finalPageCount; i++) {
-                            footerElement.textContent = `صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}`;
+                            footerElement.textContent = `صفحة ${i} من ${finalPageCount} | ${String(pdfData.companyInfo?.name)}`;
                             document.body.appendChild(footerElement);
                             const footerCanvas = await html2canvas(footerElement, {
                                 scale: 3,
