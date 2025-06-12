@@ -815,20 +815,19 @@
                             const section = document.createElement('div');
                             section.style.fontFamily = 'Amiri, Arial, sans-serif';
                             section.style.direction = 'rtl';
-                            section.style.width = '754px';
+                            section.style.width = '754px'; // عرض ثابت للتحجيم المتسق
                             section.style.padding = '15px';
                             section.style.background = '#FFF';
                             section.style.border = '2px solid #C19A6B';
                             section.style.boxSizing = 'border-box';
                             section.style.position = 'absolute';
                             section.style.left = '-9999px';
-                            section.style.fontSize = '14px';
+                            section.style.fontSize = '14px'; // حجم خط ثابت
                             section.style.lineHeight = '1.6';
                             section.style.margin = '10px';
                             section.style.overflow = 'visible';
                             section.style.display = 'block';
                             section.style.visibility = 'visible';
-                            section.style.minHeight = '800px'; // زيادة الارتفاع لتجنب القص
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -840,7 +839,7 @@
                                 header.innerHTML = `
                                     <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
                                     <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
-                                    <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                                    <p style="font-size: 12px; margin: 2px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
                                 `;
                                 section.appendChild(header);
                             } else {
@@ -868,6 +867,7 @@
                                 p.style.background = '#FFF';
                                 p.style.borderRadius = '3px';
                                 p.style.border = '1px solid #DBC2A4';
+                                p.style.fontSize = '14px'; // تأكيد حجم الخط
                                 p.textContent = sanitizeText(item);
                                 content.appendChild(p);
                             });
@@ -883,34 +883,36 @@
                             document.body.appendChild(sectionElement);
 
                             // إضافة تأخير لضمان اكتمال تحميل العناصر
-                            await new Promise(resolve => setTimeout(resolve, 600));
+                            await new Promise(resolve => setTimeout(resolve, 500));
 
                             const canvas = await html2canvas(sectionElement, {
-                                scale: 2,
+                                scale: 2, // مقياس ثابت لدقة موحدة
                                 useCORS: true,
                                 logging: true,
-                                windowWidth: 794,
-                                windowHeight: sectionElement.scrollHeight + 800, // هامش إضافي
+                                width: 754, // عرض ثابت بالبكسل
+                                height: sectionElement.scrollHeight + 50, // هامش إضافي
                                 scrollX: 0,
                                 scrollY: 0,
-                                backgroundColor: '#FFF'
+                                backgroundColor: 'white'
                             });
-                            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                            const imgWidth = 190; // عرض الصورة في الـ PDF
-                            const imgHeight = (canvas.height * imgWidth) / canvas.width; // ارتفاع الصورة
-                            const pageHeight = 277 - 30; // ارتفاع الصفحة مطروحًا هامش 30 مم
-                            let position = 0; // الإزاحة في الصورة
 
-                            console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
+                            const imgData = canvas.toDataURL('image/png', 1.0); // استخدام PNG لجودة أفضل
+                            const imgWidth = 190; // عرض الصورة في PDF (مم)
+                            const imgHeight = (canvas.height * imgWidth) / canvas.width; // ارتفاع الصورة (مم)
+                            const pageHeight = 277 - 30; // ارتفاع الصفحة مطروح: هامش 30 مم
+                            let position = 0; // الإزاحة بالملليمترات
 
-                            // إضافة صفحة جديدة لكل قسم
+                            console.log(`قسم "${sanitizeText(sectionName)}": عرض الصورة=${canvas.width}px, ارتفاع الصورة=${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع=${Math.ceil(imgHeight / pageHeight)}`);
+
+                            // إضافة صفحة جديدة للقسم
                             doc.addPage();
 
                             // تقسيم الصورة عبر الصفحات
                             while (position < imgHeight) {
                                 const remainingHeight = Math.min(pageHeight, imgHeight - position);
-                                console.log(`إضافة صورة لقسم "${sectionName}": إزاحة=${position.toFixed(2)} مم, ارتفاع=${remainingHeight.toFixed(2)} مم`);
-                                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, remainingHeight, undefined, 'FAST');
+                                const offsetY = (position * canvas.height) / imgHeight; // تحويل الإزاحة إلى بكسلس
+                                console.log(`-- صفحة قسم "${sanitizeText(sectionName)}": إزاحة=${position.toFixed(2)} مم, offsetY=${offsetY.toFixed(2)} px, ارتفاع=${remainingHeight.toFixed(2)} مم`);
+                                doc.addImage(imgData, 'PNG', 10, 10, imgWidth, remainingHeight, undefined, 'NONE', 0, offsetY, canvas.width, canvas.height);
                                 position += remainingHeight;
                                 if (position < imgHeight) {
                                     doc.addPage();
@@ -994,9 +996,9 @@
                         footerElement.style.direction = 'rtl';
                         footerElement.style.width = '754px';
                         footerElement.style.padding = '5px';
-                        footerElement.style.position = 'absolute';
+                        footerElement.goodness.style.position = 'absolute';
                         footerElement.style.left = '-9999px';
-                        footerElement.style.fontSize = '10px';
+                        footerElement.style.fontSize = '10px'; // حجم خط التذييل ثابت
                         footerElement.style.textAlign = 'right';
                         footerElement.style.background = '#FFF';
                         footerElement.style.display = 'block';
@@ -1006,13 +1008,13 @@
                             document.body.appendChild(footerElement);
                             const footerCanvas = await html2canvas(footerElement, {
                                 scale: 2,
-                                backgroundColor: '#FFF',
+                                backgroundColor: 'white',
                                 scrollX: 0,
                                 scrollY: 0
                             });
-                            const footerImgData = footerCanvas.toDataURL('image/jpeg', 0.95);
+                            const footerImgData = footerCanvas.toDataURL('image/png', 1.0);
                             doc.setPage(i);
-                            doc.addImage(footerImgData, 'JPEG', 10, 287 - 5, 190, (footerCanvas.height * 190) / footerCanvas.width);
+                            doc.addImage(footerImgData, 'PNG', 10, 287 - 5, 190, (footerCanvas.height * 190) / footerCanvas.width);
                             document.body.removeChild(footerElement);
                         }
 
