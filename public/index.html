@@ -810,7 +810,7 @@
                         };
 
                         const createSectionElement = (title, contentItems, isSubsection = false) => {
-                            console.log(`إنشاء قسم "${title}": عدد العناصر = ${contentItems.length}`);
+                            console.log(`إنشاء قسم "${title}": عدد العناصر = ${contentItems.length}`, contentItems);
                             const section = document.createElement('div');
                             section.style.fontFamily = "'Amiri', Arial, sans-serif";
                             section.style.direction = 'rtl';
@@ -881,7 +881,7 @@
                             });
 
                             section.appendChild(content);
-                            console.log(`تم إنشاء قسم "${title}" بنجاح`, contentItems);
+                            console.log(`تم إنشاء قسم "${title}" بنجاح`);
                             return section;
                         };
 
@@ -905,15 +905,20 @@
                             console.log(`قسم "${sanitizeText(sectionName)}": تم إنشاء الصورة بعرض ${canvas.width} بكسل وارتفاع ${canvas.height} بكسل`);
 
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                            const imgWidth = 190; // عرض ثابت
-                            const imgHeight = (canvas.height * imgWidth) / canvas.width; // الارتفاع الأصلي
-                            const pageHeight = 277 - 20; // ارتفاع الصفحة مطروحًا الهوامش
-                            let position = 0; // الإزاحة في الصورة (بالمم)
+                            const imgWidth = 190;
+                            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                            const pageHeight = 277 - 20;
+                            let position = 0;
 
                             console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight.toFixed(2)} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
                             const currentPage = doc.internal.getNumberOfPages();
-                            console.log(`إضافة قسم "${sanitizeText(sectionName)}" بدءًا من الصفحة ${currentPage}`);
+                            console.log(`إضافة قسم "${sanitizeText(sectionName)}" بدءًا من الصفحة ${currentPage + 1}`);
+
+                            // إضافة صفحة جديدة فقط إذا لم يكن هناك صفحات أو إذا كانت الصفحة الحالية غير فارغة
+                            if (currentPage === 0 || doc.internal.pages[currentPage].length > 0) {
+                                doc.addPage();
+                            }
 
                             while (position < imgHeight) {
                                 const remainingHeight = Math.min(pageHeight, imgHeight - position);
@@ -948,8 +953,8 @@
                             console.log(`تم إضافة قسم "${sanitizeText(sectionName)}" بنجاح`);
                         };
 
-                        // إضافة الأقسام
-                        console.log('إضافة قسم: معلومات الشركة');
+                        // التحقق من بيانات pdfData.companyInfo
+                        console.log('بيانات pdfData.companyInfo:', pdfData.companyInfo);
                         const companyItems = [
                             `الاسم: ${sanitizeText(pdfData.companyInfo?.name)}`,
                             `الوصف: ${sanitizeText(pdfData.companyInfo?.description)}`,
@@ -957,9 +962,12 @@
                             `البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo?.contact?.email)}`,
                             `العنوان: ${sanitizeText(pdfData.companyInfo?.contact?.address)}`
                         ];
+                        if (companyItems.every(item => item.includes('غير متوفر'))) {
+                            console.warn('تحذير: جميع بيانات معلومات الشركة غير متوفرة');
+                        }
                         await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems), 'معلومات الشركة');
 
-                        console.log('إضافة قسم: بيانات المدخلات');
+                        console.log('بيانات pdfData.inputData:', pdfData.inputData);
                         const inputItems = [];
                         const addInputSection = (section, title) => {
                             if (section?.fields?.length > 0) {
@@ -975,7 +983,6 @@
                         addInputSection(pdfData.inputData?.building, pdfData.inputData?.building?.title || 'تفاصيل المبنى');
                         await addSectionToPDF(createSectionElement('بيانات المدخلات', inputItems), 'بيانات المدخلات');
 
-                        console.log('إضافة قسم: تفاصيل الكميات الهندسية');
                         const quantitiesItems = [];
                         pdfData.quantities?.sections?.forEach(section => {
                             quantitiesItems.push(`--- ${sanitizeText(section.subtitle)} ---`);
@@ -985,7 +992,6 @@
                         });
                         await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems), 'تفاصيل الكميات الهندسية');
 
-                        console.log('إضافة قسم: الحسابات الإنشائية');
                         const engineeringItems = [];
                         pdfData.engineering?.sections?.forEach(section => {
                             engineeringItems.push(`--- ${sanitizeText(section.subtitle)} ---`);
@@ -995,7 +1001,6 @@
                         });
                         await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems), 'الحسابات الإنشائية');
 
-                        console.log('إضافة قسم: تفاصيل التكاليف');
                         const costItems = [];
                         pdfData.costs?.items?.forEach(item => {
                             costItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
@@ -1005,21 +1010,11 @@
                         }
                         await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems), 'تفاصيل التكاليف');
 
-                        console.log('إضافة قسم: أسعار المواد المعتمدة');
                         const materialItems = [];
                         pdfData.materialPrices?.items?.forEach(item => {
                             materialItems.push(`${sanitizeText(item.name)}: ${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`);
                         });
                         await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems), 'أسعار المواد');
-
-                        // إزالة الصفحة الأولى فقط إذا كانت فارغة
-                        const firstPageContent = doc.internal.pages[1];
-                        if (!firstPageContent || firstPageContent.length === 0) {
-                            console.log('إزالة الصفحة الأولى لأنها فارغة');
-                            doc.deletePage(1);
-                        } else {
-                            console.log('الاحتفاظ بالصفحة الأولى لأنها تحتوي على محتوى');
-                        }
 
                         const finalPageCount = doc.internal.getNumberOfPages();
                         const footerElement = document.createElement('div');
