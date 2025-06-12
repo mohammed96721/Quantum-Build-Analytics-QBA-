@@ -943,6 +943,10 @@
                         if (pdfData.companyInfo?.contact?.phone) companyItems.push(`الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}`);
                         if (pdfData.companyInfo?.contact?.email) companyItems.push(`البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}`);
                         if (pdfData.companyInfo?.contact?.address) companyItems.push(`العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}`);
+                        console.log('معلومات الشركة: عدد العناصر =', companyItems.length, companyItems);
+                        if (companyItems.length === 0) {
+                            console.warn('تحذير: لا توجد عناصر في معلومات الشركة');
+                        }
                         await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
 
                         // 2. بيانات المدخلات
@@ -980,34 +984,49 @@
                         const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}` : null
                         ).filter(item => item !== null);
+                        console.log('بيانات العميل: عدد العناصر =', customerItems.length, customerItems);
                         if (customerItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
+                        } else {
+                            console.warn('تحذير: لا توجد عناصر في بيانات العميل');
                         }
 
                         const locationItems = (pdfData.inputData?.location?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}` : null
                         ).filter(item => item !== null);
+                        console.log('بيانات الموقع: عدد العناصر =', locationItems.length, locationItems);
                         if (locationItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
+                        } else {
+                            console.warn('تحذير: لا توجد عناصر في بيانات الموقع');
                         }
 
                         const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
                         ).filter(item => item !== null);
+                        console.log('بيانات الأرض: عدد العناصر =', landItems.length, landItems);
                         if (landItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
+                        } else {
+                            console.warn('تحذير: لا توجد عناصر في بيانات الأرض');
                         }
 
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
                         ).filter(item => item !== null);
+                        console.log('بيانات المبنى: عدد العناصر =', buildingItems.length, buildingItems);
                         if (buildingItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
+                        } else {
+                            console.warn('تحذير: لا توجد عناصر في بيانات المبنى');
                         }
 
+                        if (customerItems.length === 0 && locationItems.length === 0 && landItems.length === 0 && buildingItems.length === 0) {
+                            console.warn('تحذير: لا توجد بيانات مدخلات لعرضها');
+                        }
                         await addSectionToPDF(inputSection, 'بيانات المدخلات');
 
-                        // 3. الكميات
+                        // 3. الكميات (بدون تعديل)
                         const quantitiesItems = [];
                         (pdfData.quantities?.sections || []).forEach(section => {
                             if (section.subtitle) {
@@ -1021,7 +1040,7 @@
                         });
                         await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true), 'تفاصيل الكميات الهندسية');
 
-                        // 4. الحسابات الإنشائية
+                        // 4. الحسابات الإنشائية (بدون تعديل)
                         const engineeringItems = [];
                         (pdfData.engineering?.sections || []).forEach(section => {
                             if (section.subtitle) {
@@ -1035,7 +1054,7 @@
                         });
                         await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true), 'الحسابات الإنشائية');
 
-                        // 5. التكاليف
+                        // 5. التكاليف (بدون تعديل)
                         const costItems = (pdfData.costs?.items || []).map(item => 
                             item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`] : null
                         ).filter(item => item !== null);
@@ -1044,7 +1063,7 @@
                         }
                         await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
 
-                        // 6. أسعار المواد
+                        // 6. أسعار المواد (بدون تعديل)
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => 
                             item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`] : null
                         ).filter(item => item !== null);
@@ -1056,7 +1075,7 @@
                             doc.deletePage(pageCount);
                         }
 
-                        // إضافة تذييل للترقيم
+                        // إضافة تذييل للترقيم (بدون تعديل)
                         const finalPageCount = doc.internal.getNumberOfPages();
                         const footerElement = document.createElement('div');
                         footerElement.style.fontFamily = 'Amiri, Arial, sans-serif';
