@@ -827,6 +827,8 @@
                             section.style.lineHeight = '1.6';
                             section.style.margin = '10px';
                             section.style.overflow = 'visible';
+                            section.style.display = 'block';
+                            section.style.visibility = 'visible';
 
                             if (!isSubsection) {
                                 const header = document.createElement('div');
@@ -896,7 +898,9 @@
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
-                                windowHeight: sectionElement.scrollHeight + 20, // إضافة هامش إضافي
+                                windowHeight: sectionElement.scrollHeight + 100, // هامش إضافي أكبر
+                                scrollX: 0, // التأكد من أن القسم مرئي بالكامل
+                                scrollY: 0,
                                 backgroundColor: '#FFF'
                             });
                             const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -914,12 +918,12 @@
                                 doc.addPage();
                             }
 
-                            // تقسيم القسم إلى صفحات إذا كان أطول من صفحة واحدة
+                            // تقسيم القسم إلى صفحات مع هامش علوي وسفلي ثابت
                             while (remainingHeight > 0) {
-                                const currentHeight = Math.min(remainingHeight, pageHeight);
-                                doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, 'FAST');
+                                const yPosition = 10; // هامش علوي ثابت 10mm
+                                doc.addImage(imgData, 'JPEG', 10, yPosition, imgWidth, imgHeight, undefined, 'FAST', 0, yOffset);
                                 remainingHeight -= pageHeight;
-                                yOffset += pageHeight * (canvas.width / imgWidth);
+                                yOffset += pageHeight;
                                 if (remainingHeight > 0) {
                                     doc.addPage();
                                 }
@@ -957,6 +961,8 @@
                         inputSection.style.lineHeight = '1.6';
                         inputSection.style.margin = '10px';
                         inputSection.style.overflow = 'visible';
+                        inputSection.style.display = 'block';
+                        inputSection.style.visibility = 'visible';
 
                         const inputHeader = document.createElement('div');
                         inputHeader.style.background = '#9B2D30';
@@ -1063,10 +1069,17 @@
                         footerElement.style.fontSize = '10px';
                         footerElement.style.textAlign = 'right';
                         footerElement.style.background = '#FFF';
+                        footerElement.style.display = 'block';
+                        footerElement.style.visibility = 'visible';
                         for (let i = 1; i <= finalPageCount; i++) {
                             footerElement.textContent = `صفحة ${i} من ${finalPageCount} | ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}`;
                             document.body.appendChild(footerElement);
-                            const footerCanvas = await html2canvas(footerElement, { scale: 2, backgroundColor: '#FFF' });
+                            const footerCanvas = await html2canvas(footerElement, { 
+                                scale: 2, 
+                                backgroundColor: '#FFF',
+                                scrollX: 0,
+                                scrollY: 0
+                            });
                             const footerImgData = footerCanvas.toDataURL('image/jpeg', 0.95);
                             doc.setPage(i);
                             doc.addImage(footerImgData, 'JPEG', 10, 287 - 5, 190, (footerCanvas.height * 190) / footerCanvas.width);
