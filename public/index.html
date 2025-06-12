@@ -813,11 +813,6 @@
 
                         // دالة لإنشاء قسم كـ HTML
                         const createSectionElement = (title, items, isTable = false, isSubsection = false) => {
-                            if (!items || !Array.isArray(items) || items.length === 0) {
-                                console.warn(`قسم "${sanitizeText(title)}" فارغ، لن يتم إضافته`);
-                                return null;
-                            }
-
                             const section = document.createElement('div');
                             section.style.fontFamily = 'Amiri, Arial, sans-serif';
                             section.style.direction = 'rtl';
@@ -894,11 +889,7 @@
 
                         // دالة لتحويل قسم إلى صورة وإضافته إلى PDF
                         const addSectionToPDF = async (sectionElement, sectionName) => {
-                            if (!sectionElement) {
-                                console.warn(`قسم "${sanitizeText(sectionName)}" لم يتم إنشاؤه بسبب بيانات فارغة`);
-                                return;
-                            }
-
+                            console.log(`بدء إضافة قسم "${sanitizeText(sectionName)}"`);
                             document.body.appendChild(sectionElement);
                             const canvas = await html2canvas(sectionElement, {
                                 scale: 2,
@@ -917,6 +908,13 @@
 
                             console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
+                            // إضافة صفحة جديدة قبل بدء القسم إذا لم تكن الصفحة الحالية فارغة
+                            const currentPage = doc.internal.getCurrentPageInfo();
+                            if (currentPage.pageContext.hasContent) {
+                                doc.addPage();
+                            }
+
+                            // تقسيم القسم إلى صفحات إذا كان أطول من صفحة واحدة
                             while (remainingHeight > 0) {
                                 const currentHeight = Math.min(remainingHeight, pageHeight);
                                 doc.addImage(imgData, 'JPEG', 10, 10 - yOffset / (canvas.width / imgWidth), imgWidth, imgHeight, undefined, 'FAST');
@@ -935,9 +933,6 @@
                         }
                         console.log('بيانات pdfData:', JSON.stringify(pdfData, null, 2));
 
-                        // الحد الأقصى للعناصر في كل قسم
-                        const maxItemsPerSection = 10;
-
                         // 1. معلومات الشركة
                         const companyItems = [];
                         if (pdfData.companyInfo?.name) companyItems.push(`الاسم: ${sanitizeText(pdfData.companyInfo.name)}`);
@@ -945,13 +940,7 @@
                         if (pdfData.companyInfo?.contact?.phone) companyItems.push(`الهاتف: ${sanitizeText(pdfData.companyInfo.contact.phone)}`);
                         if (pdfData.companyInfo?.contact?.email) companyItems.push(`البريد الإلكتروني: ${sanitizeText(pdfData.companyInfo.contact.email)}`);
                         if (pdfData.companyInfo?.contact?.address) companyItems.push(`العنوان: ${sanitizeText(pdfData.companyInfo.contact.address)}`);
-                        
-                        console.log('معلومات الشركة:', companyItems);
-                        if (companyItems.length > 0) {
-                            await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
-                        } else {
-                            console.warn('لم يتم إنشاء قسم "معلومات الشركة" بسبب عدم وجود بيانات');
-                        }
+                        await addSectionToPDF(createSectionElement('معلومات الشركة', companyItems, false), 'معلومات الشركة');
 
                         // 2. بيانات المدخلات
                         const inputSection = document.createElement('div');
@@ -983,94 +972,63 @@
                         `;
                         inputSection.appendChild(inputHeader);
 
-                        let hasInputContent = false;
-
-                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => {
-                            if (field.label) {
-                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}`;
-                            }
-                            return null;
-                        }).filter(item => item !== null);
-                        console.log('بيانات العميل:', customerItems);
+                        const customerItems = (pdfData.inputData?.customer?.fields || []).map(field => 
+                            field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}` : null
+                        ).filter(item => item !== null);
                         if (customerItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.customer?.title || 'بيانات العميل', customerItems, false, true));
-                            hasInputContent = true;
                         }
 
-                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => {
-                            if (field.label) {
-                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}`;
-                            }
-                            return null;
-                        }).filter(item => item !== null);
-                        console.log('بيانات الموقع:', locationItems);
+                        const locationItems = (pdfData.inputData?.location?.fields || []).map(field => 
+                            field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}` : null
+                        ).filter(item => item !== null);
                         if (locationItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
-                            hasInputContent = true;
                         }
 
-                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => {
-                            if (field.label) {
-                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}`;
-                            }
-                            return null;
-                        }).filter(item => item !== null);
-                        console.log('بيانات الأرض:', landItems);
+                        const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
+                            field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
+                        ).filter(item => item !== null);
                         if (landItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
-                            hasInputContent = true;
                         }
 
-                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => {
-                            if (field.label) {
-                                return `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}`;
-                            }
-                            return null;
-                        }).filter(item => item !== null);
-                        console.log('بيانات المبنى:', buildingItems);
+                        const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => 
+                            field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
+                        ).filter(item => item !== null);
                         if (buildingItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
-                            hasInputContent = true;
                         }
 
-                        if (hasInputContent) {
-                            console.log('إضافة قسم "بيانات المدخلات"');
-                            await addSectionToPDF(inputSection, 'بيانات المدخلات');
-                        } else {
-                            console.warn('لم يتم إنشاء قسم "بيانات المدخلات" بسبب عدم وجود بيانات');
-                        }
+                        await addSectionToPDF(inputSection, 'بيانات المدخلات');
 
                         // 3. الكميات
                         const quantitiesItems = [];
-                        (pdfData.quantities?.sections || []).slice(0, maxItemsPerSection).forEach(section => {
+                        (pdfData.quantities?.sections || []).forEach(section => {
                             if (section.subtitle) {
                                 quantitiesItems.push([sanitizeText(section.subtitle), '']);
                             }
-                            (section.items || []).slice(0, maxItemsPerSection).forEach(item => {
+                            (section.items || []).forEach(item => {
                                 if (item.name && item.value !== undefined) {
                                     quantitiesItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`]);
                                 }
                             });
                         });
-                        if (quantitiesItems.length > 0) {
-                            await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true), 'تفاصيل الكميات الهندسية');
-                        }
+                        await addSectionToPDF(createSectionElement('تفاصيل الكميات الهندسية', quantitiesItems, true), 'تفاصيل الكميات الهندسية');
 
                         // 4. الحسابات الإنشائية
                         const engineeringItems = [];
-                        (pdfData.engineering?.sections || []).slice(0, maxItemsPerSection).forEach(section => {
+                        (pdfData.engineering?.sections || []).forEach(section => {
                             if (section.subtitle) {
                                 engineeringItems.push([sanitizeText(section.subtitle), '']);
                             }
-                            (section.items || []).slice(0, maxItemsPerSection).forEach(item => {
+                            (section.items || []).forEach(item => {
                                 if (item.name && item.value !== undefined) {
                                     engineeringItems.push([sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`]);
                                 }
                             });
                         });
-                        if (engineeringItems.length > 0) {
-                            await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true), 'الحسابات الإنشائية');
-                        }
+                        await addSectionToPDF(createSectionElement('الحسابات الإنشائية', engineeringItems, true), 'الحسابات الإنشائية');
 
                         // 5. التكاليف
                         const costItems = (pdfData.costs?.items || []).map(item => 
@@ -1079,17 +1037,13 @@
                         if (pdfData.costs?.total !== undefined) {
                             costItems.push(['الإجمالي', `${sanitizeText(pdfData.costs.total)} د.ع`]);
                         }
-                        if (costItems.length > 0) {
-                            await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
-                        }
+                        await addSectionToPDF(createSectionElement('تفاصيل التكاليف', costItems, true), 'تفاصيل التكاليف');
 
                         // 6. أسعار المواد
                         const materialItems = (pdfData.materialPrices?.items || []).map(item => 
                             item.name && item.value !== undefined ? [sanitizeText(item.name), `${sanitizeText(item.value)} ${sanitizeText(item.unit || '')}`] : null
                         ).filter(item => item !== null);
-                        if (materialItems.length > 0) {
-                            await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
-                        }
+                        await addSectionToPDF(createSectionElement('أسعار المواد المعتمدة (2025)', materialItems, true), 'أسعار المواد');
 
                         // إزالة الصفحة الفارغة الأخيرة
                         const pageCount = doc.internal.getNumberOfPages();
