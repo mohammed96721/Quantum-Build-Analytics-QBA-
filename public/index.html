@@ -898,8 +898,8 @@
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
-                                windowHeight: sectionElement.scrollHeight + 100, // هامش إضافي أكبر
-                                scrollX: 0, // التأكد من أن القسم مرئي بالكامل
+                                windowHeight: sectionElement.scrollHeight + 200, // هامش إضافي كبير
+                                scrollX: 0,
                                 scrollY: 0,
                                 backgroundColor: '#FFF'
                             });
@@ -907,8 +907,7 @@
                             const imgWidth = 190; // عرض A4 مطروحًا الهوامش (210mm - 10mm * 2)
                             const imgHeight = (canvas.height * imgWidth) / canvas.width;
                             const pageHeight = 277; // ارتفاع A4 مطروحًا الهوامش (297mm - 10mm * 2)
-                            let remainingHeight = imgHeight;
-                            let yOffset = 0;
+                            let position = 0;
 
                             console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
@@ -918,13 +917,13 @@
                                 doc.addPage();
                             }
 
-                            // تقسيم القسم إلى صفحات مع هامش علوي وسفلي ثابت
-                            while (remainingHeight > 0) {
+                            // تقسيم القسم إلى صفحات مع ضبط الإزاحة
+                            while (position < imgHeight) {
                                 const yPosition = 10; // هامش علوي ثابت 10mm
-                                doc.addImage(imgData, 'JPEG', 10, yPosition, imgWidth, imgHeight, undefined, 'FAST', 0, yOffset);
-                                remainingHeight -= pageHeight;
-                                yOffset += pageHeight;
-                                if (remainingHeight > 0) {
+                                const remainingHeight = Math.min(pageHeight, imgHeight - position);
+                                doc.addImage(imgData, 'JPEG', 10, yPosition, imgWidth, remainingHeight, undefined, 'FAST', 0, position);
+                                position += pageHeight;
+                                if (position < imgHeight) {
                                     doc.addPage();
                                 }
                             }
