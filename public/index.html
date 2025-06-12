@@ -836,8 +836,11 @@
                                 header.style.padding = '12px';
                                 header.style.textAlign = 'center';
                                 header.style.borderBottom = '1px solid #C19A6B';
+                                const logoSrc = pdfData.companyInfo?.logo && pdfData.companyInfo.logo !== 'path/to/logo.png' 
+                                    ? sanitizeText(pdfData.companyInfo.logo) 
+                                    : 'https://via.placeholder.com/32';
                                 header.innerHTML = `
-                                    <img src="${sanitizeText(pdfData.companyInfo?.logo) || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
+                                    <img src="${logoSrc}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" />
                                     <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
                                     <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
                                     <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
@@ -892,6 +895,10 @@
                         const addSectionToPDF = async (sectionElement, sectionName) => {
                             console.log(`بدء إضافة قسم "${sanitizeText(sectionName)}"`);
                             document.body.appendChild(sectionElement);
+
+                            // إضافة تأخير صغير لضمان اكتمال تحميل العناصر
+                            await new Promise(resolve => setTimeout(resolve, 100));
+
                             const canvas = await html2canvas(sectionElement, {
                                 scale: 2,
                                 useCORS: true,
@@ -910,8 +917,8 @@
 
                             console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
-                            const currentPage = doc.internal.getCurrentPageInfo();
-                            if (currentPage.pageContext.hasContent) {
+                            // إضافة صفحة جديدة للقسم الأول أو إذا كانت الصفحة الحالية تحتوي على محتوى
+                            if (sectionName === 'معلومات الشركة' || doc.internal.getCurrentPageInfo().pageContext.hasContent) {
                                 doc.addPage();
                             }
 
@@ -962,8 +969,11 @@
                         inputHeader.style.padding = '12px';
                         inputHeader.style.textAlign = 'center';
                         inputHeader.style.borderBottom = '1px solid #C19A6B';
+                        const logoSrcInput = pdfData.companyInfo?.logo && pdfData.companyInfo.logo !== 'path/to/logo.png' 
+                            ? sanitizeText(pdfData.companyInfo.logo) 
+                            : 'https://via.placeholder.com/32';
                         inputHeader.innerHTML = `
-                            <img src="${sanitizeText(pdfData.companyInfo?.logo) || 'https://via.placeholder.com/32'}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" onerror="this.style.display='none'"/>
+                            <img src="${logoSrcInput}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" />
                             <h1 style="font-size: 18px; margin: 3px 0;">بيانات المدخلات</h1>
                             <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
                             <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
@@ -987,7 +997,7 @@
                         const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
                         ).filter(item => item !== null);
-                        if (landItems.length > 0) {
+                        if (locationItems.length > 0) {
                             inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
                         }
 
