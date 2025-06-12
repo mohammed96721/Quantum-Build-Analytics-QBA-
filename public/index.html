@@ -836,11 +836,7 @@
                                 header.style.padding = '12px';
                                 header.style.textAlign = 'center';
                                 header.style.borderBottom = '1px solid #C19A6B';
-                                const logoSrc = pdfData.companyInfo?.logo && pdfData.companyInfo.logo !== 'path/to/logo.png' 
-                                    ? sanitizeText(pdfData.companyInfo.logo) 
-                                    : 'https://via.placeholder.com/32';
                                 header.innerHTML = `
-                                    <img src="${logoSrc}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" />
                                     <h1 style="font-size: 18px; margin: 3px 0;">${sanitizeText(title)}</h1>
                                     <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
                                     <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
@@ -896,15 +892,15 @@
                             console.log(`بدء إضافة قسم "${sanitizeText(sectionName)}"`);
                             document.body.appendChild(sectionElement);
 
-                            // إضافة تأخير صغير لضمان اكتمال تحميل العناصر
-                            await new Promise(resolve => setTimeout(resolve, 100));
+                            // إضافة تأخير لضمان اكتمال تحميل العناصر
+                            await new Promise(resolve => setTimeout(resolve, 200));
 
                             const canvas = await html2canvas(sectionElement, {
                                 scale: 2,
                                 useCORS: true,
                                 logging: true,
                                 windowWidth: 794,
-                                windowHeight: sectionElement.scrollHeight + 200,
+                                windowHeight: sectionElement.scrollHeight + 300, // زيادة الهامش
                                 scrollX: 0,
                                 scrollY: 0,
                                 backgroundColor: '#FFF'
@@ -917,16 +913,16 @@
 
                             console.log(`قسم "${sanitizeText(sectionName)}": ارتفاع الصورة ${imgHeight} مم, عدد الصفحات المتوقع ${Math.ceil(imgHeight / pageHeight)}`);
 
-                            // إضافة صفحة جديدة للقسم الأول أو إذا كانت الصفحة الحالية تحتوي على محتوى
-                            if (sectionName === 'معلومات الشركة' || doc.internal.getCurrentPageInfo().pageContext.hasContent) {
+                            // إضافة صفحة جديدة إذا لزم الأمر
+                            if (doc.internal.getNumberOfPages() === 0 || doc.internal.getCurrentPageInfo().pageContext.hasContent) {
                                 doc.addPage();
                             }
 
+                            // تقسيم الصورة عبر الصفحات
                             while (position < imgHeight) {
-                                const yPosition = 10;
                                 const remainingHeight = Math.min(pageHeight, imgHeight - position);
-                                doc.addImage(imgData, 'JPEG', 10, yPosition, imgWidth, remainingHeight, undefined, 'FAST', 0, position);
-                                position += pageHeight;
+                                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, remainingHeight, undefined, 'FAST', 0, position / (imgWidth / canvas.width));
+                                position += remainingHeight;
                                 if (position < imgHeight) {
                                     doc.addPage();
                                 }
@@ -962,6 +958,7 @@
                         inputSection.style.overflow = 'visible';
                         inputSection.style.display = 'block';
                         inputSection.style.visibility = 'visible';
+                        inputSection.style.minHeight = '500px'; // ضمان ارتفاع كافٍ
 
                         const inputHeader = document.createElement('div');
                         inputHeader.style.background = '#9B2D30';
@@ -969,11 +966,7 @@
                         inputHeader.style.padding = '12px';
                         inputHeader.style.textAlign = 'center';
                         inputHeader.style.borderBottom = '1px solid #C19A6B';
-                        const logoSrcInput = pdfData.companyInfo?.logo && pdfData.companyInfo.logo !== 'path/to/logo.png' 
-                            ? sanitizeText(pdfData.companyInfo.logo) 
-                            : 'https://via.placeholder.com/32';
                         inputHeader.innerHTML = `
-                            <img src="${logoSrcInput}" alt="Logo" style="position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #FFF;" />
                             <h1 style="font-size: 18px; margin: 3px 0;">بيانات المدخلات</h1>
                             <p style="font-size: 13px; margin: 3px 0;">إعداد: ${sanitizeText(pdfData.companyInfo?.name) || 'غير متوفر'}</p>
                             <p style="font-size: 13px; margin: 3px 0;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
@@ -991,21 +984,21 @@
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')}` : null
                         ).filter(item => item !== null);
                         if (locationItems.length > 0) {
-                            inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'بيانات الموقع', locationItems, false, true));
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.location?.title || 'معلومات الموقع', locationItems, false, true));
                         }
 
                         const landItems = (pdfData.inputData?.land?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
                         ).filter(item => item !== null);
-                        if (locationItems.length > 0) {
-                            inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'بيانات الأرض', landItems, false, true));
+                        if (landItems.length > 0) {
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.land?.title || 'معلومات الأرض', landItems, false, true));
                         }
 
                         const buildingItems = (pdfData.inputData?.building?.fields || []).map(field => 
                             field.label ? `${sanitizeText(field.label)}: ${sanitizeText(field.value || 'غير متوفر')} ${sanitizeText(field.unit || '')}` : null
                         ).filter(item => item !== null);
                         if (buildingItems.length > 0) {
-                            inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'بيانات المبنى', buildingItems, false, true));
+                            inputSection.appendChild(createSectionElement(pdfData.inputData?.building?.title || 'تفاصيل المبنى', buildingItems, false, true));
                         }
 
                         await addSectionToPDF(inputSection, 'بيانات المدخلات');
